@@ -1,0 +1,26 @@
+#!/bin/bash
+
+linking=yes
+for arg in "$@" ; do
+  case "$arg" in
+  -c|-S|-E|-M|-MM|MMD)
+    linking=no
+  ;;
+  esac
+done
+
+if [ $linking == yes ] ; then
+    if [ TRUE == FALSE ] ; then
+  	link_flags="-L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib -L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib -larcher"
+    else
+  	link_flags="-L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib"
+    fi
+else
+  link_flags=""
+fi
+
+/usr/bin/clang++ -Xclang -load -Xclang /home/hmatar/Research/FlowSanitizer/bin/lib/LLVMArcher.so   \
+   -Xclang -load -Xclang ./build/libFlowSanitizer.so  \
+   -I/home/hmatar/Research/FlowSanitizer/bin/include   \
+   -fopenmp  $link_flags -g "$@" -L/home/hmatar/Research/FlowSanitizer/src/runtime -lflowsan	\
+   -L/home/hmatar/Research/FlowSanitizer/src/runtime/build -lLogger

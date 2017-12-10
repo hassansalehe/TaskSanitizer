@@ -1,0 +1,36 @@
+#/////////////////////////////////////////////////////////////////
+#//  DFinspec: a lightweight non-determinism checking
+#//          tool for shared memory DataFlow applications
+#//
+#//    Copyright (c) 2015 - 2017 Hassan Salehe Matar
+#//      Copying or using this code by any means whatsoever
+#//      without consent of the owner is strictly prohibited.
+#//
+#//   Contact: hmatar-at-ku-dot-edu-dot-tr
+#//
+#/////////////////////////////////////////////////////////////////
+
+cmake_minimum_required(VERSION 3.4.3)
+
+find_package(LLVM REQUIRED CONFIG)
+add_definitions(${LLVM_DEFINITIONS})
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+
+# List source files for libraries and compiler passes.
+add_library(FlowSanitizer MODULE FlowSanitizer.cpp)
+
+# Use C++11 to compile our pass (i.e., supply -std=c++11).
+target_compile_features(FlowSanitizer PRIVATE cxx_range_for cxx_auto_type)
+
+# Add compiler flags. LLVM is (typically) built with no C++ RTTI.
+set_target_properties(FlowSanitizer PROPERTIES
+     COMPILE_FLAGS "-g -O3 -std=c++11 -fno-rtti -fPIC")
+
+# Get proper shared-library behavior (where symbols are not necessarily
+# resolved when the shared library is linked) on OS X.
+if(APPLE)
+    set_target_properties(
+    FlowSanitizer PROPERTIES
+    LINK_FLAGS "-undefined dynamic_lookup")
+endif(APPLE)
