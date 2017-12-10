@@ -1,24 +1,51 @@
-//===-- ThreadSanitizer.cpp - race detector -------------------------------===//
+//////////////////////////////////////////////////////////////
 //
-//                     The LLVM Compiler Infrastructure
+// FlowSanitizer.cpp
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Copyright (c) 2017, Hassan Salehe Matar
+// All rights reserved.
 //
-//===----------------------------------------------------------------------===//
+// This file is part of FlowSanitizer. For details, see
+// https://github.com/hassansalehe/FlowSanitizer. Please also
+// see the LICENSE file for additional BSD notice
 //
-// This file is a part of ThreadSanitizer, a race detector.
+// Redistribution and use in source and binary forms, with
+// or without modification, are permitted provided that
+// the following conditions are met:
 //
-// The tool is under development, for the details about previous versions see
-// http://code.google.com/p/data-race-test
+// * Redistributions of source code must retain the above
+//   copyright notice, this list of conditions and the
+//   following disclaimer.
 //
-// The instrumentation phase is quite simple:
-//   - Insert calls to run-time library before every memory access.
-//      - Optimizations may apply to avoid instrumenting some of the accesses.
-//   - Insert calls at function entry/exit.
-// The rest is handled by the run-time library.
-//===----------------------------------------------------------------------===//
+// * Redistributions in binary form must reproduce the
+//   above copyright notice, this list of conditions and
+//   the following disclaimer in the documentation and/or
+//   other materials provided with the distribution.
+//
+// * Neither the name of the copyright holder nor the names
+//   of its contributors may be used to endorse or promote
+//   products derived from this software without specific
+//   prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+// CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+// SUCH DAMAGE.
+//
+//////////////////////////////////////////////////////////////
 
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/SmallString.h"
@@ -46,26 +73,27 @@
 #include "llvm/Transforms/Utils/EscapeEnumerator.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
+#include "llvm/Pass.h"
 
 using namespace llvm;
 
-#define DEBUG_TYPE "tsan"
+#define DEBUG_TYPE "flowsan"
 
 static cl::opt<bool>  ClInstrumentMemoryAccesses(
-    "tsan-instrument-memory-accesses", cl::init(true),
+    "flowsan-instrument-memory-accesses", cl::init(true),
     cl::desc("Instrument memory accesses"), cl::Hidden);
 static cl::opt<bool>  ClInstrumentFuncEntryExit(
-    "tsan-instrument-func-entry-exit", cl::init(true),
+    "flowsan-instrument-func-entry-exit", cl::init(true),
     cl::desc("Instrument function entry and exit"), cl::Hidden);
 static cl::opt<bool>  ClHandleCxxExceptions(
-    "tsan-handle-cxx-exceptions", cl::init(true),
+    "flowsan-handle-cxx-exceptions", cl::init(true),
     cl::desc("Handle C++ exceptions (insert cleanup blocks for unwinding)"),
     cl::Hidden);
 static cl::opt<bool>  ClInstrumentAtomics(
-    "tsan-instrument-atomics", cl::init(true),
+    "flowsan-instrument-atomics", cl::init(true),
     cl::desc("Instrument atomics"), cl::Hidden);
 static cl::opt<bool>  ClInstrumentMemIntrinsics(
-    "tsan-instrument-memintrinsics", cl::init(true),
+    "flowsan-instrument-memintrinsics", cl::init(true),
     cl::desc("Instrument memintrinsics (memset/memcpy/memmove)"), cl::Hidden);
 
 STATISTIC(NumInstrumentedReads, "Number of instrumented reads");
@@ -75,6 +103,7 @@ STATISTIC(NumOmittedReadsBeforeWrite,
 STATISTIC(NumAccessesWithBadSize, "Number of accesses with bad size");
 STATISTIC(NumInstrumentedVtableWrites, "Number of vtable ptr writes");
 STATISTIC(NumInstrumentedVtableReads, "Number of vtable ptr reads");
+
 STATISTIC(NumOmittedReadsFromConstantGlobals,
           "Number of reads from constant globals");
 STATISTIC(NumOmittedReadsFromVtable, "Number of vtable reads");
@@ -85,14 +114,35 @@ static const char *const kTsanInitName = "__tsan_init";
 
 namespace {
 
-/// ThreadSanitizer: instrument the code in module to find races.
-struct ThreadSanitizer : public FunctionPass {
-  ThreadSanitizer() : FunctionPass(ID) {}
-  StringRef getPassName() const override;
-  void getAnalysisUsage(AnalysisUsage &AU) const override;
-  bool runOnFunction(Function &F) override;
-  bool doInitialization(Module &M) override;
-  static char ID;  // Pass identification, replacement for typeid.
+// Function pass to instrument shared memory accesses in OpenMP programs.
+struct FlowSanitizer : public llvm::FunctionPass {
+
+  static char ID;
+  FlowSanitizer() : FunctionPass(ID) {}
+
+  llvm::StringRef getPassName() const override {
+    return "FlowSanitizer";
+  }
+
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.addRequired<TargetLibraryInfoWrapperPass>();
+  }
+
+  bool doInitialization(llvm::Module &M) override {
+
+    const llvm::DataLayout &DL = M.getDataLayout();
+    IntptrTy = DL.getIntPtrType(M.getContext());
+// HASSAN:
+//    std::tie(TsanCtorFunction, std::ignore) = createSanitizerCtorAndInitFunctions(
+//      M, kTsanModuleCtorName, kTsanInitName, /*InitArgTypes=*/{},
+//      /*InitArgs=*/{});
+//
+//    appendToGlobalCtors(M, TsanCtorFunction, 0);
+
+    return true;
+  }
+
+  bool runOnFunction(llvm::Function &F) override;
 
  private:
   void initializeCallbacks(Module &M);
@@ -129,31 +179,21 @@ struct ThreadSanitizer : public FunctionPass {
   Function *TsanVptrLoad;
   Function *MemmoveFn, *MemcpyFn, *MemsetFn;
   Function *TsanCtorFunction;
-};
-}  // namespace
 
-char ThreadSanitizer::ID = 0;
-INITIALIZE_PASS_BEGIN(
-    ThreadSanitizer, "tsan",
-    "ThreadSanitizer: detects data races.",
-    false, false)
-INITIALIZE_PASS_DEPENDENCY(TargetLibraryInfoWrapperPass)
-INITIALIZE_PASS_END(
-    ThreadSanitizer, "tsan",
-    "ThreadSanitizer: detects data races.",
-    false, false)
+}; // end of FlowSanitizer
+} // end of namespace
 
-StringRef ThreadSanitizer::getPassName() const { return "ThreadSanitizer"; }
+char FlowSanitizer::ID = 1;
 
-void ThreadSanitizer::getAnalysisUsage(AnalysisUsage &AU) const {
-  AU.addRequired<TargetLibraryInfoWrapperPass>();
-}
+static void registerFlowSanitizer(
+  const llvm::PassManagerBuilder &,
+  llvm::legacy::PassManagerBase &PM) { PM.add(new FlowSanitizer()); }
 
-FunctionPass *llvm::createThreadSanitizerPass() {
-  return new ThreadSanitizer();
-}
+static llvm::RegisterStandardPasses regPass(
+   llvm::PassManagerBuilder::EP_EarlyAsPossible,
+   registerFlowSanitizer);
 
-void ThreadSanitizer::initializeCallbacks(Module &M) {
+void FlowSanitizer::initializeCallbacks(Module &M) {
   IRBuilder<> IRB(M.getContext());
   AttributeSet Attr;
   Attr = Attr.addAttribute(M.getContext(), AttributeSet::FunctionIndex, Attribute::NoUnwind);
@@ -251,18 +291,6 @@ void ThreadSanitizer::initializeCallbacks(Module &M) {
                             IRB.getInt32Ty(), IntptrTy, nullptr));
 }
 
-bool ThreadSanitizer::doInitialization(Module &M) {
-  const DataLayout &DL = M.getDataLayout();
-  IntptrTy = DL.getIntPtrType(M.getContext());
-  std::tie(TsanCtorFunction, std::ignore) = createSanitizerCtorAndInitFunctions(
-      M, kTsanModuleCtorName, kTsanInitName, /*InitArgTypes=*/{},
-      /*InitArgs=*/{});
-
-  appendToGlobalCtors(M, TsanCtorFunction, 0);
-
-  return true;
-}
-
 static bool isVtableAccess(Instruction *I) {
   if (MDNode *Tag = I->getMetadata(LLVMContext::MD_tbaa))
     return Tag->isTBAAVtableAccess();
@@ -301,7 +329,7 @@ static bool shouldInstrumentReadWriteFromAddress(Value *Addr) {
   return true;
 }
 
-bool ThreadSanitizer::addrPointsToConstantData(Value *Addr) {
+bool FlowSanitizer::addrPointsToConstantData(Value *Addr) {
   // If this is a GEP, just analyze its pointer operand.
   if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr))
     Addr = GEP->getPointerOperand();
@@ -334,7 +362,7 @@ bool ThreadSanitizer::addrPointsToConstantData(Value *Addr) {
 //
 // 'Local' is a vector of insns within the same BB (no calls between).
 // 'All' is a vector of insns that will be instrumented.
-void ThreadSanitizer::chooseInstructionsToInstrument(
+void FlowSanitizer::chooseInstructionsToInstrument(
     SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
     const DataLayout &DL) {
   SmallSet<Value*, 8> WriteTargets;
@@ -390,7 +418,7 @@ static bool isAtomic(Instruction *I) {
   return false;
 }
 
-void ThreadSanitizer::InsertRuntimeIgnores(Function &F) {
+void FlowSanitizer::InsertRuntimeIgnores(Function &F) {
   IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   IRB.CreateCall(TsanIgnoreBegin);
   EscapeEnumerator EE(F, "tsan_ignore_cleanup", ClHandleCxxExceptions);
@@ -399,7 +427,9 @@ void ThreadSanitizer::InsertRuntimeIgnores(Function &F) {
   }
 }
 
-bool ThreadSanitizer::runOnFunction(Function &F) {
+//HASSAN======================
+
+bool FlowSanitizer::runOnFunction(Function &F) {
   // This is required to prevent instrumenting call to __tsan_init from within
   // the module constructor.
   if (&F == TsanCtorFunction)
@@ -411,7 +441,7 @@ bool ThreadSanitizer::runOnFunction(Function &F) {
   SmallVector<Instruction*, 8> MemIntrinCalls;
   bool Res = false;
   bool HasCalls = false;
-  bool SanitizeFunction = F.hasFnAttribute(Attribute::SanitizeThread);
+  bool SanitizeFunction = true; //HASSAN F.hasFnAttribute(Attribute::SanitizeThread);
   const DataLayout &DL = F.getParent()->getDataLayout();
   const TargetLibraryInfo *TLI =
       &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
@@ -443,6 +473,7 @@ bool ThreadSanitizer::runOnFunction(Function &F) {
   // Instrument memory accesses only if we want to report bugs in the function.
   if (ClInstrumentMemoryAccesses && SanitizeFunction)
     for (auto Inst : AllLoadsAndStores) {
+      errs() << *Inst << "\n";
       Res |= instrumentLoadOrStore(Inst, DL);
     }
 
@@ -481,7 +512,7 @@ bool ThreadSanitizer::runOnFunction(Function &F) {
   return Res;
 }
 
-bool ThreadSanitizer::instrumentLoadOrStore(Instruction *I,
+bool FlowSanitizer::instrumentLoadOrStore(Instruction *I,
                                             const DataLayout &DL) {
   IRBuilder<> IRB(I);
   bool IsWrite = isa<StoreInst>(*I);
@@ -563,7 +594,7 @@ static ConstantInt *createOrdering(IRBuilder<> *IRB, AtomicOrdering ord) {
 // Since tsan is running after everyone else, the calls should not be
 // replaced back with intrinsics. If that becomes wrong at some point,
 // we will need to call e.g. __tsan_memset to avoid the intrinsics.
-bool ThreadSanitizer::instrumentMemIntrinsic(Instruction *I) {
+bool FlowSanitizer::instrumentMemIntrinsic(Instruction *I) {
   IRBuilder<> IRB(I);
   if (MemSetInst *M = dyn_cast<MemSetInst>(I)) {
     IRB.CreateCall(
@@ -591,7 +622,7 @@ bool ThreadSanitizer::instrumentMemIntrinsic(Instruction *I) {
 // The following page contains more background information:
 // http://www.hpl.hp.com/personal/Hans_Boehm/c++mm/
 
-bool ThreadSanitizer::instrumentAtomic(Instruction *I, const DataLayout &DL) {
+bool FlowSanitizer::instrumentAtomic(Instruction *I, const DataLayout &DL) {
   IRBuilder<> IRB(I);
   if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
     Value *Addr = LI->getPointerOperand();
@@ -682,7 +713,7 @@ bool ThreadSanitizer::instrumentAtomic(Instruction *I, const DataLayout &DL) {
   return true;
 }
 
-int ThreadSanitizer::getMemoryAccessFuncIndex(Value *Addr,
+int FlowSanitizer::getMemoryAccessFuncIndex(Value *Addr,
                                               const DataLayout &DL) {
   Type *OrigPtrTy = Addr->getType();
   Type *OrigTy = cast<PointerType>(OrigPtrTy)->getElementType();
