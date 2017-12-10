@@ -5,3 +5,14 @@
 *.so
 a.out
 *~
+HBlog_*.txt
+*.iir
+ThreadSanitizer.cpp
+Tracelog_*.txt
+auto.sh
+bin/
+build/
+flowGraph.js
+flowGraph.sif
+openmp/
+test.cpp
