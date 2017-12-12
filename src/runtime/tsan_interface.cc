@@ -22,7 +22,6 @@
 
 // local to a thread(and thus a task)
 thread_local TaskInfo taskInfo;
-address funcName = (address)"FunctionDummy";
 
 lint getMemoryValue( address addr, ulong size )
 {
@@ -110,43 +109,43 @@ void __tsan_flush_memory() {
   printf("  Flowsan: flush memory\n");
 }
 
-void __tsan_read1(void *addr) {
-  printf("  Flowsan:  read1\n");
+void __tsan_read1(void *addr, int lineNo, address funcName) {
+  INS_AdfMemRead(addr, 1, lineNo, funcName);
 }
-void __tsan_read2(void *addr) {
+void __tsan_read2(void *addr, int lineNo, address funcName) {
   printf("  Flowsan: read2\n");
 }
-void __tsan_read4(void *addr) {
 
-  int lineNo = 42;
+void __tsan_read4(void *addr, int lineNo, address funcName) {
   INS_AdfMemRead((address)addr, 4, lineNo, funcName);
-  printf("  Flowsan: read4 %p\n", addr);
-}
-void __tsan_read8(void *addr) {
-  printf("  Flowsan: read8\n");
-}
-void __tsan_read16(void *addr) {
-  printf("  Flowsan: read16\n");
 }
 
-void __tsan_write1(void *addr) {
-  printf("  Flowsan: write1\n");
+void __tsan_read8(void *addr, int lineNo, address funcName) {
+  INS_AdfMemRead( addr, 8, lineNo, funcName );
 }
-void __tsan_write2(void *addr) {
-  printf("  Flowsan: write2\n");
-}
-void __tsan_write4(void *addr) {
-  lint value = rand();
-  int lineNo = 42;
 
+void __tsan_read16(void *addr, int lineNo, address funcName) {
+  INS_AdfMemRead( addr, 16, lineNo, funcName );
+}
+
+void __tsan_write1(void *addr, lint value, int lineNo, address funcName) {
   INS_AdfMemWrite((address)addr, value, lineNo, funcName);
-  printf("  Flowsan: write4 %p\n", addr);
 }
-void __tsan_write8(void *addr) {
-  printf("  Flowsan: write8\n");
+
+void __tsan_write2(void *addr, lint value, int lineNo, address funcName) {
+  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
 }
-void __tsan_write16(void *addr) {
-  printf("  Flowsan: write16\n");
+
+void __tsan_write4(void *addr, lint value, int lineNo, address funcName) {
+  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+}
+
+void __tsan_write8(void *addr, lint value, int lineNo, address funcName) {
+  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+}
+
+void __tsan_write16(void *addr, lint value, int lineNo, address funcName) {
+  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_unaligned_read2(const void *addr) {

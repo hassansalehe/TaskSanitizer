@@ -44,36 +44,11 @@
 //
 //////////////////////////////////////////////////////////////
 
-#include "llvm/Transforms/IPO/PassManagerBuilder.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/Transforms/Instrumentation.h"
-#include "llvm/ADT/SmallSet.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/Statistic.h"
-#include "llvm/ADT/StringExtras.h"
-#include "llvm/Analysis/CaptureTracking.h"
-#include "llvm/Analysis/TargetLibraryInfo.h"
-#include "llvm/Analysis/ValueTracking.h"
-#include "llvm/IR/DataLayout.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/IntrinsicInst.h"
-#include "llvm/IR/Intrinsics.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Metadata.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/ProfileData/InstrProf.h"
-#include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/MathExtras.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Utils/BasicBlockUtils.h"
-#include "llvm/Transforms/Utils/EscapeEnumerator.h"
-#include "llvm/Transforms/Utils/Local.h"
-#include "llvm/Transforms/Utils/ModuleUtils.h"
-#include "llvm/Pass.h"
+#include "Libs.h"
+
+#include "Excludes.h"
+#include "IIRlogger.h"
+#include "DebugInfoHelper.h"
 
 using namespace llvm;
 
@@ -158,11 +133,17 @@ struct FlowSanitizer : public llvm::FunctionPass {
 
   Type *IntptrTy;
   IntegerType *OrdTy;
+
+  // register every new instrumented function
+  Value *funcNamePtr = NULL;
+
   // Callbacks to run-time library are computed in doInitialization.
   Function *TsanFuncEntry;
   Function *TsanFuncExit;
   Function *TsanIgnoreBegin;
   Function *TsanIgnoreEnd;
+
+  Function *INS_TaskBeginFunc;
   // Accesses sizes are powers of two: 1, 2, 4, 8, 16.
   static const size_t kNumberOfAccessSizes = 5;
   Function *TsanRead[kNumberOfAccessSizes];
@@ -202,10 +183,16 @@ void FlowSanitizer::initializeCallbacks(Module &M) {
       "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
   TsanFuncExit = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("__tsan_func_exit", Attr, IRB.getVoidTy(), nullptr));
+
   TsanIgnoreBegin = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_ignore_thread_begin", Attr, IRB.getVoidTy(), nullptr));
+
   TsanIgnoreEnd = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_ignore_thread_end", Attr, IRB.getVoidTy(), nullptr));
+
+  INS_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
+      "INS_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+
   OrdTy = IRB.getInt32Ty();
   for (size_t i = 0; i < kNumberOfAccessSizes; ++i) {
     const unsigned ByteSize = 1U << i;
@@ -214,11 +201,13 @@ void FlowSanitizer::initializeCallbacks(Module &M) {
     std::string BitSizeStr = utostr(BitSize);
     SmallString<32> ReadName("__tsan_read" + ByteSizeStr);
     TsanRead[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-        ReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+        ReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
+        IRB.getInt64Ty(), nullptr));
 
     SmallString<32> WriteName("__tsan_write" + ByteSizeStr);
     TsanWrite[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-        WriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+        WriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
+        IRB.getInt64Ty(), IRB.getInt8Ty(), nullptr));
 
     SmallString<64> UnalignedReadName("__tsan_unaligned_read" + ByteSizeStr);
     TsanUnalignedRead[i] =
@@ -427,19 +416,38 @@ void FlowSanitizer::InsertRuntimeIgnores(Function &F) {
   }
 }
 
-//HASSAN======================
-
 bool FlowSanitizer::runOnFunction(Function &F) {
-  // This is required to prevent instrumenting call to __tsan_init from within
-  // the module constructor.
+  // This is required to prevent instrumenting call to
+  // __tsan_init from within the module constructor.
   if (&F == TsanCtorFunction)
     return false;
+
+  bool Res = false;
+
+  if(INS::isTaskBodyFunction(F.getName())) {
+
+    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+    Value *taskName = IRB.CreateGlobalStringPtr(
+      INS::getPlainFuncName(F), "taskName");
+
+    IRB.CreateCall(INS_TaskBeginFunc,
+                   {IRB.CreatePointerCast(taskName, IRB.getInt8PtrTy())});
+
+    IIRlog::logTaskBody(F, INS::getPlainFuncName(F));
+    Res = true;
+  }
+
+  // Register function name
+  StringRef funcName = INS::demangleName(F.getName());
+  IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+  funcNamePtr = IRB.CreateGlobalStringPtr(funcName, "functionName");
+
   initializeCallbacks(*F.getParent());
   SmallVector<Instruction*, 8> AllLoadsAndStores;
   SmallVector<Instruction*, 8> LocalLoadsAndStores;
   SmallVector<Instruction*, 8> AtomicAccesses;
   SmallVector<Instruction*, 8> MemIntrinCalls;
-  bool Res = false;
+
   bool HasCalls = false;
   bool SanitizeFunction = true; //HASSAN F.hasFnAttribute(Attribute::SanitizeThread);
   const DataLayout &DL = F.getParent()->getDataLayout();
@@ -563,7 +571,20 @@ bool FlowSanitizer::instrumentLoadOrStore(Instruction *I,
     OnAccessFunc = IsWrite ? TsanWrite[Idx] : TsanRead[Idx];
   else
     OnAccessFunc = IsWrite ? TsanUnalignedWrite[Idx] : TsanUnalignedRead[Idx];
-  IRB.CreateCall(OnAccessFunc, IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()));
+
+  if(IsWrite) {
+      Value *Val = cast<StoreInst>(I)->getValueOperand();
+      IRB.CreateCall(OnAccessFunc,
+          {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()), Val,
+           IRB.CreateIntCast(fsan::getLineNumber(I), IRB.getInt8Ty(), false),
+           IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
+  } else {
+    IRB.CreateCall(OnAccessFunc,
+        {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()),
+         IRB.CreateIntCast(fsan::getLineNumber(I), IRB.getInt8Ty(), false),
+         IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
+  }
+
   if (IsWrite) NumInstrumentedWrites++;
   else         NumInstrumentedReads++;
   return true;
