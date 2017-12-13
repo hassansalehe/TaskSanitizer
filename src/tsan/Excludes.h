@@ -35,7 +35,7 @@ namespace INS {
    StringRef tokenReceivingFunc;
 
    // function signature of a task body
-   StringRef taskSignature = ".omp_outlined.";
+   StringRef taskSignature = "BeginTask";
 
    bool DontInstrument(StringRef name) {
      int status = -1;

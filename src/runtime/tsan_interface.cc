@@ -19,6 +19,8 @@
 #include <thread>
 #include <cassert>
 #include <stdlib.h>
+#include <omp.h>
+#include <ompt.h>
 
 // local to a thread(and thus a task)
 thread_local TaskInfo taskInfo;
@@ -73,6 +75,88 @@ void INS_TaskFinishFunc( void* addr ) {
   INS::TaskEndLog(taskInfo);
 }
 
+//////////////////////////////////////////////////
+//// OMPT Callback functions
+/////////////////////////////////////////////////
+
+// to initialize the logger
+void __tsan_init() {
+  printf("  Flowsan: init\n");
+  INS::Init();
+}
+
+char* mambo = "Kangaroo";
+
+static ompt_get_thread_data_t ompt_get_thread_data;
+static ompt_get_unique_id_t ompt_get_unique_id;
+
+
+#define register_callback_t(name, type)                       \
+do{                                                           \
+  type f_##name = &on_##name;                                 \
+  if (ompt_set_callback(name, (ompt_callback_t)f_##name) ==   \
+      ompt_set_never)                                         \
+    printf("0: Could not register callback '" #name "'\n");   \
+}while(0)
+
+#define register_callback(name) register_callback_t(name, name##_t)
+
+static void
+on_ompt_callback_implicit_task(
+    ompt_scope_endpoint_t endpoint,
+    ompt_data_t *parallel_data,
+    ompt_data_t *task_data,
+    unsigned int team_size,
+    unsigned int thread_num) {
+  switch(endpoint) {
+    case ompt_scope_begin:
+      INS_TaskBeginFunc((void *)mambo);
+      break;
+    case ompt_scope_end:
+      INS_TaskFinishFunc((void *)mambo);
+      break;
+  }
+}
+
+/// Initialization and Termination callbacks
+
+static int dfinspec_initialize(
+  ompt_function_lookup_t lookup,
+  ompt_data_t *tool_data) {
+
+  // Register callbacks
+  ompt_set_callback_t ompt_set_callback =
+     (ompt_set_callback_t) lookup("ompt_set_callback");
+  ompt_get_thread_data =
+     (ompt_get_thread_data_t) lookup("ompt_get_thread_data");
+  ompt_get_unique_id = (ompt_get_unique_id_t) lookup("ompt_get_unique_id");
+
+  register_callback(ompt_callback_implicit_task);
+
+  // Initialize detection runtime
+  //INS_Init();
+  __tsan_init();
+
+  return 1;
+}
+
+static void dfinspec_finalize(
+  ompt_data_t *tool_data) {
+  std::cout << "Everything is finalizing\n";
+}
+
+ompt_start_tool_result_t* ompt_start_tool(
+  unsigned int omp_version,
+  const char *runtime_version) {
+
+  static ompt_start_tool_result_t ompt_start_end = {
+      &dfinspec_initialize,
+      &dfinspec_finalize, 0};
+  return &ompt_start_end;
+}
+
+//////////////////////////////////////////////////
+
 /** Callbacks for store operations  */
 inline void INS_AdfMemRead( address addr, ulong size, int lineNo, address funcName  ) {
 
@@ -96,13 +180,6 @@ inline void INS_AdfMemWrite( address addr, lint value, int lineNo, address funcN
 
   cout << "=WRITE: addr:" << addr << " value " << (lint)value << " taskID: " << taskInfo.taskID << " line number: " << lineNo << endl;
   }
-}
-
-static int initialized  = 0;
-// to initialize the logger
-void __tsan_init() {
-  printf("  Flowsan: init\n");
-  INS::Init();
 }
 
 void __tsan_flush_memory() {
@@ -215,17 +292,10 @@ void __tsan_vptr_update(void **vptr_p, void *new_val) {
 }
 
 void __tsan_func_entry(void *call_pc) {
-  if(!initialized) {
-    __tsan_init();
-    initialized++;
-  }
-
-  INS_TaskBeginFunc( (void*) "taskName" );
   printf("  Flowsan: __tsan_func_entry \n");
 }
 
 void __tsan_func_exit() {
-  INS_TaskFinishFunc( NULL );
   printf("  Flowsan: __tsan_func_exit\n");
 }
 
