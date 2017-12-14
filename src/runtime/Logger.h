@@ -64,6 +64,8 @@ class INS {
     // keeping track of the last reader from a memory location
     static unordered_map<ADDRESS, INTEGER> lastReader;
 
+    static string trace_file_name;
+
   public:
     // global lock to protect metadata, use this lock
     // when you call any function of this class
@@ -85,9 +87,10 @@ class INS {
       char buff[40];
       strftime( buff, 40, "%d-%m-%Y_%H.%M.%S", timeinfo );
       string timeStr( buff );
+      trace_file_name = "Tracelog_" + timeStr + ".txt";
 
       if(! logger.is_open() )
-        logger.open( "Tracelog_" + timeStr + ".txt",  ofstream::out | ofstream::trunc );
+        logger.open( trace_file_name,  ofstream::out | ofstream::trunc );
       if(! HBlogger.is_open())
         HBlogger.open( "HBlog_" + timeStr + ".txt",  ofstream::out | ofstream::trunc );
       if(! logger.is_open() || ! HBlogger.is_open() ) {
@@ -192,7 +195,15 @@ class INS {
       task.actionBuffer << task.taskID << " E " << task.taskName << endl;
 
       guardLock.lock(); // protect file descriptor
-      logger << task.actionBuffer.str(); // print to file
+      if( !logger.is_open() ) { // unexpectedly closed
+        ofstream eventsLogger;
+        eventsLogger.open( trace_file_name,  ofstream::app );
+        eventsLogger << task.actionBuffer.str(); // print to file
+        eventsLogger.close();
+      } else {
+        logger << task.actionBuffer.str(); // print to file
+        logger.flush();
+      }
       guardLock.unlock();
 
       task.actionBuffer.str(""); // clear buffer

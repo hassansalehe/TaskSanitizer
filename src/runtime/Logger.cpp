@@ -31,5 +31,6 @@ unordered_map<INTEGER, INTSET> INS::HB;
 unordered_map<ADDRESS, INTEGER> INS::lastWriter;
 unordered_map<ADDRESS, INTEGER> INS::lastReader;
 
+string INS::trace_file_name;
 #endif
 
