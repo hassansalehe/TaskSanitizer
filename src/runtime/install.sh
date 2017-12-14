@@ -26,14 +26,13 @@ checkIfActionOK() {
 
 # Compile and build static library
 
-clang++ -c -L./build -lLogger tsan_interface.cc -o ${tSanLib}.o	\
+clang++ -c tsan_interface.cc -o ${tSanLib}.o	\
     -static -std=c++11 -pthread -fpermissive	\
-    -fopenmp -L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib	\
-    -I/home/hmatar/Research/FlowSanitizer/bin/include
+    -fopenmp -I/home/hmatar/Research/FlowSanitizer/bin/include
 checkIfActionOK
 
 # Generate etsan as static library
 ar rcs ${tSanLib}.a ${tSanLib}.o
 checkIfActionOK
-
+mv ${tSanLib}.a ../../bin/
 echo -e "\033[1;32m etsan runtime library successful installed.\033[m"

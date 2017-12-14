@@ -20,7 +20,7 @@ else
 fi
 
 /usr/bin/clang++ -Xclang -load -Xclang /home/hmatar/Research/FlowSanitizer/bin/lib/LLVMArcher.so   \
-   -Xclang -load -Xclang ./build/libFlowSanitizer.so  \
+   -Xclang -load -Xclang ./bin/libFlowSanitizer.so  \
    -I/home/hmatar/Research/FlowSanitizer/bin/include   \
-   -fopenmp  $link_flags -g "$@" -L/home/hmatar/Research/FlowSanitizer/src/runtime -lflowsan	\
-   -L/home/hmatar/Research/FlowSanitizer/src/runtime/build -lLogger
+   -fopenmp  $link_flags -g "$@" -L/home/hmatar/Research/FlowSanitizer/bin -lflowsan	\
+   -L/home/hmatar/Research/FlowSanitizer/bin -lLogger
