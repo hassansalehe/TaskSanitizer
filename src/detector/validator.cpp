@@ -62,7 +62,7 @@ VOID BugValidator::parseTasksIR(char * IRlogName)
 #endif
   }
   IRcode.close();
-  cout << "Tasks no: " << Tasks.size() << endl;
+  cout << "No task bodies in IIR: " << Tasks.size() << endl;
 }
 
 

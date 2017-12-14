@@ -481,7 +481,6 @@ bool FlowSanitizer::runOnFunction(Function &F) {
   // Instrument memory accesses only if we want to report bugs in the function.
   if (ClInstrumentMemoryAccesses && SanitizeFunction)
     for (auto Inst : AllLoadsAndStores) {
-      errs() << *Inst << "\n";
       Res |= instrumentLoadOrStore(Inst, DL);
     }
 

@@ -60,9 +60,11 @@ void INS_TaskBeginFunc( void* taskName ) {
   taskInfo.taskName = (char *)taskName;
   taskInfo.active = true;
 
-  cout << "Task_Began, (threadID: "<< taskInfo.threadID << ", taskID : " << taskInfo.taskID <<") name: "<< taskInfo.taskName<< endl;
-
   INS::TaskBeginLog(taskInfo);
+#ifdef DEBUG
+  cout << "Task_Began, (threadID: "<< taskInfo.threadID << ", taskID : "
+       << taskInfo.taskID <<") name: "<< taskInfo.taskName<< endl;
+#endif
 }
 
 void INS_TaskFinishFunc( void* addr ) {
@@ -71,8 +73,11 @@ void INS_TaskFinishFunc( void* addr ) {
   assert(taskInfo.threadID == threadID);
   taskInfo.active = false;
 
-  cout << "Task_Ended: (threadID: " << threadID << ") taskID: " << taskInfo.taskID << endl;
   INS::TaskEndLog(taskInfo);
+#ifdef DEBUG
+  cout << "Task_Ended: (threadID: " << threadID << ") taskID: "
+       << taskInfo.taskID << endl;
+#endif
 }
 
 //////////////////////////////////////////////////
@@ -81,8 +86,10 @@ void INS_TaskFinishFunc( void* addr ) {
 
 // to initialize the logger
 void __tsan_init() {
-  printf("  Flowsan: init\n");
   INS::Init();
+#ifdef DEBUG
+  printf("  Flowsan: init\n");
+#endif
 }
 
 char* mambo = "Kangaroo";
@@ -142,7 +149,7 @@ static int dfinspec_initialize(
 
 static void dfinspec_finalize(
   ompt_data_t *tool_data) {
-  std::cout << "Everything is finalizing\n";
+  std::cout << "FlowSan: Everything is finalizing\n";
 }
 
 ompt_start_tool_result_t* ompt_start_tool(
@@ -164,8 +171,11 @@ inline void INS_AdfMemRead( address addr, ulong size, int lineNo, address funcNa
   uint threadID = (uint)pthread_self();
 
   if( taskInfo.active ) {
-  cout << "READ: addr: " << addr << " value: "<< value << " taskID: " << taskInfo.taskID << endl;
-  INS::Read( taskInfo, addr, lineNo, (char*)funcName );
+    INS::Read( taskInfo, addr, lineNo, (char*)funcName );
+#ifdef DEBUG
+    cout << "READ: addr: " << addr << " value: "<< value << " taskID: "
+         << taskInfo.taskID << endl;
+#endif
   }
 }
 
@@ -175,10 +185,11 @@ inline void INS_AdfMemWrite( address addr, lint value, int lineNo, address funcN
   uint threadID = (uint)pthread_self();
 
   if( taskInfo.active ) {
-
-  INS::Write( taskInfo, addr, (lint)value, lineNo, (char*)funcName );
-
-  cout << "=WRITE: addr:" << addr << " value " << (lint)value << " taskID: " << taskInfo.taskID << " line number: " << lineNo << endl;
+    INS::Write( taskInfo, addr, (lint)value, lineNo, (char*)funcName );
+#ifdef DEBUG
+    cout << "=WRITE: addr:" << addr << " value " << (lint)value << " taskID: "
+         << taskInfo.taskID << " line number: " << lineNo << endl;
+#endif
   }
 }
 
@@ -190,11 +201,11 @@ void __tsan_read1(void *addr, int lineNo, address funcName) {
   INS_AdfMemRead(addr, 1, lineNo, funcName);
 }
 void __tsan_read2(void *addr, int lineNo, address funcName) {
-  printf("  Flowsan: read2\n");
+  INS_AdfMemRead(addr, 2, lineNo, funcName);
 }
 
 void __tsan_read4(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead((address)addr, 4, lineNo, funcName);
+  INS_AdfMemRead(addr, 4, lineNo, funcName);
 }
 
 void __tsan_read8(void *addr, int lineNo, address funcName) {
@@ -292,11 +303,15 @@ void __tsan_vptr_update(void **vptr_p, void *new_val) {
 }
 
 void __tsan_func_entry(void *call_pc) {
+#ifdef DEBUG
   printf("  Flowsan: __tsan_func_entry \n");
+#endif
 }
 
 void __tsan_func_exit() {
+#ifdef DEBUG
   printf("  Flowsan: __tsan_func_exit\n");
+#endif
 }
 
 void __tsan_ignore_thread_begin() {
@@ -308,6 +323,7 @@ void __tsan_ignore_thread_end() {
 
 void *__tsan_external_register_tag(const char *object_type) {
   printf("  Flowsan: __tsan_external_register_tag\n");
+  return NULL;
 }
 
 void __tsan_external_assign_tag(void *addr, void *tag) {
@@ -333,23 +349,28 @@ void __tsan_write_range(void *addr, unsigned long size) {
 
 a8 __tsan_atomic8_load(const volatile a8 *a, morder mo) {
   printf("  Flowsan: __tsan_atomic8_load\n");
+  return *a;
 }
 
 a16 __tsan_atomic16_load(const volatile a16 *a, morder mo) {
   printf("  Flowsan: __tsan_atomic16_load\n");
+  return *a;
 }
 
 a32 __tsan_atomic32_load(const volatile a32 *a, morder mo) {
   printf("  Flowsan: __tsan_atomic32_load\n");
+  return *a;
 }
 
 a64 __tsan_atomic64_load(const volatile a64 *a, morder mo) {
   printf("  Flowsan: __tsan_atomic64_load\n");
+  return *a;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_load(const volatile a128 *a, morder mo) {
   printf("  Flowsan: \n");
+  return *a;
 }
 #endif
 
@@ -378,162 +399,197 @@ void __tsan_atomic128_store(volatile a128 *a, a128 v, morder mo) {
 
 
 a8 __tsan_atomic8_exchange(volatile a8 *a, a8 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic8 echange\n");
+  return v;
 }
 
 a16 __tsan_atomic16_exchange(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_exchange(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_exchange(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_exchange(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_add(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_add(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_add(volatile a32 *a, a32 v, morder mo) {
+  return v;
   printf("  Flowsan: \n");
 }
 
 a64 __tsan_atomic64_fetch_add(volatile a64 *a, a64 v, morder mo) {
+  return v;
   printf("  Flowsan: \n");
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_add(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_sub(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_sub(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_sub(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_fetch_sub(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_sub(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_and(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_and(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_and(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_fetch_and(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_and(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_or(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_or(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_or(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_fetch_or(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_or(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_xor(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_xor(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_xor(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_fetch_xor(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_xor(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_nand(volatile a8 *a, a8 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a16 __tsan_atomic16_fetch_nand(volatile a16 *a, a16 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a32 __tsan_atomic32_fetch_nand(volatile a32 *a, a32 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 a64 __tsan_atomic64_fetch_nand(volatile a64 *a, a64 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_nand(volatile a128 *a, a128 v, morder mo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
@@ -541,83 +597,98 @@ a128 __tsan_atomic128_fetch_nand(volatile a128 *a, a128 v, morder mo) {
 int __tsan_atomic8_compare_exchange_strong(volatile a8 *a, a8 *c, a8 v,
                                            morder mo, morder fmo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 int __tsan_atomic16_compare_exchange_strong(volatile a16 *a, a16 *c, a16 v,
                                             morder mo, morder fmo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 int __tsan_atomic32_compare_exchange_strong(volatile a32 *a, a32 *c, a32 v,
                                             morder mo, morder fmo) {
   printf("  Flowsan: \n");
+  return v;
 }
 
 int __tsan_atomic64_compare_exchange_strong(volatile a64 *a, a64 *c, a64 v,
                                             morder mo, morder fmo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 int __tsan_atomic128_compare_exchange_strong(volatile a128 *a, a128 *c, a128 v,
                                              morder mo, morder fmo) {
   printf("  Flowsan: \n");
+  return v;
 }
 #endif
 
 
 int __tsan_atomic8_compare_exchange_weak(volatile a8 *a, a8 *c, a8 v, morder mo,
                                          morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic8 cpex weak\n");
+  return v;
 }
 
 int __tsan_atomic16_compare_exchange_weak(volatile a16 *a, a16 *c, a16 v,
                                           morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic16 cpex weak\n");
+  return v;
 }
 
 int __tsan_atomic32_compare_exchange_weak(volatile a32 *a, a32 *c, a32 v,
                                           morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic32 cpex weak\n");
+  return v;
 }
 
 int __tsan_atomic64_compare_exchange_weak(volatile a64 *a, a64 *c, a64 v,
                                           morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic64 cpex weak\n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 int __tsan_atomic128_compare_exchange_weak(volatile a128 *a, a128 *c, a128 v,
                                            morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic128 cpex weak\n");
+  return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_compare_exchange_val(volatile a8 *a, a8 c, a8 v, morder mo,
                                        morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic8 cpex\n");
+  return v;
 }
 
 a16 __tsan_atomic16_compare_exchange_val(volatile a16 *a, a16 c, a16 v,
                                          morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic16 cpex\n");
+  return v;
 }
 
 a32 __tsan_atomic32_compare_exchange_val(volatile a32 *a, a32 c, a32 v,
                                          morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic32 cpex\n");
+  return v;
 }
 
 a64 __tsan_atomic64_compare_exchange_val(volatile a64 *a, a64 c, a64 v,
                                          morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic64 cpex\n");
+  return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_compare_exchange_val(volatile a128 *a, a128 c, a128 v,
                                            morder mo, morder fmo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic128 cpex\n");
+  return v;
 }
 #endif
 
