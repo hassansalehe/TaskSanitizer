@@ -294,7 +294,7 @@ void Checker::checkCommutativeOperations(BugValidator & validator) {
   for(auto it = conflictTable.begin(); it != conflictTable.end(); ) {
 
     Report & report = it->second;
-    validator.validate( report );
+    // validator.validate( report );
 
     if( !report.buggyAccesses.size() )
        it = conflictTable.erase(it);
