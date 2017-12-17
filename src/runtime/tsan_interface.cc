@@ -404,51 +404,52 @@ a8 __tsan_atomic8_exchange(volatile a8 *a, a8 v, morder mo) {
 }
 
 a16 __tsan_atomic16_exchange(volatile a16 *a, a16 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic exchange\n");
   return v;
 }
 
 a32 __tsan_atomic32_exchange(volatile a32 *a, a32 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic exchange\n");
   return v;
 }
 
 a64 __tsan_atomic64_exchange(volatile a64 *a, a64 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic exchange\n");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_exchange(volatile a128 *a, a128 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic exchange\n");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_add(volatile a8 *a, a8 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic8 fetch_add\n");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_add(volatile a16 *a, a16 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic16 fetch_add\n");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_add(volatile a32 *a, a32 v, morder mo) {
-  return v;
-  printf("  Flowsan: \n");
+  // Fetch and add is commutative among tasks.
+  // Therefore. no need to check for nondeterminism.
+  return __sync_fetch_and_add(a, v);
 }
 
 a64 __tsan_atomic64_fetch_add(volatile a64 *a, a64 v, morder mo) {
+  printf("  Flowsan: atomic64 fetch_add\n");
   return v;
-  printf("  Flowsan: \n");
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_add(volatile a128 *a, a128 v, morder mo) {
-  printf("  Flowsan: \n");
+  printf("  Flowsan: atomic 128 fetch_add\n");
   return v;
 }
 #endif
