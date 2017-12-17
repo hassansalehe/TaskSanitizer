@@ -13,6 +13,7 @@ cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
 ninja -j8 -l8
 ninja install
 
+cd $hm
 git clone https://github.com/PRUNERS/archer.git archer
 export ARCHER_INSTALL=$hm/bin
 
