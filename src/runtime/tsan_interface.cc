@@ -22,8 +22,7 @@
 #include <omp.h>
 #include <ompt.h>
 
-// local to a thread(and thus a task)
-thread_local TaskInfo taskInfo;
+// #define DEBUG
 
 lint getMemoryValue( address addr, ulong size )
 {
@@ -52,31 +51,42 @@ lint getMemoryValue( address addr, ulong size )
    return *(static_cast<long long *>(addr));
 }
 
-void INS_TaskBeginFunc( void* taskName ) {
+std::mutex printLock;
+void PRINT_DEBUG(string msg) {
+  printLock.lock();
+  cout << static_cast<uint>(pthread_self()) << ": " << msg << endl;
+  printLock.unlock();
+}
+void INS_TaskBeginFunc(ompt_data_t *task_data, void* taskName ) {
 
-  auto threadID = static_cast<uint>( pthread_self() );
-  taskInfo.threadID = threadID;
-  taskInfo.taskID = INS::GenTaskID();
-  taskInfo.taskName = (char *)taskName;
-  taskInfo.active = true;
+  TaskInfo * taskInfo = new TaskInfo;
+  taskInfo->threadID = static_cast<uint>( pthread_self() );
+  taskInfo->taskID = INS::GenTaskID();
+  taskInfo->taskName = (char *)taskName;
+  taskInfo->active = true;
 
-  INS::TaskBeginLog(taskInfo);
+  task_data->ptr = (void *)taskInfo;
+
+  INS::TaskBeginLog(*taskInfo);
 #ifdef DEBUG
-  cout << "Task_Began, (threadID: "<< taskInfo.threadID << ", taskID : "
-       << taskInfo.taskID <<") name: "<< taskInfo.taskName<< endl;
+  PRINT_DEBUG("Task_Began, (threadID: " +
+      to_string(taskInfo->threadID) + ", taskID: " +
+      to_string(taskInfo->taskID)   + ") name: " +
+      taskInfo->taskName);
 #endif
 }
 
-void INS_TaskFinishFunc( void* addr ) {
+void INS_TaskFinishFunc( ompt_data_t *task_data ) {
 
+  TaskInfo *taskInfo = (TaskInfo*)task_data->ptr;
   uint threadID = (uint)pthread_self();
-  assert(taskInfo.threadID == threadID);
-  taskInfo.active = false;
+  assert(taskInfo->threadID == threadID);
+  taskInfo->active = false;
 
-  INS::TaskEndLog(taskInfo);
+  INS::TaskEndLog(*taskInfo);
 #ifdef DEBUG
-  cout << "Task_Ended: (threadID: " << threadID << ") taskID: "
-       << taskInfo.taskID << endl;
+  PRINT_DEBUG("Task_Ended: (threadID: " + to_string(threadID) +
+      ") taskID: " + to_string(taskInfo->taskID));
 #endif
 }
 
@@ -88,7 +98,7 @@ void INS_TaskFinishFunc( void* addr ) {
 void __tsan_init() {
   INS::Init();
 #ifdef DEBUG
-  printf("  Flowsan: init\n");
+  PRINT_DEBUG("Flowsan: init");
 #endif
 }
 
@@ -96,7 +106,7 @@ char* mambo = "Kangaroo";
 
 static ompt_get_thread_data_t ompt_get_thread_data;
 static ompt_get_unique_id_t ompt_get_unique_id;
-
+static ompt_get_task_info_t ompt_get_task_info;
 
 #define register_callback_t(name, type)                       \
 do{                                                           \
@@ -117,12 +127,107 @@ on_ompt_callback_implicit_task(
     unsigned int thread_num) {
   switch(endpoint) {
     case ompt_scope_begin:
-      INS_TaskBeginFunc((void *)mambo);
+      if(task_data->ptr == NULL)
+	INS_TaskBeginFunc(task_data, (void *)mambo);
       break;
     case ompt_scope_end:
-      INS_TaskFinishFunc((void *)mambo);
+      INS_TaskFinishFunc(task_data);
       break;
   }
+}
+
+static void
+on_ompt_callback_task_create( // called in the context of the creator
+    ompt_data_t *parent_task_data,    /* id of parent task            */
+    const ompt_frame_t *parent_frame, /* frame data for parent task   */
+    ompt_data_t* new_task_data,       /* id of created task           */
+    int type,
+    int has_dependences,
+    const void *codeptr_ra) {         /* pointer to outlined function */
+  int tid = ompt_get_thread_data()->value;
+  switch((int)type) {
+    case ompt_task_initial:
+      PRINT_DEBUG("FlowSan: initial task created");
+      break;
+    case ompt_task_implicit:
+      PRINT_DEBUG("FlowSan: implicit task created");
+      break;
+    case ompt_task_explicit:
+      PRINT_DEBUG("FlowSan: explicit task created");
+      if(new_task_data->ptr == NULL)
+        INS_TaskBeginFunc(new_task_data, (void *)mambo);
+      break;
+    case ompt_task_target:
+      PRINT_DEBUG("FlowSan: target task created");
+      break;
+    case 5: //ompt_task_included:
+      PRINT_DEBUG("FlowSan: included task created");
+      break;
+    case ompt_task_untied:
+    case 6:
+      PRINT_DEBUG("FlowSan: untied task created");
+      break;
+    default:
+      ;
+  }
+}
+
+static void
+on_ompt_callback_task_schedule( // called in the context of the task
+    ompt_data_t *prior_task_data,         /* data of prior task    */
+    ompt_task_status_t prior_task_status, /* status of prior task  */
+    ompt_data_t *next_task_data) {        /* data of next task     */
+
+  if(next_task_data->ptr == NULL)
+    INS_TaskBeginFunc(next_task_data, (void *)mambo);
+
+  PRINT_DEBUG("Task is being scheduled (p:" +
+      to_string(next_task_data->value) + " t:" +
+      to_string(prior_task_data->value) +  ")" );
+
+  // int tid = ompt_get_thread_data()->value;
+  // if(prior_task_status == ompt_task_complete)
+}
+
+/** Callbacks for tokens */
+static void
+on_ompt_callback_task_dependences(
+    ompt_data_t *task_data,
+    const ompt_task_dependence_t *deps,
+    int ndeps) {
+
+  TaskInfo * taskInfo = (TaskInfo*)task_data->ptr;
+  PRINT_DEBUG("on_ompt_callback_task_dependences");
+
+  for(int i = 0; i < ndeps; i++) {
+
+    void * depAddr = deps[i].variable_addr;
+    INTEGER value = reinterpret_cast<INTEGER>(depAddr);
+
+    switch(deps[i].dependence_flags) {
+      case ompt_task_dependence_type_out:
+        INS::TaskSendTokenLog(*taskInfo, depAddr,  value);
+        break;
+      case ompt_task_dependence_type_in:
+        INS::TaskReceiveTokenLog(*taskInfo, depAddr, value);
+        break;
+      case ompt_task_dependence_type_inout:
+        INS::TaskReceiveTokenLog(*taskInfo, depAddr, value);
+        INS::TaskSendTokenLog(*taskInfo, depAddr,  value);
+        break;
+      default:
+        ;
+    }
+  }
+}
+
+static void
+on_ompt_callback_task_dependence(
+    ompt_data_t *first_task_data,
+    ompt_data_t *second_task_data) {
+  PRINT_DEBUG("One task dependence is going for registration " +
+      to_string(first_task_data->value) + " " +
+      to_string(second_task_data->value));
 }
 
 /// Initialization and Termination callbacks
@@ -131,14 +236,21 @@ static int dfinspec_initialize(
   ompt_function_lookup_t lookup,
   ompt_data_t *tool_data) {
 
-  // Register callbacks
+  // Register OMPT callbacks
   ompt_set_callback_t ompt_set_callback =
-     (ompt_set_callback_t) lookup("ompt_set_callback");
+      (ompt_set_callback_t) lookup("ompt_set_callback");
   ompt_get_thread_data =
-     (ompt_get_thread_data_t) lookup("ompt_get_thread_data");
-  ompt_get_unique_id = (ompt_get_unique_id_t) lookup("ompt_get_unique_id");
+      (ompt_get_thread_data_t) lookup("ompt_get_thread_data");
+  ompt_get_unique_id =
+      (ompt_get_unique_id_t) lookup("ompt_get_unique_id");
+  ompt_get_task_info =
+      (ompt_get_task_info_t) lookup("ompt_get_task_info");
 
   register_callback(ompt_callback_implicit_task);
+  register_callback(ompt_callback_task_create);
+  register_callback(ompt_callback_task_schedule);
+  register_callback(ompt_callback_task_dependences);
+  register_callback(ompt_callback_task_dependence);
 
   // Initialize detection runtime
   //INS_Init();
@@ -149,6 +261,7 @@ static int dfinspec_initialize(
 
 static void dfinspec_finalize(
   ompt_data_t *tool_data) {
+  INS::Finalize();
   std::cout << "FlowSan: Everything is finalizing\n";
 }
 
@@ -163,18 +276,47 @@ ompt_start_tool_result_t* ompt_start_tool(
 }
 
 //////////////////////////////////////////////////
+static TaskInfo * getTaskInfo(int * _type = NULL) {
+
+  if(!INS::isOMPTinitialized)
+    return NULL;
+
+  int ancestor_level = 0;
+  int type;
+  ompt_data_t *task_data;
+  ompt_frame_t *task_frame;
+  ompt_data_t *parallel_data;
+  int thread_num;
+
+  int success = ompt_get_task_info(
+      ancestor_level, &type, &task_data,
+      &task_frame, &parallel_data, &thread_num);
+  if(_type)
+    *_type = type;
+
+  if(success && task_data)
+    return (TaskInfo*)task_data->ptr;
+
+  return NULL;
+}
 
 /** Callbacks for store operations  */
 inline void INS_AdfMemRead( address addr, ulong size, int lineNo, address funcName  ) {
 
-  lint value = getMemoryValue( addr, size );
-  uint threadID = (uint)pthread_self();
+  if(!lineNo) return;
 
-  if( taskInfo.active ) {
-    INS::Read( taskInfo, addr, lineNo, (char*)funcName );
+  TaskInfo * taskInfo = getTaskInfo();
+  //lint value = getMemoryValue( addr, size );
+  //uint threadID = (uint)pthread_self();
+
+  if( taskInfo && taskInfo->active ) {
+    INS::Read(*taskInfo, addr, lineNo, (char*)funcName);
 #ifdef DEBUG
-    cout << "READ: addr: " << addr << " value: "<< value << " taskID: "
-         << taskInfo.taskID << endl;
+    std::stringstream ss;
+    ss << std::hex << addr;
+    PRINT_DEBUG("READ: addr: " + ss.str() +
+        " taskID: " + to_string(taskInfo->taskID) +
+        " line no: " + to_string(lineNo));
 #endif
   }
 }
@@ -182,13 +324,21 @@ inline void INS_AdfMemRead( address addr, ulong size, int lineNo, address funcNa
 /** Callbacks for store operations  */
 inline void INS_AdfMemWrite( address addr, lint value, int lineNo, address funcName ) {
 
-  uint threadID = (uint)pthread_self();
+  if(!lineNo) return;
 
-  if( taskInfo.active ) {
-    INS::Write( taskInfo, addr, (lint)value, lineNo, (char*)funcName );
+  TaskInfo * taskInfo = getTaskInfo();
+  //uint threadID = (uint)pthread_self();
+
+  if( taskInfo && taskInfo->active ) {
+    INS::Write(*taskInfo, addr, (lint)value, lineNo, (char*)funcName );
 #ifdef DEBUG
-    cout << "=WRITE: addr:" << addr << " value " << (lint)value << " taskID: "
-         << taskInfo.taskID << " line number: " << lineNo << endl;
+    std::stringstream ss;
+    ss << std::hex << addr;
+    PRINT_DEBUG("= WRITE: addr: " + ss.str() +
+        ", value: " + to_string((lint)value) +
+        ", taskID: " + to_string(taskInfo->taskID) +
+        ", line number: " + to_string(lineNo) +
+        ", func name: " + string((char*)funcName));
 #endif
   }
 }
@@ -304,13 +454,13 @@ void __tsan_vptr_update(void **vptr_p, void *new_val) {
 
 void __tsan_func_entry(void *call_pc) {
 #ifdef DEBUG
-  printf("  Flowsan: __tsan_func_entry \n");
+//  printf("  Flowsan: __tsan_func_entry \n");
 #endif
 }
 
 void __tsan_func_exit() {
 #ifdef DEBUG
-  printf("  Flowsan: __tsan_func_exit\n");
+  PRINT_DEBUG("Flowsan: __tsan_func_exit");
 #endif
 }
 

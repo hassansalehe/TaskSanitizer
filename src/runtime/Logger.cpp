@@ -32,5 +32,7 @@ unordered_map<ADDRESS, INTEGER> INS::lastWriter;
 unordered_map<ADDRESS, INTEGER> INS::lastReader;
 
 string INS::trace_file_name;
+string INS::hb_file_name;
+bool INS::isOMPTinitialized = false;
 #endif
 

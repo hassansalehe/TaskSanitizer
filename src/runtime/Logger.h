@@ -65,11 +65,15 @@ class INS {
     static unordered_map<ADDRESS, INTEGER> lastReader;
 
     static string trace_file_name;
+    static string hb_file_name;
 
   public:
     // global lock to protect metadata, use this lock
     // when you call any function of this class
     static std::mutex guardLock;
+
+    // checks if OPMT is initialized
+    static bool isOMPTinitialized;
 
     // open file for logging.
     static inline VOID Init() {
@@ -80,6 +84,8 @@ class INS {
 
       taskIDSeed = 0;
 
+      isOMPTinitialized = true;
+
       // get current time to suffix log files
       time_t currentTime; time(&currentTime);
       struct tm * timeinfo = localtime(&currentTime);
@@ -88,11 +94,12 @@ class INS {
       strftime( buff, 40, "%d-%m-%Y_%H.%M.%S", timeinfo );
       string timeStr( buff );
       trace_file_name = "Tracelog_" + timeStr + ".txt";
+      hb_file_name = "HBlog_" + timeStr + ".txt";
 
       if(! logger.is_open() )
         logger.open( trace_file_name,  ofstream::out | ofstream::trunc );
       if(! HBlogger.is_open())
-        HBlogger.open( "HBlog_" + timeStr + ".txt",  ofstream::out | ofstream::trunc );
+        HBlogger.open( hb_file_name,  ofstream::out | ofstream::trunc );
       if(! logger.is_open() || ! HBlogger.is_open() ) {
         cerr << "Could not open log file \nExiting ..." << endl;
         exit(EXIT_FAILURE);
@@ -133,9 +140,6 @@ class INS {
     static inline VOID Finalize() {
       guardLock.lock();
 
-      // Write HB relations to file
-      HBlogger << HBloggerBuffer.str();
-
       idMap.clear(); HB.clear();
       lastReader.clear(); lastWriter.clear();
 
@@ -157,8 +161,22 @@ class INS {
       task.actionBuffer << task.taskID << " B " << task.taskName << endl;
     }
 
+    static inline void writeToHBlogFile(string hbLine) {
+      // Write HB relations to file
+      if( !HBlogger.is_open() ) { // unexpectedly closed
+        ofstream hbLogger;
+        hbLogger.open( hb_file_name,  ofstream::app );
+        hbLogger << hbLine << endl; // print to file
+        hbLogger.close();
+      } else {
+        HBlogger << hbLine << endl;
+        HBlogger.flush();
+      }
+    }
+
     /** called when a task begins execution. retrieves parent task id */
-    static inline VOID TaskReceiveTokenLog( TaskInfo & task, ADDRESS bufLocAddr, INTEGER value ) {
+    static inline VOID TaskReceiveTokenLog( TaskInfo & task,
+        ADDRESS bufLocAddr, INTEGER value ) {
       INTEGER parentID = -1;
       auto tid = task.taskID;
 
@@ -170,7 +188,7 @@ class INS {
 
         if(parentID != tid) { // there was a bug where a task could send token to itself
 
-          HBloggerBuffer << tid << " " << parentID << endl;
+          writeToHBlogFile(to_string(tid) +  " " + to_string(parentID));
 
           // there is a happens before between taskID and parentID:
           //parentID ---happens-before---> taskID
@@ -193,6 +211,26 @@ class INS {
 
       task.printMemoryActions();
       task.actionBuffer << task.taskID << " E " << task.taskName << endl;
+
+      guardLock.lock(); // protect file descriptor
+      if( !logger.is_open() ) { // unexpectedly closed
+        ofstream eventsLogger;
+        eventsLogger.open( trace_file_name,  ofstream::app );
+        eventsLogger << task.actionBuffer.str(); // print to file
+        eventsLogger.close();
+      } else {
+        logger << task.actionBuffer.str(); // print to file
+        logger.flush();
+      }
+      guardLock.unlock();
+
+      task.actionBuffer.str(""); // clear buffer
+    }
+
+    /** called to log to file the events of a task */
+    static inline VOID LogToFile( TaskInfo& task ) {
+
+      task.printMemoryActions();
 
       guardLock.lock(); // protect file descriptor
       if( !logger.is_open() ) { // unexpectedly closed
@@ -234,6 +272,7 @@ class INS {
       }
 
       task.saveReadAction(addr, lineNo, funcID);
+      LogToFile(task);
     }
 
     /** stores a write action */
@@ -248,6 +287,7 @@ class INS {
       }
 
       task.saveWriteAction(addr, value, lineNo, funcID);
+      LogToFile(task);
     }
 };
 #endif
