@@ -143,7 +143,12 @@ struct FlowSanitizer : public llvm::FunctionPass {
   Function *TsanIgnoreBegin;
   Function *TsanIgnoreEnd;
 
-  Function *INS_TaskBeginFunc;
+  Function *FlowSan_TaskBeginFunc;
+
+  // callbacks for instrumenting doubles and floats
+  Constant *FlowSan_MemWriteFloat;
+  Constant *FlowSan_MemWriteDouble;
+
   // Accesses sizes are powers of two: 1, 2, 4, 8, 16.
   static const size_t kNumberOfAccessSizes = 5;
   Function *TsanRead[kNumberOfAccessSizes];
@@ -190,8 +195,18 @@ void FlowSanitizer::initializeCallbacks(Module &M) {
   TsanIgnoreEnd = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_ignore_thread_end", Attr, IRB.getVoidTy(), nullptr));
 
-  INS_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "INS_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+  FlowSan_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
+      "FlowSan_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+
+  // functions to instrument floats and doubles
+  LLVMContext &Ctx = M.getContext();
+  FlowSan_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
+      Type::getVoidTy(Ctx), Type::getFloatPtrTy(Ctx), Type::getFloatTy(Ctx),
+      Type::getInt8Ty(Ctx), NULL);
+
+  FlowSan_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
+      Type::getVoidTy(Ctx), Type::getDoublePtrTy(Ctx), Type::getDoubleTy(Ctx),
+      Type::getInt8Ty(Ctx), NULL);
 
   OrdTy = IRB.getInt32Ty();
   for (size_t i = 0; i < kNumberOfAccessSizes; ++i) {
@@ -430,7 +445,7 @@ bool FlowSanitizer::runOnFunction(Function &F) {
     Value *taskName = IRB.CreateGlobalStringPtr(
       INS::getPlainFuncName(F), "taskName");
 
-    IRB.CreateCall(INS_TaskBeginFunc,
+    IRB.CreateCall(FlowSan_TaskBeginFunc,
                    {IRB.CreatePointerCast(taskName, IRB.getInt8PtrTy())});
 
     IIRlog::logTaskBody(F, INS::getPlainFuncName(F));
@@ -573,6 +588,11 @@ bool FlowSanitizer::instrumentLoadOrStore(Instruction *I,
 
   if(IsWrite) {
       Value *Val = cast<StoreInst>(I)->getValueOperand();
+      if( Val->getType()->isFloatTy() )
+          OnAccessFunc = FlowSan_MemWriteFloat;
+      else if( Val->getType()->isDoubleTy() )
+          OnAccessFunc = FlowSan_MemWriteDouble;
+
       IRB.CreateCall(OnAccessFunc,
           {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()), Val,
            IRB.CreateIntCast(fsan::getLineNumber(I), IRB.getInt8Ty(), false),

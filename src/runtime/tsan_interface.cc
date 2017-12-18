@@ -57,7 +57,7 @@ void PRINT_DEBUG(string msg) {
   cout << static_cast<uint>(pthread_self()) << ": " << msg << endl;
   printLock.unlock();
 }
-void INS_TaskBeginFunc(ompt_data_t *task_data, void* taskName ) {
+void FlowSan_TaskBeginFunc(ompt_data_t *task_data, void* taskName ) {
 
   TaskInfo * taskInfo = new TaskInfo;
   taskInfo->threadID = static_cast<uint>( pthread_self() );
@@ -128,7 +128,7 @@ on_ompt_callback_implicit_task(
   switch(endpoint) {
     case ompt_scope_begin:
       if(task_data->ptr == NULL)
-	INS_TaskBeginFunc(task_data, (void *)mambo);
+	FlowSan_TaskBeginFunc(task_data, (void *)mambo);
       break;
     case ompt_scope_end:
       INS_TaskFinishFunc(task_data);
@@ -155,7 +155,7 @@ on_ompt_callback_task_create( // called in the context of the creator
     case ompt_task_explicit:
       PRINT_DEBUG("FlowSan: explicit task created");
       if(new_task_data->ptr == NULL)
-        INS_TaskBeginFunc(new_task_data, (void *)mambo);
+        FlowSan_TaskBeginFunc(new_task_data, (void *)mambo);
       break;
     case ompt_task_target:
       PRINT_DEBUG("FlowSan: target task created");
@@ -179,7 +179,7 @@ on_ompt_callback_task_schedule( // called in the context of the task
     ompt_data_t *next_task_data) {        /* data of next task     */
 
   if(next_task_data->ptr == NULL)
-    INS_TaskBeginFunc(next_task_data, (void *)mambo);
+    FlowSan_TaskBeginFunc(next_task_data, (void *)mambo);
 
   PRINT_DEBUG("Task is being scheduled (p:" +
       to_string(next_task_data->value) + " t:" +
@@ -341,6 +341,27 @@ inline void INS_AdfMemWrite( address addr, lint value, int lineNo, address funcN
         ", func name: " + string((char*)funcName));
 #endif
   }
+}
+
+
+/**
+ * A callback for memory writes of floats */
+void __fsan_write_float(
+    address addr,
+    float value,
+    int lineNo,
+    address funcName) {
+  INS_AdfMemWrite(addr, (lint)value, lineNo, funcName);
+}
+
+/**
+ * A callback for memory writes of doubles */
+void __fsan_write_double(
+    address addr,
+    double value,
+    int lineNo,
+    address funcName) {
+  INS_AdfMemWrite(addr, (lint)value, lineNo, funcName);
 }
 
 void __tsan_flush_memory() {

@@ -45,8 +45,8 @@ extern "C" {
   void INS_AdfMemWrite4(void *addr, long int value, int lineNo, void * funcName);
   void INS_AdfMemWrite1(void *addr, long int value, int lineNo, void * funcName);
 
-  void INS_AdfMemWriteFloat(void * addr, float value, int lineNo, void * funcName);
-  void INS_AdfMemWriteDouble(void * addr, double value, int lineNo, void * funcName);
+  void __fsan_write_float(void * addr, float value, int lineNo, void * funcName);
+  void __fsan_write_double(void * addr, double value, int lineNo, void * funcName);
 
   // task begin and end callbacks
   void INS_TaskBeginFunc(void* addr);
