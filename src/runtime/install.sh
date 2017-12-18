@@ -27,7 +27,7 @@ checkIfActionOK() {
 # Compile and build static library
 
 clang++ -c tsan_interface.cc -o ${tSanLib}.o	\
-    -static -std=c++11 -pthread -fpermissive	\
+    -g -static -std=c++11 -pthread -fpermissive	\
     -fopenmp -I/home/hmatar/Research/FlowSanitizer/bin/include
 checkIfActionOK
 

@@ -4,7 +4,7 @@ git clone https://github.com/llvm-mirror/openmp.git openmp
 
 export OPENMP_INSTALL=$hm/bin
 cd openmp/runtime
-mkdir build && cd build
+mkdir -p build && cd build
 
 cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
  -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX:PATH=$OPENMP_INSTALL	\
@@ -19,7 +19,7 @@ export ARCHER_INSTALL=$hm/bin
 
 cd archer
 
-mkdir build && cd build
+mkdir -p build && cd build
 
 cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
  -D OMP_PREFIX:PATH=$OPENMP_INSTALL -D CMAKE_INSTALL_PREFIX:PATH=${ARCHER_INSTALL} ..
