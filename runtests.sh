@@ -34,8 +34,22 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Check if previous command was successful, exit script otherwise.
+reportIfSuccessful() {
+  if [ $? -eq 0 ]; then
+    echo -e "\033[1;32m Done.\033[m"
+    return 0
+  else
+    echo -e "\033[1;31m Fail.\033[m"
+    exit 1
+  fi
+}
+
+reset
+
 cd src/runtime
 ./install.sh
+reportIfSuccessful
 
 mkdir -p build
 cd -
@@ -43,6 +57,7 @@ cd src/runtime/build
 rm -rf libLogger.a
 CXX=clang++ cmake ..
 make
+reportIfSuccessful
 
 cd -
 cd src/detector
@@ -51,6 +66,7 @@ cd -
 cd src/detector/build
 CXX=clang++ cmake ..
 make
+reportIfSuccessful
 
 cd -
 mkdir -p build
@@ -58,6 +74,7 @@ cd build
 rm -rf libFlowSanitizer.so
 CXX=clang++ cmake ../src/tsan
 make
+reportIfSuccessful
 
 cd ..
 reset
