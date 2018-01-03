@@ -228,6 +228,7 @@ void Checker::processLogLines(string & line) {
       // 1.find the parent bag which can be inherited
       SerialBagPtr taskBag = NULL;
       auto inEdge = graph[taskID].inEdges.begin();
+/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
       for(; inEdge != graph[taskID].inEdges.end(); inEdge++) {
 
         // take with outstr 1 and longest
@@ -240,6 +241,7 @@ void Checker::processLogLines(string & line) {
           break;  // could optimize by looking all bags
         }
       }
+*/
 
       if(!taskBag)
         taskBag = new SerialBag(); // no bag inherited
@@ -256,9 +258,11 @@ void Checker::processLogLines(string & line) {
         taskBag->HB.insert(aBag->HB.begin(), aBag->HB.end()); // merging...
         taskBag->HB.insert(*inEdge); // parents happen-before me
 
+/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
         aBag->outBufferCount--; // for inheriting bags
         if(!aBag->outBufferCount)
           serial_bags.erase(*inEdge);
+*/
       }
 
       graph[taskID].name = taskName; // set the name of the task

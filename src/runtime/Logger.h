@@ -244,7 +244,7 @@ class INS {
       }
       guardLock.unlock();
 
-      task.actionBuffer.str(""); // clear buffer
+      task.flushLogs();
     }
 
     /**

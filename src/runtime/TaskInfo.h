@@ -95,6 +95,15 @@ typedef struct TaskInfo {
      functions[funcName] = funcId;
    }
 
+   /**
+    * Clears all stored memory actions.
+    * Can executed once the actions are written to log file.
+    */
+   void flushLogs() {
+     memoryLocations.clear();
+     actionBuffer.str(""); // clear buffer
+   }
+
 } TaskInfo;
 
 // holder of task identification information

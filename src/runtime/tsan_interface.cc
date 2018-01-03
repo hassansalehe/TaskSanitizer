@@ -16,6 +16,7 @@
 #include "Callbacks.h"
 #include "Logger.h"
 #include "TaskInfo.h"
+#include "Util.h"
 #include <thread>
 #include <cassert>
 #include <stdlib.h>
@@ -57,37 +58,13 @@ void PRINT_DEBUG(string msg) {
   cout << static_cast<uint>(pthread_self()) << ": " << msg << endl;
   printLock.unlock();
 }
+
 void FlowSan_TaskBeginFunc(ompt_data_t *task_data, void* taskName ) {
-
-  TaskInfo * taskInfo = new TaskInfo;
-  taskInfo->threadID = static_cast<uint>( pthread_self() );
-  taskInfo->taskID = INS::GenTaskID();
-  taskInfo->taskName = (char *)taskName;
-  taskInfo->active = true;
-
-  task_data->ptr = (void *)taskInfo;
-
-  INS::TaskBeginLog(*taskInfo);
-#ifdef DEBUG
-  PRINT_DEBUG("Task_Began, (threadID: " +
-      to_string(taskInfo->threadID) + ", taskID: " +
-      to_string(taskInfo->taskID)   + ") name: " +
-      taskInfo->taskName);
-#endif
+  UTIL::createNewTaskMetadata(task_data, taskName);
 }
 
 void INS_TaskFinishFunc( ompt_data_t *task_data ) {
-
-  TaskInfo *taskInfo = (TaskInfo*)task_data->ptr;
-  uint threadID = (uint)pthread_self();
-  assert(taskInfo->threadID == threadID);
-  taskInfo->active = false;
-
-  INS::TaskEndLog(*taskInfo);
-#ifdef DEBUG
-  PRINT_DEBUG("Task_Ended: (threadID: " + to_string(threadID) +
-      ") taskID: " + to_string(taskInfo->taskID));
-#endif
+  UTIL::markEndOfTask(task_data);
 }
 
 //////////////////////////////////////////////////
@@ -152,11 +129,22 @@ on_ompt_callback_task_create( // called in the context of the creator
     case ompt_task_implicit:
       PRINT_DEBUG("FlowSan: implicit task created");
       break;
-    case ompt_task_explicit:
+    case ompt_task_explicit: {
       PRINT_DEBUG("FlowSan: explicit task created");
       if(new_task_data->ptr == NULL)
         FlowSan_TaskBeginFunc(new_task_data, (void *)mambo);
+
+      // send and receive token
+      void * depAddr = parent_task_data->ptr;
+      if(depAddr) { // valid parent task
+        INTEGER value = reinterpret_cast<INTEGER>(depAddr);
+        INS::TaskSendTokenLog(
+            *((TaskInfo *)parent_task_data->ptr), depAddr,  value);
+        INS::TaskReceiveTokenLog(
+            *((TaskInfo *)new_task_data->ptr), depAddr, value);
+      }
       break;
+    }
     case ompt_task_target:
       PRINT_DEBUG("FlowSan: target task created");
       break;
@@ -170,6 +158,9 @@ on_ompt_callback_task_create( // called in the context of the creator
     default:
       ;
   }
+
+  UTIL::endThisTask(parent_task_data);
+  UTIL::disguiseToTewTask(parent_task_data);
 }
 
 static void
