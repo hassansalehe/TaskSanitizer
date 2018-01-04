@@ -12,16 +12,16 @@
 //===----------------------------------------------------------------------===//
 
 #include <stdio.h>
-#include "tsan_interface.h"
-#include "Callbacks.h"
-#include "Logger.h"
-#include "TaskInfo.h"
-#include "Util.h"
 #include <thread>
 #include <cassert>
 #include <stdlib.h>
 #include <omp.h>
 #include <ompt.h>
+#include "tsan_interface.h"
+#include "Callbacks.h"
+#include "Logger.h"
+#include "TaskInfo.h"
+#include "Util.h"
 
 // #define DEBUG
 

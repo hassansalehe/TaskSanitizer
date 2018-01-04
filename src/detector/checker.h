@@ -2,7 +2,7 @@
 //  ADFinspec: a lightweight non-determinism checking
 //          tool for ADF applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar & MSRC at Koc University
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -48,10 +48,15 @@ class Checker {
   public:
   VOID addTaskNode(string & logLine);
   VOID saveTaskActions( const MemoryActions & taskActions );
-  VOID processLogLines(string & line);
 
   // a pair of conflicting task body with a set of line numbers
   VOID checkCommutativeOperations( BugValidator & validator );
+
+  VOID registerFuncSignature(string funcName, int funcID);
+  VOID onTaskCreate(int taskID, string taskName);
+  VOID saveHappensBeforeEdge(int parentId, int siblingId);
+  VOID detectNondeterminismOnMem(int taskID, string taskName,
+                         string operation, stringstream & ssin);
 
   VOID reportConflicts();
   VOID printHBGraph();

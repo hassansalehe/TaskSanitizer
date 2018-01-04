@@ -2,7 +2,7 @@
 //  ADFinspec: a lightweight non-determinism checking
 //          tool for ADF applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar & MSRC at Koc University
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -18,6 +18,126 @@
 
 #define VERBOSE
 #define CONC_THREASHOLD 5
+
+// Saves the function name/signature for reporting nondeterminism
+void Checker::registerFuncSignature(string funcName, int funcID) {
+  signatureManager.addFuncName(funcName, funcID);
+}
+
+// Executed when a new task is created
+void Checker::onTaskCreate(int taskID, string taskName) {
+  // we already know its parents
+  // use this information to inherit or greate new serial bag
+  auto parentTasks = graph[taskID].inEdges.begin();
+
+  if(parentTasks == graph[taskID].inEdges.end()) { // if no HB tasks in graph
+
+    // check if has no serial bag
+    if(serial_bags.find(taskID) == serial_bags.end()) {
+      auto newTaskbag = new SerialBag();
+      if(graph.find(taskID) != graph.end()) {
+
+        // specify number of tasks dependent of this task
+        newTaskbag->outBufferCount = graph[taskID].outEdges.size();
+      } else //put it in the simple HB graph
+          graph[taskID] = Task();
+
+      graph[taskID].name = taskName; // save the name of the task
+      serial_bags[taskID] = newTaskbag;
+    }
+  } else { // has parent tasks
+    // look for the parents serial bags and inherit them
+    // or construct your own by cloning the parent's
+
+    // 1.find the parent bag which can be inherited
+    SerialBagPtr taskBag = NULL;
+    auto inEdge = graph[taskID].inEdges.begin();
+/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
+    for(; inEdge != graph[taskID].inEdges.end(); inEdge++) {
+
+      // take with outstr 1 and longest
+      auto curBag = serial_bags[*inEdge];
+      if(curBag->outBufferCount == 1) {
+        serial_bags.erase(*inEdge);
+        graph[taskID].inEdges.erase(*inEdge);
+        taskBag = curBag;
+        curBag->HB.insert(*inEdge);
+        break;  // could optimize by looking all bags
+      }
+    }
+*/
+
+    if(!taskBag)
+      taskBag = new SerialBag(); // no bag inherited
+
+    // the number of inheriting bags
+    taskBag->outBufferCount = graph[taskID].outEdges.size();
+
+    // 2. merge the HBs of the parent nodes
+    inEdge = graph[taskID].inEdges.begin();
+    for(; inEdge != graph[taskID].inEdges.end(); inEdge++) {
+
+      auto aBag = serial_bags[*inEdge];
+
+      taskBag->HB.insert(aBag->HB.begin(), aBag->HB.end()); // merging...
+      taskBag->HB.insert(*inEdge); // parents happen-before me
+
+/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
+      aBag->outBufferCount--; // for inheriting bags
+      if(!aBag->outBufferCount)
+        serial_bags.erase(*inEdge);
+*/
+    }
+
+    graph[taskID].name = taskName; // set the name of the task
+    serial_bags[taskID] = taskBag; // 3. add the bag to serial_bags
+  }
+}
+
+// Saves a happens edge between predecessor and successor task in
+// dependence edge
+void Checker::saveHappensBeforeEdge(int parentId, int siblingId) {
+  if(graph.find(parentId) == graph.end())
+    graph[parentId] = Task();
+
+  if(graph.find(siblingId) == graph.end())
+    graph[siblingId] = Task();
+
+  graph[parentId].outEdges.insert(siblingId);
+  graph[siblingId].inEdges.insert(parentId);
+}
+
+// Detects output nondeterminism on a memory read or write
+void Checker::detectNondeterminismOnMem(
+    int taskID,
+    string taskName,
+    string operation,
+    stringstream & ssin) {
+
+  Action action;
+  action.taskId = taskID;
+  constructMemoryAction(ssin, operation, action);
+
+  if(action.funcId == 0) {
+    cout << "Warning function Id 0: " << endl;
+    exit(0);
+  }
+
+  MemoryActions memActions( action ); // save first action
+
+  if( !ssin.eof() ) { // there are still tokens
+    string separator;
+    ssin >> separator;
+    ssin >> taskID;
+    Action lastWAction;
+    lastWAction.taskId = taskID;
+    ssin >> operation;
+    constructMemoryAction(ssin, operation, lastWAction);
+    memActions.storeAction( lastWAction ); // save second action
+  }
+
+  saveTaskActions( memActions ); // save the actions
+}
 
 void Checker::saveTaskActions( const MemoryActions & taskActions ) {
 
@@ -106,15 +226,7 @@ void Checker::addTaskNode(string & logLine) {
     ssin >> sibId;
     ssin >> parId;
     //cout << line << "(" << sibId << " " << parId << ")" << endl;
-
-    if(graph.find(parId) == graph.end())
-      graph[parId] = Task();
-
-    if(graph.find(sibId) == graph.end())
-      graph[sibId] = Task();
-
-    graph[parId].outEdges.insert(sibId);
-    graph[sibId].inEdges.insert(parId);
+    Checker::saveHappensBeforeEdge(parId, sibId);
 }
 
 /** Constructs action object from the log file */
@@ -144,131 +256,6 @@ void Checker::constructMemoryAction(stringstream & ssin, string & operation, Act
     cout << buff.str();
     cout << endl;
 #endif
-}
-
-void Checker::processLogLines(string & line) {
-
-  stringstream ssin(line); // split string
-
-  int taskID;
-  string taskName;
-  string operation;
-
-  ssin >> taskID; // get task id
-  ssin >> operation; // get operation
-
-  if(operation.find("W") != string::npos || // write action, or
-     operation.find("R") != string::npos) { // read action
-    Action action;
-    action.taskId = taskID;
-    constructMemoryAction(ssin, operation, action);
-
-    if(action.funcId == 0) {
-     cout << "Warning function Id 0: " << line << endl;
-     exit(0);
-    }
-
-    MemoryActions memActions( action ); // save first action
-
-    if( !ssin.eof() ) { // there are still tokens
-      string separator;
-      ssin >> separator;
-      ssin >> taskID;
-      Action lastWAction;
-      lastWAction.taskId = taskID;
-      ssin >> operation;
-      constructMemoryAction(ssin, operation, lastWAction);
-      memActions.storeAction( lastWAction ); // save second action
-    }
-
-    saveTaskActions( memActions ); // save the actions
-  }
-  // Check if this is just function name
-  else if(operation.find("F") != string::npos) {
-
-    // task id position is func ID in this case
-    int funcID = taskID;
-
-    string funcName;
-    getline(ssin, funcName); // get function name
-
-    // save the function name
-    signatureManager.addFuncName(funcName, funcID);
-  }
-  // if new task creation, parents terminated
-  else if(operation.find("B") != string::npos) {
-
-    ssin >> taskName; // get task name
-
-    // we already know its parents
-    // use this information to inherit or greate new serial bag
-    auto parentTasks = graph[taskID].inEdges.begin();
-
-    if(parentTasks == graph[taskID].inEdges.end()) { // if no HB tasks in graph
-
-      // check if has no serial bag
-      if(serial_bags.find(taskID) == serial_bags.end()) {
-        auto newTaskbag = new SerialBag();
-        if(graph.find(taskID) != graph.end()) {
-
-          // specify number of tasks dependent of this task
-          newTaskbag->outBufferCount = graph[taskID].outEdges.size();
-        }
-        else //put it in the simple HB graph
-          graph[taskID] = Task();
-
-        graph[taskID].name = taskName; // save the name of the task
-        serial_bags[taskID] = newTaskbag;
-      }
-    }
-    else { // has parent tasks
-      // look for the parents serial bags and inherit them
-      // or construct your own by cloning the parent's
-
-      // 1.find the parent bag which can be inherited
-      SerialBagPtr taskBag = NULL;
-      auto inEdge = graph[taskID].inEdges.begin();
-/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
-      for(; inEdge != graph[taskID].inEdges.end(); inEdge++) {
-
-        // take with outstr 1 and longest
-        auto curBag = serial_bags[*inEdge];
-        if(curBag->outBufferCount == 1) {
-          serial_bags.erase(*inEdge);
-          graph[taskID].inEdges.erase(*inEdge);
-          taskBag = curBag;
-          curBag->HB.insert(*inEdge);
-          break;  // could optimize by looking all bags
-        }
-      }
-*/
-
-      if(!taskBag)
-        taskBag = new SerialBag(); // no bag inherited
-
-      // the number of inheriting bags
-      taskBag->outBufferCount = graph[taskID].outEdges.size();
-
-      // 2. merge the HBs of the parent nodes
-      inEdge = graph[taskID].inEdges.begin();
-      for(; inEdge != graph[taskID].inEdges.end(); inEdge++) {
-
-        auto aBag = serial_bags[*inEdge];
-
-        taskBag->HB.insert(aBag->HB.begin(), aBag->HB.end()); // merging...
-        taskBag->HB.insert(*inEdge); // parents happen-before me
-
-/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
-        aBag->outBufferCount--; // for inheriting bags
-        if(!aBag->outBufferCount)
-          serial_bags.erase(*inEdge);
-*/
-      }
-
-      graph[taskID].name = taskName; // set the name of the task
-      serial_bags[taskID] = taskBag; // 3. add the bag to serial_bags
-    }
-  }
 }
 
 void Checker::checkCommutativeOperations(BugValidator & validator) {

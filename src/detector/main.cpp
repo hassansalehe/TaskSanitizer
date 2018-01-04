@@ -2,7 +2,7 @@
 //  ADFinspec: a lightweight non-determinism checking
 //          tool for ADF applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar & MSRC at Koc University
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -15,7 +15,36 @@
 #include "checker.h"  // header
 #include "validator.h"
 
-using namespace std::chrono;
+void processLogLines(Checker & aChecker, string & line) {
+
+  stringstream ssin(line); // split string
+
+  int taskID;
+  string taskName;
+  string operation;
+
+  ssin >> taskID; // get task id
+  ssin >> operation; // get operation
+
+  if(operation.find("W") != string::npos || // write action, or
+     operation.find("R") != string::npos) { // read action
+     aChecker.detectNondeterminismOnMem(taskID, taskName, operation, ssin);
+  }
+  // Check if this is just function name
+  else if(operation.find("F") != string::npos) {
+
+    // task id position is func ID in this case
+    int funcID = taskID;
+    string funcName;
+    getline(ssin, funcName); // get function name
+    aChecker.registerFuncSignature(funcName, funcID);
+  }
+  // if new task creation, parents terminated
+  else if(operation.find("B") != string::npos) {
+    ssin >> taskName; // get task name
+    aChecker.onTaskCreate(taskID, taskName);
+  }
+}
 
 int main(int argc, char * argv[])
 {
@@ -29,7 +58,8 @@ int main(int argc, char * argv[])
   }
 
   // take time at begin of analysis
-  high_resolution_clock::time_point t1 = high_resolution_clock::now();
+  std::chrono::high_resolution_clock::time_point t1 =
+      std::chrono::high_resolution_clock::now();
 
   Checker aChecker; // checker instance
   string logLine;
@@ -43,9 +73,7 @@ int main(int argc, char * argv[])
   }
 
   while( getline(HBlog, logLine) )
-  {
     aChecker.addTaskNode(logLine);
-  }
   HBlog.close();
 
   ifstream log(argv[1]); //  log file
@@ -56,10 +84,9 @@ int main(int argc, char * argv[])
     exit(-1);
   }
 
-  while( getline(log, logLine) ) {
+  while( getline(log, logLine) )
     // processes log file and detects nondeterminism
-    aChecker.processLogLines(logLine);
-  }
+    processLogLines(aChecker, logLine);
   log.close();
 
   // validate the detected nondeterminism bugs
@@ -70,8 +97,10 @@ int main(int argc, char * argv[])
   aChecker.checkCommutativeOperations( validator );
 
   // take time at end of analyis
-  high_resolution_clock::time_point t2 = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>( t2 - t1 ).count();
+  std::chrono::high_resolution_clock::time_point t2 =
+      std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast
+      <std::chrono::microseconds>( t2 - t1 ).count();
 
   // testing writes
   //aChecker.testing();
@@ -80,6 +109,5 @@ int main(int argc, char * argv[])
   aChecker.printHBGraphJS(); // print in JS format
 
   cout << "Checker execution time: "<< duration/1000.0 << " milliseconds" << endl;
-
   return 0;
 }
