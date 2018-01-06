@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////
-//  ADFinspec: a lightweight non-determinism checking
+//  FlowSanitizer: a lightweight non-determinism checking
 //          tool for ADF applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -19,6 +19,8 @@ This is a logger for all events in an ADF application
 
 #include "defs.h"
 #include "TaskInfo.h"
+#include "checker.h"  // header
+#include "validator.h"
 #include <atomic>
 
 struct hash_function {
@@ -41,13 +43,6 @@ class INS {
     // a strictly increasing value, used as tasks unique id generator
     static atomic<INTEGER> taskIDSeed;
 
-    // a file pointer for the log file
-    static FILEPTR logger;
-
-    // a file pointer for the HB log file
-    static FILEPTR HBlogger;
-    static ostringstream HBloggerBuffer;
-
     // storing function name pointers
     static unordered_map<STRING, INTEGER>funcNames;
     static INTEGER funcIDSeed;
@@ -64,8 +59,8 @@ class INS {
     // keeping track of the last reader from a memory location
     static unordered_map<ADDRESS, INTEGER> lastReader;
 
-    static string trace_file_name;
-    static string hb_file_name;
+    // checker instance for detecting nondeterminism online
+    static Checker onlineChecker;
 
   public:
     // global lock to protect metadata, use this lock
@@ -85,27 +80,6 @@ class INS {
       taskIDSeed = 0;
 
       isOMPTinitialized = true;
-
-      // get current time to suffix log files
-      time_t currentTime; time(&currentTime);
-      struct tm * timeinfo = localtime(&currentTime);
-
-      char buff[40];
-      strftime( buff, 40, "%d-%m-%Y_%H.%M.%S", timeinfo );
-      string timeStr( buff );
-      trace_file_name = "Tracelog_" + timeStr + ".txt";
-      hb_file_name = "HBlog_" + timeStr + ".txt";
-
-      if(! logger.is_open() )
-        logger.open( trace_file_name,  ofstream::out | ofstream::trunc );
-      if(! HBlogger.is_open())
-        HBlogger.open( hb_file_name,  ofstream::out | ofstream::trunc );
-      if(! logger.is_open() || ! HBlogger.is_open() ) {
-        cerr << "Could not open log file \nExiting ..." << endl;
-        exit(EXIT_FAILURE);
-      }
-
-      cout << "File: " << "Tracelog_" + timeStr + ".txt\n";
     }
 
     /** Generates a unique ID for each new task. */
@@ -125,9 +99,7 @@ class INS {
       if( fd == funcNames.end() ) { // new function
         funcID = funcIDSeed++;
         funcNames[funcName] = funcID;
-
-        // print to the log file
-        logger << funcID << " F " << funcName << endl;
+        onlineChecker.registerFuncSignature(string(funcName), funcID);
       }
       else
          funcID = fd->second;
@@ -143,35 +115,25 @@ class INS {
       idMap.clear(); HB.clear();
       lastReader.clear(); lastWriter.clear();
 
-      if( logger.is_open() ) logger.close();
-      if( HBlogger.is_open() ) HBlogger.close();
+      cout << "BANAN\n";
+      onlineChecker.removeDuplicateConflicts();
+      onlineChecker.reportConflicts();
       guardLock.unlock();
     }
 
     static inline VOID TransactionBegin( TaskInfo & task ) {
-      task.actionBuffer << task.taskID << " BTM " << task.taskName << endl;
+      task.actionBuffer << task.taskID << " BTM " << endl;
     }
 
     static inline VOID TransactionEnd( TaskInfo & task ) {
-      task.actionBuffer << task.taskID << " ETM "<< task.taskName << endl;
+      task.actionBuffer << task.taskID << " ETM " << endl;
     }
 
     /** called when a task begins execution and retrieves parent task id */
-    static inline VOID TaskBeginLog( TaskInfo& task) {
-      task.actionBuffer << task.taskID << " B " << task.taskName << endl;
-    }
-
-    static inline void writeToHBlogFile(string hbLine) {
-      // Write HB relations to file
-      if( !HBlogger.is_open() ) { // unexpectedly closed
-        ofstream hbLogger;
-        hbLogger.open( hb_file_name,  ofstream::app );
-        hbLogger << hbLine << endl; // print to file
-        hbLogger.close();
-      } else {
-        HBlogger << hbLine << endl;
-        HBlogger.flush();
-      }
+    static inline VOID TaskBeginLog(TaskInfo& task) {
+      guardLock.lock();
+      onlineChecker.onTaskCreate(task.taskID);
+      guardLock.unlock();
     }
 
     /** called when a task begins execution. retrieves parent task id */
@@ -188,7 +150,7 @@ class INS {
 
         if(parentID != tid) { // there was a bug where a task could send token to itself
 
-          writeToHBlogFile(to_string(tid) +  " " + to_string(parentID));
+          onlineChecker.saveHappensBeforeEdge(parentID, tid);
 
           // there is a happens before between taskID and parentID:
           //parentID ---happens-before---> taskID
@@ -199,8 +161,6 @@ class INS {
           // take the happens-before of the parentID
           if(HB.find( parentID ) != HB.end())
             HB[tid].insert(HB[parentID].begin(), HB[parentID].end());
-
-          task.actionBuffer << tid << " C " << task.taskName << " " << parentID << endl;
         }
       }
       guardLock.unlock();
@@ -209,42 +169,9 @@ class INS {
     /** called before the task terminates. */
     static inline VOID TaskEndLog( TaskInfo& task ) {
 
-      task.printMemoryActions();
-      task.actionBuffer << task.taskID << " E " << task.taskName << endl;
-
       guardLock.lock(); // protect file descriptor
-      if( !logger.is_open() ) { // unexpectedly closed
-        ofstream eventsLogger;
-        eventsLogger.open( trace_file_name,  ofstream::app );
-        eventsLogger << task.actionBuffer.str(); // print to file
-        eventsLogger.close();
-      } else {
-        logger << task.actionBuffer.str(); // print to file
-        logger.flush();
-      }
+      // do something
       guardLock.unlock();
-
-      task.actionBuffer.str(""); // clear buffer
-    }
-
-    /** called to log to file the events of a task */
-    static inline VOID LogToFile( TaskInfo& task ) {
-
-      task.printMemoryActions();
-
-      guardLock.lock(); // protect file descriptor
-      if( !logger.is_open() ) { // unexpectedly closed
-        ofstream eventsLogger;
-        eventsLogger.open( trace_file_name,  ofstream::app );
-        eventsLogger << task.actionBuffer.str(); // print to file
-        eventsLogger.close();
-      } else {
-        logger << task.actionBuffer.str(); // print to file
-        logger.flush();
-      }
-      guardLock.unlock();
-
-      task.flushLogs();
     }
 
     /**
@@ -254,9 +181,8 @@ class INS {
     static inline VOID TaskSendTokenLog( TaskInfo & task, ADDRESS bufLocAddr, INTEGER value ) {
 
       auto key = make_pair(bufLocAddr, value );
-      task.actionBuffer << task.taskID << " S " << task.taskName << endl;
 
-      guardLock.lock(); //  protect file descriptor & idMap
+      guardLock.lock(); //  protect idMap
       idMap[key] = task.taskID;
       guardLock.unlock();
     }
@@ -271,8 +197,14 @@ class INS {
         task.registerFunction( funcName, funcID );
       }
 
-      task.saveReadAction(addr, lineNo, funcID);
-      LogToFile(task);
+      //task.saveReadAction(addr, lineNo, funcID);
+      stringstream ssin(to_string((VALUE)addr) + " 0 " +
+          to_string(lineNo) + " " + to_string(funcID));
+
+      guardLock.lock();
+      onlineChecker.detectNondeterminismOnMem(
+          task.taskID, "R", ssin);
+      guardLock.unlock();
     }
 
     /** stores a write action */
@@ -286,8 +218,14 @@ class INS {
         task.registerFunction( funcName, funcID );
       }
 
-      task.saveWriteAction(addr, value, lineNo, funcID);
-      LogToFile(task);
+      //task.saveWriteAction(addr, value, lineNo, funcID);
+      stringstream ssin(to_string((VALUE)addr) + " " + to_string(value)
+          + " " + to_string(lineNo) + " " + to_string(funcID));
+
+      guardLock.lock();
+      onlineChecker.detectNondeterminismOnMem(
+          task.taskID, "W", ssin);
+      guardLock.unlock();
     }
 };
 #endif

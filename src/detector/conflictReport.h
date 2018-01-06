@@ -49,8 +49,8 @@ class Conflict {
 // and the addresses they conflict at
 class Report {
  public:
-  string task1Name;
-  string  task2Name;
+  int task1ID;
+  int task2ID;
   set<Conflict> buggyAccesses;
 }; // end Report
 

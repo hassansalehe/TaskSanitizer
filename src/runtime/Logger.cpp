@@ -20,9 +20,6 @@
 // static attributes redefined
 std::mutex INS::guardLock;
 
-FILEPTR INS::logger;
-FILEPTR INS::HBlogger;
-ostringstream INS::HBloggerBuffer;
 atomic<INTEGER> INS::taskIDSeed{ 0 };
 unordered_map<STRING, INTEGER> INS::funcNames;
 INTEGER INS::funcIDSeed = 1;
@@ -31,8 +28,7 @@ unordered_map<INTEGER, INTSET> INS::HB;
 unordered_map<ADDRESS, INTEGER> INS::lastWriter;
 unordered_map<ADDRESS, INTEGER> INS::lastReader;
 
-string INS::trace_file_name;
-string INS::hb_file_name;
 bool INS::isOMPTinitialized = false;
+Checker INS::onlineChecker;
 #endif
 

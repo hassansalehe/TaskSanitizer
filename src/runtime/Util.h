@@ -22,12 +22,10 @@
 // used in task action logging callbacks.
 namespace UTIL {
 
-char* tempName = "Kangaroo";
-
 /**
  * Creates and initializes action logging metadata
  */
-void createNewTaskMetadata(ompt_data_t *task_data, void* taskName ) {
+void createNewTaskMetadata(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
   if(task_data == nullptr) return;
@@ -38,7 +36,6 @@ void createNewTaskMetadata(ompt_data_t *task_data, void* taskName ) {
 
   taskInfo->threadID = static_cast<uint>( pthread_self() );
   taskInfo->taskID = INS::GenTaskID();
-  taskInfo->taskName = (char *)taskName;
   taskInfo->active = true;
 
   task_data->ptr = (void *)taskInfo;
@@ -47,8 +44,7 @@ void createNewTaskMetadata(ompt_data_t *task_data, void* taskName ) {
 #ifdef DEBUG
   PRINT_DEBUG("Task_Began, (threadID: " +
       to_string(taskInfo->threadID) + ", taskID: " +
-      to_string(taskInfo->taskID)   + ") name: " +
-      taskInfo->taskName);
+      to_string(taskInfo->taskID)   + ")";
 #endif
 }
 
@@ -86,7 +82,7 @@ void endThisTask(ompt_data_t *task_data) {
  * thus make it look like a new task.
  */
 void disguiseToTewTask(ompt_data_t *task_data) {
-   UTIL::createNewTaskMetadata(task_data, (void *)tempName);
+   UTIL::createNewTaskMetadata(task_data);
 }
 
 } // namespace

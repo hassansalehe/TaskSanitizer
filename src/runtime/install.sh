@@ -28,7 +28,9 @@ checkIfActionOK() {
 
 clang++ -c tsan_interface.cc -o ${tSanLib}.o	\
     -g -static -std=c++11 -pthread -fpermissive	\
-    -fopenmp -I/home/hmatar/Research/FlowSanitizer/bin/include
+    -fopenmp -I/home/hmatar/Research/FlowSanitizer/bin/include	\
+    -I/home/hmatar/Research/FlowSanitizer/src/detector 	\
+    -I/home/hmatar/Research/FlowSanitizer/src/runtime
 checkIfActionOK
 
 # Generate etsan as static library

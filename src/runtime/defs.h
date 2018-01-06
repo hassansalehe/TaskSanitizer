@@ -56,9 +56,9 @@ using lint    =  long int;
 using address =  void *;
 
 // for conflict task pairs
-typedef pair<string,string>     STRPAIR;
-typedef set<pair<int,int>>      INT_PAIRS;
-typedef map<STRPAIR, INT_PAIRS> CONFLICT_PAIRS;
+typedef pair<int,int>       IDPAIR;
+typedef set<pair<int,int>>  LINE_PAIRS;
+typedef map<IDPAIR, LINE_PAIRS> CONFLICT_PAIRS;
 
 enum OPERATION {
   ALLOCA,

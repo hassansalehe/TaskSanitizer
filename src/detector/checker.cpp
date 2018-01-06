@@ -11,9 +11,8 @@
 /////////////////////////////////////////////////////////////////
 
 // this file implements the checking tool functionalities.
-
+#include <cassert>
 #include "checker.h"  // header
-#include "sigManager.h" // for managing function names
 #include "MemoryActions.h"
 
 #define VERBOSE
@@ -21,11 +20,13 @@
 
 // Saves the function name/signature for reporting nondeterminism
 void Checker::registerFuncSignature(string funcName, int funcID) {
-  signatureManager.addFuncName(funcName, funcID);
+  assert(functions.find(funcID) == functions.end());
+  functions[funcID] = funcName;
 }
 
 // Executed when a new task is created
-void Checker::onTaskCreate(int taskID, string taskName) {
+void Checker::onTaskCreate(int taskID) {
+
   // we already know its parents
   // use this information to inherit or greate new serial bag
   auto parentTasks = graph[taskID].inEdges.begin();
@@ -42,7 +43,7 @@ void Checker::onTaskCreate(int taskID, string taskName) {
       } else //put it in the simple HB graph
           graph[taskID] = Task();
 
-      graph[taskID].name = taskName; // save the name of the task
+      graph[taskID].taskID = taskID; // save the ID of the task
       serial_bags[taskID] = newTaskbag;
     }
   } else { // has parent tasks
@@ -89,7 +90,7 @@ void Checker::onTaskCreate(int taskID, string taskName) {
 */
     }
 
-    graph[taskID].name = taskName; // set the name of the task
+    graph[taskID].taskID = taskID; // set the ID of the task
     serial_bags[taskID] = taskBag; // 3. add the bag to serial_bags
   }
 }
@@ -100,8 +101,10 @@ void Checker::saveHappensBeforeEdge(int parentId, int siblingId) {
   if(graph.find(parentId) == graph.end())
     graph[parentId] = Task();
 
-  if(graph.find(siblingId) == graph.end())
+  if(graph.find(siblingId) == graph.end()) {
     graph[siblingId] = Task();
+    graph[siblingId].taskID = siblingId;
+  }
 
   graph[parentId].outEdges.insert(siblingId);
   graph[siblingId].inEdges.insert(parentId);
@@ -110,7 +113,6 @@ void Checker::saveHappensBeforeEdge(int parentId, int siblingId) {
 // Detects output nondeterminism on a memory read or write
 void Checker::detectNondeterminismOnMem(
     int taskID,
-    string taskName,
     string operation,
     stringstream & ssin) {
 
@@ -201,16 +203,14 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
 VOID Checker::saveNondeterminismReport(const Action& curMemAction, const Action& prevMemAction) {
   Conflict report(curMemAction, prevMemAction);
   // code for recording errors
-  const char * task1Name = graph[curMemAction.taskId].name.c_str();
-  const char * task2Name = graph[prevMemAction.taskId].name.c_str();
+  auto taskPair = make_pair(curMemAction.taskId, prevMemAction.taskId);
 
-  auto taskPair = make_pair(task1Name, task2Name);
   if(conflictTable.find(taskPair) != conflictTable.end()) // exists
     conflictTable[taskPair].buggyAccesses.insert( report );
   else { // add new
     conflictTable[taskPair] = Report();
-    conflictTable[taskPair].task1Name = graph[curMemAction.taskId].name;
-    conflictTable[taskPair].task2Name = graph[prevMemAction.taskId].name;
+    conflictTable[taskPair].task1ID = curMemAction.taskId;
+    conflictTable[taskPair].task2ID = prevMemAction.taskId;
     conflictTable[taskPair].buggyAccesses.insert( report );
   }
 }
@@ -258,21 +258,20 @@ void Checker::constructMemoryAction(stringstream & ssin, string & operation, Act
 #endif
 }
 
-void Checker::checkCommutativeOperations(BugValidator & validator) {
+void Checker::removeDuplicateConflicts() {
 
   // generate simplified version of conflicts from scratch
   conflictTasksAndLines.clear();
 
   // a pair of conflicting task body with a set of line numbers
   for(auto it = conflictTable.begin(); it != conflictTable.end(); ++it) {
-    pair<string, string> namesPair = make_pair(it->second.task1Name, it->second.task2Name);
-    if(conflictTasksAndLines.find(namesPair) == conflictTasksAndLines.end())
-      conflictTasksAndLines[namesPair] = set<pair<int,int>>();
+
+    pair<int, int> taskIdPair = make_pair(it->second.task1ID, it->second.task2ID);
 
     // erase duplicates
     for(auto conf = it->second.buggyAccesses.begin(); conf != it->second.buggyAccesses.end(); ) {
       pair<int,int> lines = make_pair(conf->action1.lineNo, conf->action2.lineNo);
-      auto inserted = conflictTasksAndLines[namesPair].insert(lines);
+      auto inserted = conflictTasksAndLines[taskIdPair].insert(lines);
       if(inserted.second == false) {
         conf = it->second.buggyAccesses.erase( conf );
       }
@@ -286,6 +285,20 @@ void Checker::checkCommutativeOperations(BugValidator & validator) {
 
     Report & report = it->second;
     // validator.validate( report );
+
+    if( !report.buggyAccesses.size() )
+       it = conflictTable.erase(it);
+    else
+      ++it;
+  }
+}
+
+void Checker::checkCommutativeOperations(BugValidator & validator) {
+  // a pair of conflicting task body with a set of line numbers
+  for(auto it = conflictTable.begin(); it != conflictTable.end(); ) {
+
+    Report & report = it->second;
+    validator.validate( report );
 
     if( !report.buggyAccesses.size() )
        it = conflictTable.erase(it);
@@ -315,8 +328,8 @@ VOID Checker::reportConflicts() {
     cout << " The following " << conflictTable.size() <<" task pairs have conflicts: " << endl;
 
   for(auto it = conflictTable.begin(); it != conflictTable.end(); ++it) {
-    cout << "    "<< it->first.first << " ("<< it->second.task1Name<<")  <--> ";
-    cout << it->first.second << " (" << it->second.task2Name << ")";
+    cout << "    "<< it->first.first << " ("<< it->second.task1ID <<")  <--> ";
+    cout << it->first.second << " (" << it->second.task2ID << ")";
     cout << " on "<< it->second.buggyAccesses.size() << " memory addresses" << endl;
 
     if(it->second.buggyAccesses.size() > 10)
@@ -325,9 +338,9 @@ VOID Checker::reportConflicts() {
 
     Report & report = it->second;
     for(auto conf = report.buggyAccesses.begin(); conf != report.buggyAccesses.end(); conf++) {
-      cout << "      " <<  conf->addr << " lines: " << signatureManager.getFuncName( conf->action1.funcId )
+      cout << "      " <<  conf->addr << " lines: " << " " << functions.at( conf->action1.funcId )
            << ": " << conf->action1.lineNo;
-      cout << ", "<< signatureManager.getFuncName( conf->action2.funcId) << ": " << conf->action2.lineNo << endl;
+      cout << ", "<< functions.at( conf->action2.funcId) << ": " << conf->action2.lineNo << endl;
       addressCount++;
       if(addressCount == 10) // we want to print at most 10 addresses if they are too many.
         break;
@@ -340,7 +353,7 @@ VOID Checker::reportConflicts() {
   for(auto it = conflictTable.begin(); it!= conflictTable.end(); it++)
   {
     Report & report = it->second;
-    cout << report.task1Name << " <--> " << report.task2Name << ": line numbers  {";
+    cout << report.task1ID << " <--> " << report.task2ID << ": line numbers  {";
     for(auto conflict = report.buggyAccesses.begin(); conflict != report.buggyAccesses.end(); conflict++)
       cout << conflict->action1.lineNo <<" - "<< conflict->action2.lineNo << ", ";
     cout << "}" << endl;
@@ -362,8 +375,8 @@ VOID Checker::printHBGraph() {
 
   for(auto it = graph.begin(); it != graph.end(); it++)
     for(auto out = it->second.outEdges.begin(); out != it->second.outEdges.end(); out++) {
-       flowGraph << it->first << "_" << it->second.name << " pp ";
-       flowGraph << *out << "_" << graph[*out].name << endl;
+       flowGraph << it->first << "_" << it->second.taskID << " pp ";
+       flowGraph << *out << "_" << graph[*out].taskID << endl;
     }
   if(flowGraph.is_open())
     flowGraph.close();
@@ -382,9 +395,9 @@ VOID Checker::printHBGraphJS() {
   graphJS << "nodes: [ \n";
   for(auto it = graph.begin(); it != graph.end(); it++) {
     if(it == graph.begin())
-      graphJS << "      { data: { id: '" << it->second.name << it->first << "', name: '" << it->second.name << it->first << "' }}";
+      graphJS << "      { data: { id: '" << it->second.taskID << it->first << "', name: '" << it->second.taskID << it->first << "' }}";
     else
-      graphJS << ",\n      { data: { id: '" << it->second.name << it->first << "', name: '" << it->second.name << it->first << "' }}";
+      graphJS << ",\n      { data: { id: '" << it->second.taskID << it->first << "', name: '" << it->second.taskID << it->first << "' }}";
   }
   graphJS << "\n     ],\n";
 
@@ -394,11 +407,11 @@ VOID Checker::printHBGraphJS() {
   for(auto it = graph.begin(); it != graph.end(); it++)
     for(auto out = it->second.outEdges.begin(); out != it->second.outEdges.end(); out++) {
       if(start) {
-        graphJS << "      { data: { source: '" << it->second.name << it->first << "', target: '" << graph[*out].name << *out << "' }}";
+        graphJS << "      { data: { source: '" << it->second.taskID << it->first << "', target: '" << graph[*out].taskID << *out << "' }}";
         start = 0;
       }
       else
-        graphJS << ",\n      { data: { source: '" << it->second.name << it->first << "', target: '" << graph[*out].name << *out << "' }}";
+        graphJS << ",\n      { data: { source: '" << it->second.taskID << it->first << "', target: '" << graph[*out].taskID << *out << "' }}";
     }
   graphJS << "\n     ]\n";
 

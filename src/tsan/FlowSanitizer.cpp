@@ -186,8 +186,8 @@ void FlowSanitizer::initializeCallbacks(Module &M) {
   // Initialize the callbacks.
   TsanFuncEntry = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
-  TsanFuncExit = checkSanitizerInterfaceFunction(
-      M.getOrInsertFunction("__tsan_func_exit", Attr, IRB.getVoidTy(), nullptr));
+  TsanFuncExit = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
+      "__tsan_func_exit", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
 
   TsanIgnoreBegin = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_ignore_thread_begin", Attr, IRB.getVoidTy(), nullptr));
@@ -527,7 +527,7 @@ bool FlowSanitizer::runOnFunction(Function &F) {
 
     EscapeEnumerator EE(F, "tsan_cleanup", ClHandleCxxExceptions);
     while (IRBuilder<> *AtExit = EE.Next()) {
-      AtExit->CreateCall(TsanFuncExit, {});
+      AtExit->CreateCall(TsanFuncExit, {funcNamePtr});
     }
     Res = true;
   }

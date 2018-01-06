@@ -20,7 +20,6 @@
 #include "defs.h"
 #include "action.h" // defines Action class
 #include "conflictReport.h" // defines Conflict and Report structs
-#include "sigManager.h" // for managing function names
 #include "MemoryActions.h"
 #include "validator.h"
 #include <list>
@@ -37,7 +36,7 @@ typedef struct SerialBag {
 
 // for constructing happans-before between tasks
 typedef struct Task {
-  string name;     // name of the task
+  int taskID;     // identity of the task
   UNORD_INTSET inEdges;  // incoming data streams
   UNORD_INTSET outEdges; // outgoing data streams
 } Task;
@@ -51,12 +50,13 @@ class Checker {
 
   // a pair of conflicting task body with a set of line numbers
   VOID checkCommutativeOperations( BugValidator & validator );
+  VOID removeDuplicateConflicts();
 
   VOID registerFuncSignature(string funcName, int funcID);
-  VOID onTaskCreate(int taskID, string taskName);
+  VOID onTaskCreate(int taskID);
   VOID saveHappensBeforeEdge(int parentId, int siblingId);
-  VOID detectNondeterminismOnMem(int taskID, string taskName,
-                         string operation, stringstream & ssin);
+  VOID detectNondeterminismOnMem(int taskID,
+           string operation, stringstream & ssin);
 
   VOID reportConflicts();
   VOID printHBGraph();
@@ -73,11 +73,11 @@ class Checker {
     unordered_map <INTEGER, SerialBagPtr> serial_bags; // hold bags of tasks
     unordered_map<INTEGER, Task> graph;  // in and out edges
     unordered_map<ADDRESS, list<MemoryActions>> writes; // for writes
-    map<pair<STRING, STRING>, Report> conflictTable;
+    map<pair<int, int>, Report> conflictTable;
     CONFLICT_PAIRS conflictTasksAndLines;
 
     // For holding function signatures.
-    SigManager signatureManager;
+    unordered_map<INTEGER, string> functions;
 };
 
 #endif // end checker.h

@@ -86,6 +86,5 @@ for test in "${TESTS[@]}"; do
   echo "RUNNING $test"
   flowsan $test 
   ./a.out
-  bin/DFchecker Trace* HBlog* IIR.iir
 done
 

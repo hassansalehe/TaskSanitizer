@@ -20,7 +20,6 @@ void processLogLines(Checker & aChecker, string & line) {
   stringstream ssin(line); // split string
 
   int taskID;
-  string taskName;
   string operation;
 
   ssin >> taskID; // get task id
@@ -28,7 +27,7 @@ void processLogLines(Checker & aChecker, string & line) {
 
   if(operation.find("W") != string::npos || // write action, or
      operation.find("R") != string::npos) { // read action
-     aChecker.detectNondeterminismOnMem(taskID, taskName, operation, ssin);
+     aChecker.detectNondeterminismOnMem(taskID, operation, ssin);
   }
   // Check if this is just function name
   else if(operation.find("F") != string::npos) {
@@ -41,8 +40,7 @@ void processLogLines(Checker & aChecker, string & line) {
   }
   // if new task creation, parents terminated
   else if(operation.find("B") != string::npos) {
-    ssin >> taskName; // get task name
-    aChecker.onTaskCreate(taskID, taskName);
+    aChecker.onTaskCreate(taskID);
   }
 }
 

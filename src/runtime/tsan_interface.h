@@ -70,7 +70,7 @@ void __tsan_vptr_read(void **vptr_p);
 void __tsan_vptr_update(void **vptr_p, void *new_val);
 
 void __tsan_func_entry(void *call_pc);
-void __tsan_func_exit();
+void __tsan_func_exit(void * funcPtr);
 
 void __tsan_ignore_thread_begin();
 void __tsan_ignore_thread_end();

@@ -73,8 +73,8 @@ VOID BugValidator::parseTasksIR(char * IRlogName)
 VOID BugValidator::validate(Report & conflictSet) {
 
   // get task names
-  string task1 = conflictSet.task1Name;
-  string task2 = conflictSet.task2Name;
+  string task1 = to_string(conflictSet.task1ID);
+  string task2 = to_string(conflictSet.task2ID);
 
   // for each action pair
   auto  conflict  = conflictSet.buggyAccesses.begin();

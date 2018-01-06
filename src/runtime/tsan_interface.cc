@@ -59,8 +59,8 @@ void PRINT_DEBUG(string msg) {
   printLock.unlock();
 }
 
-void FlowSan_TaskBeginFunc(ompt_data_t *task_data, void* taskName ) {
-  UTIL::createNewTaskMetadata(task_data, taskName);
+void FlowSan_TaskBeginFunc(ompt_data_t *task_data) {
+  UTIL::createNewTaskMetadata(task_data);
 }
 
 void INS_TaskFinishFunc( ompt_data_t *task_data ) {
@@ -78,8 +78,6 @@ void __tsan_init() {
   PRINT_DEBUG("Flowsan: init");
 #endif
 }
-
-char* mambo = "Kangaroo";
 
 static ompt_get_thread_data_t ompt_get_thread_data;
 static ompt_get_unique_id_t ompt_get_unique_id;
@@ -105,7 +103,7 @@ on_ompt_callback_implicit_task(
   switch(endpoint) {
     case ompt_scope_begin:
       if(task_data->ptr == NULL)
-	FlowSan_TaskBeginFunc(task_data, (void *)mambo);
+	FlowSan_TaskBeginFunc(task_data);
       break;
     case ompt_scope_end:
       INS_TaskFinishFunc(task_data);
@@ -132,7 +130,7 @@ on_ompt_callback_task_create( // called in the context of the creator
     case ompt_task_explicit: {
       PRINT_DEBUG("FlowSan: explicit task created");
       if(new_task_data->ptr == NULL)
-        FlowSan_TaskBeginFunc(new_task_data, (void *)mambo);
+        FlowSan_TaskBeginFunc(new_task_data);
 
       // send and receive token
       void * depAddr = parent_task_data->ptr;
@@ -170,7 +168,7 @@ on_ompt_callback_task_schedule( // called in the context of the task
     ompt_data_t *next_task_data) {        /* data of next task     */
 
   if(next_task_data->ptr == NULL)
-    FlowSan_TaskBeginFunc(next_task_data, (void *)mambo);
+    FlowSan_TaskBeginFunc(next_task_data);
 
   PRINT_DEBUG("Task is being scheduled (p:" +
       to_string(next_task_data->value) + " t:" +
@@ -252,7 +250,6 @@ static int dfinspec_initialize(
 
 static void dfinspec_finalize(
   ompt_data_t *tool_data) {
-  INS::Finalize();
   std::cout << "FlowSan: Everything is finalizing\n";
 }
 
@@ -470,7 +467,9 @@ void __tsan_func_entry(void *call_pc) {
 #endif
 }
 
-void __tsan_func_exit() {
+void __tsan_func_exit(void * funcPtr) {
+  if(funcPtr && string((char*) funcPtr) == "main")
+   INS::Finalize();
 #ifdef DEBUG
   PRINT_DEBUG("Flowsan: __tsan_func_exit");
 #endif

@@ -25,8 +25,6 @@ typedef struct TaskInfo {
   uint taskID = 0;
   bool active = false;
 
-  char * taskName;
-
   // stores pointers of signatures of functions executed by task
   // for faster acces
   unordered_map<STRING, INTEGER> functions;
