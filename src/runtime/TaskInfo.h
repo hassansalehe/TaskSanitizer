@@ -35,6 +35,16 @@ typedef struct TaskInfo {
   // improve performance by buffering actions and write only once.
   ostringstream actionBuffer;
 
+  // stores the IDs of child tasks created by this task
+  vector<int> childrenIDs;
+
+  /**
+   * Appends child ID to a list of children IDs
+   */
+  inline void addChild(int childID) {
+   childrenIDs.push_back(childID);
+  }
+
   /**
    * Stores the action info as performed by task.
    * The rules for storing this information are

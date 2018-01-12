@@ -124,22 +124,27 @@ on_ompt_callback_task_create( // called in the context of the creator
     case ompt_task_initial:
       PRINT_DEBUG("FlowSan: initial task created");
       break;
-    case ompt_task_implicit:
+    case ompt_task_implicit: {
       PRINT_DEBUG("FlowSan: implicit task created");
       break;
+    }
     case ompt_task_explicit: {
       PRINT_DEBUG("FlowSan: explicit task created");
       if(new_task_data->ptr == NULL)
         FlowSan_TaskBeginFunc(new_task_data);
 
-      // send and receive token
       void * depAddr = parent_task_data->ptr;
       if(depAddr) { // valid parent task
+        // send and receive token
         INTEGER value = reinterpret_cast<INTEGER>(depAddr);
         INS::TaskSendTokenLog(
             *((TaskInfo *)parent_task_data->ptr), depAddr,  value);
         INS::TaskReceiveTokenLog(
             *((TaskInfo *)new_task_data->ptr), depAddr, value);
+
+        // store child ID
+        int childID = ((TaskInfo*)new_task_data->ptr)->taskID;
+        ((TaskInfo*)parent_task_data->ptr)->addChild(childID);
       }
       break;
     }
@@ -219,6 +224,43 @@ on_ompt_callback_task_dependence(
       to_string(second_task_data->value));
 }
 
+// Executed when a task inters or leaves a barrier
+// or a task region or a task group.
+static void on_ompt_callback_sync_region(
+    ompt_sync_region_kind_t kind,   /* kind of sync region            */
+    ompt_scope_endpoint_t endpoint, /* endpoint of sync region        */
+    ompt_data_t *parallel_data,     /* data of parallel region        */
+    ompt_data_t *task_data,         /* data of task                   */
+    const void *codeptr_ra) {       /* return address of runtime call */
+  switch(kind) {
+    case ompt_sync_region_barrier: {
+      break;
+    }
+    case ompt_sync_region_taskwait: {
+      TaskInfo * taskInfo = (TaskInfo*)task_data->ptr;
+      switch(endpoint) {
+        case ompt_scope_begin: {
+          printf("Taskwait begin scope %d\n", taskInfo->taskID);
+          break;
+        }
+        case ompt_scope_end: {
+          taskInfo->addChild(taskInfo->taskID);
+          UTIL::endThisTask(task_data);
+          UTIL::disguiseToTewTask(task_data);
+          INS::saveChildHBs(*taskInfo);
+          printf("Taskwait end scope %d\n", taskInfo->taskID);
+          break;
+        }
+      }
+      break;
+    }
+    case ompt_sync_region_taskgroup: {
+      break;
+    }
+  }
+}
+
+
 /// Initialization and Termination callbacks
 
 static int dfinspec_initialize(
@@ -240,6 +282,7 @@ static int dfinspec_initialize(
   register_callback(ompt_callback_task_schedule);
   register_callback(ompt_callback_task_dependences);
   register_callback(ompt_callback_task_dependence);
+  register_callback(ompt_callback_sync_region);
 
   // Initialize detection runtime
   //INS_Init();

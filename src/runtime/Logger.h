@@ -227,5 +227,12 @@ class INS {
           task.taskID, "W", ssin);
       guardLock.unlock();
     }
+
+    /** Saves IDs of child tasks at a barrier */
+    static inline VOID saveChildHBs(TaskInfo & task) {
+      for(int uncleID : task.childrenIDs)
+        onlineChecker.saveHappensBeforeEdge(uncleID, task.taskID);
+      task.childrenIDs.clear();
+    }
 };
 #endif

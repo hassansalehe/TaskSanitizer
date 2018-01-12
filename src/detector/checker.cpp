@@ -108,6 +108,7 @@ void Checker::saveHappensBeforeEdge(int parentId, int siblingId) {
 
   graph[parentId].outEdges.insert(siblingId);
   graph[siblingId].inEdges.insert(parentId);
+  Checker::onTaskCreate(siblingId);
 }
 
 // Detects output nondeterminism on a memory read or write

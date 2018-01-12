@@ -82,7 +82,7 @@ void endThisTask(ompt_data_t *task_data) {
  * thus make it look like a new task.
  */
 void disguiseToTewTask(ompt_data_t *task_data) {
-   UTIL::createNewTaskMetadata(task_data);
+  UTIL::createNewTaskMetadata(task_data);
 }
 
 } // namespace
