@@ -2,7 +2,7 @@
 //
 // FlowSanitizer.cpp
 //
-// Copyright (c) 2017, Hassan Salehe Matar
+// Copyright (c) 2017 - 2018 Hassan Salehe Matar
 // All rights reserved.
 //
 // This file is part of FlowSanitizer. For details, see

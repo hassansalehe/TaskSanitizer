@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //  FlowSanitizer: a lightweight non-determinism checking
-//          tool for ADF applications
+//          tool for OpenMP
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
@@ -11,7 +11,7 @@
 /////////////////////////////////////////////////////////////////
 
 /*
-This is a logger for all events in an ADF application
+This is a logger for all events in an OpenMP application
 */
 
 #ifndef LOGGER_H
@@ -71,14 +71,13 @@ class INS {
     static bool isOMPTinitialized;
 
     // open file for logging.
-    static inline VOID Init() {
+    static inline VOID InitFlowsanRuntime() {
 
       // reset attributes used
       idMap.clear(); HB.clear();
       lastReader.clear(); lastWriter.clear();
 
       taskIDSeed = 0;
-
       isOMPTinitialized = true;
     }
 
@@ -88,8 +87,9 @@ class INS {
       return taskID;
     }
 
-    /** registers the function if not registered yet.
-     * Also prints the function to standard output
+    /**
+     * registers the function if not registered yet.
+     * Also prints the function to standard output.
      */
     static inline INTEGER RegisterFunction(const STRING funcName) {
 
@@ -113,20 +113,11 @@ class INS {
       guardLock.lock();
 
       idMap.clear(); HB.clear();
-      lastReader.clear(); lastWriter.clear();
-
-      cout << "BANAN\n";
+      lastReader.clear();
+      lastWriter.clear();
       onlineChecker.removeDuplicateConflicts();
       onlineChecker.reportConflicts();
       guardLock.unlock();
-    }
-
-    static inline VOID TransactionBegin( TaskInfo & task ) {
-      task.actionBuffer << task.taskID << " BTM " << endl;
-    }
-
-    static inline VOID TransactionEnd( TaskInfo & task ) {
-      task.actionBuffer << task.taskID << " ETM " << endl;
     }
 
     /** called when a task begins execution and retrieves parent task id */
@@ -175,10 +166,11 @@ class INS {
     }
 
     /**
-     * stores the buffer address of the token and the value stored in
-     * the buffer for the succeeding task
+     * stores the buffer address of the token and the
+     * value stored in the buffer for the succeeding task.
      */
-    static inline VOID TaskSendTokenLog( TaskInfo & task, ADDRESS bufLocAddr, INTEGER value ) {
+    static inline VOID TaskSendTokenLog(TaskInfo & task,
+        ADDRESS bufLocAddr, INTEGER value) {
 
       auto key = make_pair(bufLocAddr, value );
 
@@ -188,7 +180,8 @@ class INS {
     }
 
     /** provides the address of memory a task reads from */
-    static inline VOID Read( TaskInfo & task, ADDRESS addr, INTEGER lineNo, STRING funcName ) {
+    static inline VOID Read( TaskInfo & task,
+        ADDRESS addr, INTEGER lineNo, STRING funcName ) {
       INTEGER funcID = task.getFunctionId( funcName );
 
       // register function if not registered yet
@@ -208,7 +201,8 @@ class INS {
     }
 
     /** stores a write action */
-    static inline VOID Write( TaskInfo & task, ADDRESS addr, INTEGER value, INTEGER lineNo, STRING funcName ) {
+    static inline VOID Write(TaskInfo & task, ADDRESS addr,
+        INTEGER value, INTEGER lineNo, STRING funcName) {
 
       INTEGER funcID = task.getFunctionId( funcName );
 
@@ -230,9 +224,11 @@ class INS {
 
     /** Saves IDs of child tasks at a barrier */
     static inline VOID saveChildHBs(TaskInfo & task) {
+      guardLock.lock();
       for(int uncleID : task.childrenIDs)
         onlineChecker.saveHappensBeforeEdge(uncleID, task.taskID);
       task.childrenIDs.clear();
+      guardLock.unlock();
     }
 };
 #endif

@@ -364,65 +364,6 @@ VOID Checker::reportConflicts() {
   cout << "============================================================" << endl;
 }
 
-
-VOID Checker::printHBGraph() {
-  FILEPTR flowGraph;
-  flowGraph.open("flowGraph.sif",  ofstream::out | ofstream::trunc);
-
-  if( ! flowGraph.is_open() ) {
-    cout << "Failed to write to file the graph structure" << endl;
-    exit(-1);
-  }
-
-  for(auto it = graph.begin(); it != graph.end(); it++)
-    for(auto out = it->second.outEdges.begin(); out != it->second.outEdges.end(); out++) {
-       flowGraph << it->first << "_" << it->second.taskID << " pp ";
-       flowGraph << *out << "_" << graph[*out].taskID << endl;
-    }
-  if(flowGraph.is_open())
-    flowGraph.close();
-}
-
-VOID Checker::printHBGraphJS() {
-  FILEPTR graphJS;
-  graphJS.open("flowGraph.js",  ofstream::out | ofstream::trunc);
-
-  if( ! graphJS.is_open() ) {
-    cout << "Failed to write to file the graph structure" << endl;
-    exit(-1);
-  }
-
-  // generate list of nodes
-  graphJS << "nodes: [ \n";
-  for(auto it = graph.begin(); it != graph.end(); it++) {
-    if(it == graph.begin())
-      graphJS << "      { data: { id: '" << it->second.taskID << it->first << "', name: '" << it->second.taskID << it->first << "' }}";
-    else
-      graphJS << ",\n      { data: { id: '" << it->second.taskID << it->first << "', name: '" << it->second.taskID << it->first << "' }}";
-  }
-  graphJS << "\n     ],\n";
-
-  // generate list of edges
-  graphJS << "edges: [ \n";
-  int start = 1;
-  for(auto it = graph.begin(); it != graph.end(); it++)
-    for(auto out = it->second.outEdges.begin(); out != it->second.outEdges.end(); out++) {
-      if(start) {
-        graphJS << "      { data: { source: '" << it->second.taskID << it->first << "', target: '" << graph[*out].taskID << *out << "' }}";
-        start = 0;
-      }
-      else
-        graphJS << ",\n      { data: { source: '" << it->second.taskID << it->first << "', target: '" << graph[*out].taskID << *out << "' }}";
-    }
-  graphJS << "\n     ]\n";
-
-   //    graphJS << it->first << "_" << it->second.name << " pp ";
-   //    graphJS << *out << "_" << graph[*out].name << endl;
-  if(graphJS.is_open())
-    graphJS.close();
-}
-
-
 VOID Checker::testing() {
   for(auto it = writes.begin(); it != writes.end(); it++)
   {

@@ -60,15 +60,6 @@ make
 reportIfSuccessful
 
 cd -
-cd src/detector
-mkdir -p build
-cd -
-cd src/detector/build
-CXX=clang++ cmake ..
-make
-reportIfSuccessful
-
-cd -
 mkdir -p build
 cd build
 rm -rf libFlowSanitizer.so
@@ -84,7 +75,7 @@ for test in "${TESTS[@]}"; do
   rm -rf Trace* HBlog*
   rm -rf a.out
   echo "RUNNING $test"
-  flowsan $test 
+  flowsan $test
   ./a.out
 done
 

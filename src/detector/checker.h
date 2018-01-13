@@ -59,8 +59,6 @@ class Checker {
            string operation, stringstream & ssin);
 
   VOID reportConflicts();
-  VOID printHBGraph();
-  VOID printHBGraphJS();  // for printing dependency graph in JS format
   VOID testing();
   ~Checker();
 
