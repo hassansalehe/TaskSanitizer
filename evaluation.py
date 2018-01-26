@@ -3,22 +3,7 @@ import subprocess
 import re
 import sys
 
-class Correctness( object ):
-    """
-    This class implements the functions for running instrumented version
-    of the benchmark applications for reporting of bugs from them.
-
-    It is launced if you provide "correctness" as the first argument
-    if the evaluation Python script.
-
-    It works in three modes:
-       (1) It runs all the benchmark programs if no specific benchmark
-           is specified. Example command: ./evaluation.py correctness
-       (2) It runs specified benchmark application.
-           Example: ./evaluation.py correctness fibonacci
-       (3) It runs a specified benchmark application with a speficied
-           input size. E.g; ./evaluation.py correctness fibonacci 400
-    """
+class Base(object):
     def initialize( self ):
         self.app_path = "./src/tests/benchmarks/"
         self.apps = os.listdir( self.app_path )
@@ -34,6 +19,23 @@ class Correctness( object ):
     def execute( self, commands):
         p = subprocess.Popen(commands, stdout=subprocess.PIPE)
         return p.communicate()
+
+class Correctness( Base ):
+    """
+    This class implements the functions for running instrumented version
+    of the benchmark applications for reporting of bugs from them.
+
+    It is launced if you provide "correctness" as the first argument
+    if the evaluation Python script.
+
+    It works in three modes:
+       (1) It runs all the benchmark programs if no specific benchmark
+           is specified. Example command: ./evaluation.py correctness
+       (2) It runs specified benchmark application.
+           Example: ./evaluation.py correctness fibonacci
+       (3) It runs a specified benchmark application with a speficied
+           input size. E.g; ./evaluation.py correctness fibonacci 400
+    """
 
     def findBugs( self, report):
         regex = "lines:"
@@ -59,10 +61,18 @@ class Correctness( object ):
 
             if err is None:
                 output, err = self.execute( ["./a.out", self.inputSize] )
-                num_bugs  = self.findBugs( output )
-                num_tasks = self.getNumTasks( output )
-                app_name = app.replace(".cc", "")
-                print app_name,",", self.inputSize,",", num_tasks,",", num_bugs
+                self.formatResult( app, output )
+
+    def formatResult(self, app_name, output):
+        num_bugs  = self.findBugs( output )
+        num_tasks = self.getNumTasks( output )
+        app_name = app_name.replace(".cc", "")
+        print app_name,",", self.inputSize,",", num_tasks,",", num_bugs
+
+
+class Performance( Base ):
+    def piece(self):
+        pass
 
 if __name__ == "__main__":
     correctness = Correctness()
