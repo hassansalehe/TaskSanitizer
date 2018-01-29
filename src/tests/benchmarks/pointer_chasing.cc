@@ -54,8 +54,16 @@ void clean(elem_t *elem) {
 }; // end namespace pchase
 
 int main(int argc, char **argv) {
-  int n = 14;
-  elem_t * elems_head = pchase::initialize(n);
+
+  int size;
+  if (argc < 2) {
+    size = 14;
+  }
+  else {
+    size = atoi( argv[1] );
+  }
+  printf("List size %d\n", size);
+  elem_t * elems_head = pchase::initialize(size);
   pchase::process_list(elems_head);
   pchase::clean(elems_head);
   return 0;
