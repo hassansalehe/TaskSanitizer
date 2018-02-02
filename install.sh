@@ -3,7 +3,7 @@ hm=`pwd`
 git clone https://github.com/llvm-mirror/openmp.git openmp
 
 export OPENMP_INSTALL=$hm/bin
-mkdir -p $OPENMP_INSTAL
+mkdir -p $OPENMP_INSTALL
 
 cd openmp/runtime
 mkdir -p build && cd build
