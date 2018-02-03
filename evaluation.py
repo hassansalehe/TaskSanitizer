@@ -1,8 +1,35 @@
+#!/usr/bin/env python
+
 import os
 import subprocess
 import re
 import sys
 from time import clock
+
+class StrassenOptions(object):
+    """
+    A class for assembling the compiler options for the Strassen
+    benchmark application because:
+     (a) It has custom compiler options
+     (b) The list of compiler options is long
+    """
+
+    def __init__( self ):
+        self.cppFiles = [
+            "kastors/common/main.c",
+            "kastors/strassen/src/strassen-task-dep.c",
+            "kastors/strassen/src/strassen.c"
+        ]
+        self.compilerOptions = [
+            "-I./kastors/strassen/include",
+            "-I./kastors/common",
+            "-DMSIZE", "-DCUTOFF_SIZE", "-DCUTOFF_DEPTH",
+            "-lrt", "-lm", "-fpermissive","-D_POSIX_C_SOURCE=199309L"
+        ]
+
+    def getFullCommand( self ):
+        return self.cppFiles + self.compilerOptions
+
 
 class Base(object):
     """
@@ -14,7 +41,10 @@ class Base(object):
         self.apps = os.listdir( self.app_path )
         self.results = []
         self.inputSizes = []
-        self.apps = ["fibonacci.cc", "pointer_chasing.cc", "bank_task_racy.cc"];
+        self.apps = ["strassen",
+                     "fibonacci.cc",
+                     "pointer_chasing.cc",
+                     "bank_task_racy.cc"];
 
         if len(sys.argv) > 1:
             self.experiment = sys.argv[1]
@@ -70,7 +100,15 @@ class Correctness( Base ):
         print head
         for app in self.apps:
             fpath = self.app_path + app
-            output, err = self.execute( ["./flowsan", fpath] )
+            print app
+            if "strassen" in app:
+                options = StrassenOptions()
+                fpath = options.getFullCommand()
+                commands = ["./flowsan"] + fpath
+                print commands
+                output, err = self.execute( commands )
+            else:
+                output, err = self.execute( ["./flowsan", fpath] )
 
             if err is None:
                 output, err = self.execute( ["./a.out", str(self.inputSizes[0])] )
