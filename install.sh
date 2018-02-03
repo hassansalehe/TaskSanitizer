@@ -5,7 +5,7 @@ git clone https://github.com/llvm-mirror/openmp.git openmp
 export OPENMP_INSTALL=$hm/bin
 mkdir -p $OPENMP_INSTALL
 
-cd openmp/runtime
+cd openmp
 mkdir -p build && cd build
 
 cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
