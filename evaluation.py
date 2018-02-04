@@ -43,7 +43,7 @@ from time import clock
 ###############################################################
 ### Classes below manage benchmark specific arguments
 ###############################################################
-class BenchArgs(object):
+class BenchArgs( object ):
     """
     Base class for holding command arguments for specific
     benchmark applications.
@@ -52,7 +52,7 @@ class BenchArgs(object):
          (a) Each may have custom compiler options
          (b) The list of compiler options may be long
     """
-    def __init__(self):
+    def __init__( self ):
         self.cppFiles = []
         self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-g",
                          "-fpermissive", "-DMSIZE", "-DCUTOFF_SIZE",
@@ -61,6 +61,7 @@ class BenchArgs(object):
 
     def getFullCommand( self ):
         return self.cppFiles + self.cppArgs
+    # end class BenchArgs
 
 class Fibonacci( BenchArgs ):
     def __init__( self ):
@@ -77,15 +78,16 @@ class BankTaskRacy( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = ["./src/tests/benchmarks/bank_task_racy.cc"]
 
-class Strassen(BenchArgs):
+class Strassen( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         self.cppFiles.extend( ["kastors/common/main.c",
             "kastors/strassen/src/strassen-task-dep.c",
             "kastors/strassen/src/strassen.c"] )
         self.cppArgs.extend( ["-I./kastors/strassen/include"] )
+    # end class Strassen
 
-class Jacobi(BenchArgs):
+class Jacobi( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         dir = "kastors/jacobi/src/"
@@ -94,8 +96,9 @@ class Jacobi(BenchArgs):
             dir + "poisson.c",
             dir + "jacobi-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/jacobi/include"] )
+    # end class Jacobi
 
-class SparseLU(BenchArgs):
+class SparseLU( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         dir = "kastors/sparselu/src/"
@@ -104,63 +107,65 @@ class SparseLU(BenchArgs):
             dir + "sparselu.c",
             dir + "sparselu-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/sparselu/include", "-DSMSIZE"] )
+    # end class SparseLU
 
-class Plasma(BenchArgs):
+class Plasma( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
+        self.dir = "./kastors/plasma/src/"
         self.cppFiles.extend( [
             "./kastors/common/main.c",
-            "./kastors/plasma/src/auxiliary.c",
-            "./kastors/plasma/src/core_dgeqrt.c",
-            "./kastors/plasma/src/core_dgetrf_rectil.c",
-            "./kastors/plasma/src/pdgetrf_rectil.c",
-            "./kastors/plasma/src/core_dlaswp.c",
-            "./kastors/plasma/src/core_dormqr.c",
-            "./kastors/plasma/src/core_dparfb.c",
-            "./kastors/plasma/src/core_dpamm.c",
-            "./kastors/plasma/src/core_dplgsy.c",
-            "./kastors/plasma/src/core_dplrnt.c",
-            "./kastors/plasma/src/core_dtsmqr.c",
-            "./kastors/plasma/src/core_dtsqrt.c",
-            "./kastors/plasma/src/dauxiliary.c",
-            "./kastors/plasma/src/descriptor.c",
-            "./kastors/plasma/src/dgeqrs.c",
-            "./kastors/plasma/src/dgetrs.c",
-            "./kastors/plasma/src/dpotrs.c",
-            "./kastors/plasma/src/global.c",
-            "./kastors/plasma/src/pdgeqrf.c",
-            "./kastors/plasma/src/pdlaswp.c",
-            "./kastors/plasma/src/pdormqr.c",
-            "./kastors/plasma/src/pdplgsy.c",
-            "./kastors/plasma/src/pdpltmg.c",
-            "./kastors/plasma/src/pdpotrf.c",
-            "./kastors/plasma/src/pdtile.c",
-            "./kastors/plasma/src/pdtrsm.c",
-            "./kastors/plasma/src/workspace.c"
+            self.dir + "auxiliary.c",
+            self.dir + "core_dgeqrt.c",
+            self.dir + "core_dgetrf_rectil.c",
+            self.dir + "pdgetrf_rectil.c",
+            self.dir + "core_dlaswp.c",
+            self.dir + "core_dormqr.c",
+            self.dir + "core_dparfb.c",
+            self.dir + "core_dpamm.c",
+            self.dir + "core_dplgsy.c",
+            self.dir + "core_dplrnt.c",
+            self.dir + "core_dtsmqr.c",
+            self.dir + "core_dtsqrt.c",
+            self.dir + "dauxiliary.c",
+            self.dir + "descriptor.c",
+            self.dir + "dgeqrs.c",
+            self.dir + "dgetrs.c",
+            self.dir + "dpotrs.c",
+            self.dir + "global.c",
+            self.dir + "pdgeqrf.c",
+            self.dir + "pdlaswp.c",
+            self.dir + "pdormqr.c",
+            self.dir + "pdplgsy.c",
+            self.dir + "pdpltmg.c",
+            self.dir + "pdpotrf.c",
+            self.dir + "pdtile.c",
+            self.dir + "pdtrsm.c",
+            self.dir + "workspace.c"
             ] )
 
         self.cppArgs.extend( ["-I./kastors/plasma/include", "-DADD_",
             "-llapacke", "-lblas", "-llapack", "-I./kastors/plasma",
             "-DMSIZE", "-DBSIZE", "-DGFLOPS"] )
 
-class Dgeqrf(Plasma):
-    def __init__(self):
+class Dgeqrf( Plasma ):
+    def __init__( self ):
         Plasma.__init__(self)
-        self.cppArgs.extend(["./kastors/plasma/src/time_dgeqrf-task.c"])
+        self.cppArgs.extend([self.dir + "time_dgeqrf-task.c"])
 
-class Dgetrf(Plasma):
-    def __init__(self):
+class Dgetrf( Plasma ):
+    def __init__( self ):
         Plasma.__init__(self)
-        self.cppFiles.extend(["./kastors/plasma/src/time_dgetrf-task.c"])
+        self.cppFiles.extend([self.dir + "time_dgetrf-task.c"])
 
-class Dpotrf(Plasma):
-    def __init__(self):
+class Dpotrf( Plasma ):
+    def __init__( self ):
         Plasma.__init__(self)
-        self.cppFiles.extend(["./kastors/plasma/src/time_dpotrf-task.c"])
+        self.cppFiles.extend([self.dir + "time_dpotrf-task.c"])
 
-class BenchArgFactory(object):
+class BenchArgFactory( object ):
     @staticmethod
-    def getArgInstance( benchName):
+    def getArgInstance( benchName ):
         if "strassen" in benchName:
             return Strassen()
         if "fibonacci" in benchName:
@@ -179,15 +184,18 @@ class BenchArgFactory(object):
             return Dgetrf()
         if "dpotrf" in benchName:
             return Dpotrf()
-        # else: no such penchmark
+        # else:
+        # no such penchmark
         print "No such a benchmark", benchName
+        Help()
         print "Exiting ..."
         sys.exit()
+    # end class BenchArgFactory
 
 ###############################################################
 ### Classes below are responsible for running experiments
 ###############################################################
-class Base(object):
+class Experiment( object ):
     """
     This base class implements the base functionalities used by both
     correctness and performance experiments.
@@ -197,12 +205,12 @@ class Base(object):
         self.apps = os.listdir( self.app_path )
         self.results = []
         self.inputSizes = []
-        self.apps = ["strassen",
-                     "fibonacci.cc",
+        self.apps = ["fibonacci",
                      "pointer_chasing",
                      "bank_task_racy",
                      "jacobi",
                      "sparselu",
+                     "strassen",
                      "dgeqrf",
                      "dgetrf",
                      "dpotrf"];
@@ -214,12 +222,12 @@ class Base(object):
         if(len(sys.argv) > 3):
             self.inputSizes = [sys.argv[3]]
 
-    def execute( self, commands):
+    def execute( self, commands ):
         p = subprocess.Popen(commands, stdout=subprocess.PIPE)
         return p.communicate()
+    # end class Experiment
 
-
-class Correctness( Base ):
+class Correctness( Experiment ):
     """
     This class implements the functions for running instrumented version
     of the benchmark applications for reporting of bugs from them.
@@ -237,11 +245,11 @@ class Correctness( Base ):
     """
 
     def __init__( self ):
-        super(Correctness, self).__init__()
+        Experiment.__init__(self)
         if len (self.inputSizes) < 1:
             self.inputSizes.append(16)
 
-    def findBugs( self, report):
+    def findBugs( self, report ):
         regex = "lines:"
         bugs = 0
         for line in report.splitlines():
@@ -249,7 +257,7 @@ class Correctness( Base ):
                 bugs += 1
         return bugs
 
-    def getNumTasks( self, report):
+    def getNumTasks( self, report ):
         regex = "Total number of tasks:"
         bugs = 0
         for line in report.splitlines():
@@ -271,19 +279,23 @@ class Correctness( Base ):
                 output, err = self.execute( ["./a.out", str(self.inputSizes[0])] )
                 self.formatResult( app, self.inputSizes[0], output )
 
-    def formatResult(self, appName, inputSize, output):
+    def formatResult( self, appName, inputSize, output ):
         num_bugs  = self.findBugs( output )
         num_tasks = self.getNumTasks( output )
         appName  = appName.replace(".cc", "")
         print appName,",", inputSize,",", num_tasks,",", num_bugs
 
 
-class Performance( Base ):
+class Performance( Experiment ):
     """
-    The class for running experiments for
+    The class for running experiments for calculating
+    the slowdown of runtime nondeterminism detection.
+
+    It uses a set of different input sizes to access the
+    slowdown of a benchmark program.
     """
-    def __init__(self):
-        super(Performance, self).__init__()
+    def __init__( self ):
+        Experiment.__init__(self)
         self.repetitions = 10
         if len(self.inputSizes) < 1:
             self.inputSizes = [2, 4, 8, 16]
@@ -358,28 +370,44 @@ class Performance( Base ):
         self.formatResult()
 
 
-    def formatResult(self):
+    def formatResult( self ):
         for appName in self.finalResults:
             print appName
             for iSize, sDown in self.finalResults[appName]:
                 print "  ("+str(iSize)+", "+ str(sDown)+")",
             print
-
+    # end class performance
 
 class Help( object ):
-    def __init__(self):
+    """
+    Help is invoked when user supplies wrong command
+    arguments to the script
+    """
+    def __init__( self ):
         print "./evaluation.py <experiment> <application> <input size>"
         print ""
         print "    <experiment> is \"correctness\" or \"performance\" "
-        print "    <application> can be one of:",
-        print "  bank_task_racy, fibonacci, pointer_chasing"
+        print "    <application> can be one of:"
+        print "         fibonacci"
+        print "         pointer_chasing"
+        print "         bank_task_racy"
+        print "         jacobi"
+        print "         sparselu"
+        print "         strassen"
+        print "         dgeqrf"
+        print "         dgetrf"
+        print "         dpotrf"
         print ""
         print " NOTE:"
         print "   1. If you do not specify input size, your application"
         print "      will run with default input."
         print "   2. If you do not specify application, all benchmark"
         print "      applications will be executed."
+    # end class Help
 
+###############################################################
+### Below is the main code of the program
+###############################################################
 if __name__ == "__main__":
     # parse arguments
     if len(sys.argv) > 1:
