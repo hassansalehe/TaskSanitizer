@@ -35,9 +35,10 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
+import sys
 import subprocess
 import re
-import sys
+import math
 from time import clock
 
 ###############################################################
@@ -61,6 +62,9 @@ class BenchArgs( object ):
 
     def getFullCommand( self ):
         return self.cppFiles + self.cppArgs
+
+    def getFromattedInput( self, size ):
+        pass
     # end class BenchArgs
 
 class Fibonacci( BenchArgs ):
@@ -68,15 +72,24 @@ class Fibonacci( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = ["./src/tests/benchmarks/fibonacci.cc"]
 
+    def getFromattedInput( self, size ):
+        return [size]
+
 class PointerChasing( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         self.cppFiles = ["./src/tests/benchmarks/pointer_chasing.cc"]
 
+    def getFromattedInput( self, size ):
+        return [size]
+
 class BankTaskRacy( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         self.cppFiles = ["./src/tests/benchmarks/bank_task_racy.cc"]
+
+    def getFromattedInput( self, size ):
+        return [size]
 
 class Strassen( BenchArgs ):
     def __init__( self ):
@@ -85,6 +98,11 @@ class Strassen( BenchArgs ):
             "kastors/strassen/src/strassen-task-dep.c",
             "kastors/strassen/src/strassen.c"] )
         self.cppArgs.extend( ["-I./kastors/strassen/include"] )
+
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
+
     # end class Strassen
 
 class Jacobi( BenchArgs ):
@@ -96,6 +114,10 @@ class Jacobi( BenchArgs ):
             dir + "poisson.c",
             dir + "jacobi-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/jacobi/include"] )
+
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
     # end class Jacobi
 
 class SparseLU( BenchArgs ):
@@ -107,6 +129,10 @@ class SparseLU( BenchArgs ):
             dir + "sparselu.c",
             dir + "sparselu-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/sparselu/include", "-DSMSIZE"] )
+
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz, "-m", blockSz]
     # end class SparseLU
 
 class Plasma( BenchArgs ):
@@ -151,21 +177,34 @@ class Plasma( BenchArgs ):
 class Dgeqrf( Plasma ):
     def __init__( self ):
         Plasma.__init__(self)
-        self.cppArgs.extend([self.dir + "time_dgeqrf-task.c"])
+        self.cppArgs.extend(["-DIBSIZE"]);
+        self.cppFiles.extend([self.dir + "time_dgeqrf-task.c"])
+
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz, "-ib", blockSz]
 
 class Dgetrf( Plasma ):
     def __init__( self ):
         Plasma.__init__(self)
         self.cppFiles.extend([self.dir + "time_dgetrf-task.c"])
 
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
+
 class Dpotrf( Plasma ):
     def __init__( self ):
         Plasma.__init__(self)
         self.cppFiles.extend([self.dir + "time_dpotrf-task.c"])
 
+    def getFromattedInput( self, size ):
+        blockSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
+
 class BenchArgFactory( object ):
     @staticmethod
-    def getArgInstance( benchName ):
+    def getInstance( benchName ):
         if "strassen" in benchName:
             return Strassen()
         if "fibonacci" in benchName:
@@ -247,7 +286,7 @@ class Correctness( Experiment ):
     def __init__( self ):
         Experiment.__init__(self)
         if len (self.inputSizes) < 1:
-            self.inputSizes.append(16)
+            self.inputSizes = [16]
 
     def findBugs( self, report ):
         regex = "lines:"
@@ -269,14 +308,19 @@ class Correctness( Experiment ):
         print head
         for app in self.apps:
             print app
-            options = BenchArgFactory.getArgInstance( app )
-            commands = ["./flowsan"]
+            name = app + "Perf.exe"
+            options = BenchArgFactory.getInstance( app )
+            commands = ["./flowsan", "-o", name]
             commands.extend( options.getFullCommand() )
             print commands
             output, err = self.execute( commands )
 
             if err is None:
-                output, err = self.execute( ["./a.out", str(self.inputSizes[0])] )
+                bench    = BenchArgFactory.getInstance( app )
+                progArgs = bench.getFromattedInput( str(self.inputSizes[0]) )
+                commands = [name] + progArgs
+                print commands
+                output, err = self.execute( commands )
                 self.formatResult( app, self.inputSizes[0], output )
 
     def formatResult( self, appName, inputSize, output ):
@@ -303,7 +347,7 @@ class Performance( Experiment ):
     def compileOriginalApp( self, appName ):
         outName  = appName + "Orig.exe"
         command = ["/usr/bin/clang++", "-I./bin/include", "-o", outName]
-        args = BenchArgFactory.getArgInstance( appName ).getFullCommand()
+        args = BenchArgFactory.getInstance( appName ).getFullCommand()
         command.extend( args )
         print command
         out, err = self.execute( command )
@@ -314,7 +358,7 @@ class Performance( Experiment ):
     def compileInstrumentedApp( self, appName ):
         outName  = appName + "Instr.exe"
         command = ["./flowsan", "-o", outName]
-        args = BenchArgFactory.getArgInstance( appName ).getFullCommand()
+        args = BenchArgFactory.getInstance( appName ).getFullCommand()
         command.extend( args )
         print command
         out, err = self.execute( command )
@@ -323,15 +367,25 @@ class Performance( Experiment ):
             sys.exit()
 
     def runOriginalApp( self, appName, inputSize ):
-        name = "./" + appName + "Orig.exe"
+        name     = "./" + appName + "Orig.exe"
+        command  = [name]
+        bench    = BenchArgFactory.getInstance(appName)
+        progArgs = bench.getFromattedInput(inputSize)
+        command.extend( progArgs )
+        print command
         start = clock()
-        out, err = self.execute( [name, inputSize] )
+        out, err = self.execute( command )
         return (clock() - start)
 
     def runInstrumentedApp( self, appName, inputSize ):
-        name = "./" + appName + "Instr.exe"
+        name     = "./" + appName + "Instr.exe"
+        command  = [name]
+        bench    = BenchArgFactory.getInstance(appName)
+        progArgs = bench.getFromattedInput(inputSize)
+        command.extend( progArgs )
+        print command
         start = clock()
-        out, err = self.execute( [name, inputSize] )
+        out, err = self.execute( command )
         return (clock() - start)
 
     def runExperiments( self ):
@@ -361,7 +415,7 @@ class Performance( Experiment ):
 
                 # calculate slowdown
                 if origExecTime > 0:
-                    slowdown = instrExecTime / origExecTime
+                    slowdown = round( instrExecTime / origExecTime, 2)
                     result.append( (inputSz, slowdown) )
                 else:
                     print "Execution time zero"
@@ -374,7 +428,7 @@ class Performance( Experiment ):
         for appName in self.finalResults:
             print appName
             for iSize, sDown in self.finalResults[appName]:
-                print "  ("+str(iSize)+", "+ str(sDown)+")",
+                print "("+str(iSize)+", "+ str(sDown)+")",
             print
     # end class performance
 
