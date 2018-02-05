@@ -21,31 +21,18 @@
 
 // #define DEBUG
 
-lint getMemoryValue( address addr, ulong size )
-{
-  if( size == sizeof(char) )
-     return *(static_cast<char *>(addr));
-
-  if( size == sizeof(short) )
-     return *(static_cast<short *>(addr));
-
-  if( size == sizeof(int) )
-     return *(static_cast<int *>(addr));
-
-  if( size == sizeof(float) )
-    return *(static_cast<float *>(addr));
-
-  if( size == sizeof(double) )
-    return *(static_cast<double *>(addr));
-
-  if( size == sizeof(long) )
-     return *(static_cast<long *>(addr));
-
-   if( size == sizeof(long long) )
-     return *(static_cast<long long *>(addr));
-
+lint getMemoryValue( address addr, ulong size ) {
+  if ( size == sizeof(char)   ) return *(static_cast<char *>(addr));
+  if ( size == sizeof(short)  ) return *(static_cast<short *>(addr));
+  if ( size == sizeof(int)    ) return *(static_cast<int *>(addr));
+  if ( size == sizeof(float)  ) return *(static_cast<float *>(addr));
+  if ( size == sizeof(double) ) return *(static_cast<double *>(addr));
+  if ( size == sizeof(long)   ) return *(static_cast<long *>(addr));
+  if ( size == sizeof(long long) ) {
+    return *(static_cast<long long *>(addr));
+  }
    // else, get the best value possible.
-   return *(static_cast<long long *>(addr));
+  return *(static_cast<long long *>(addr));
 }
 
 // to initialize the logger
@@ -59,8 +46,7 @@ void __tsan_init() {
 //////////////////////////////////////////////////
 static TaskInfo * getTaskInfo(int * _type = NULL) {
 
-  if(!INS::isOMPTinitialized)
-    return NULL;
+  if (!INS::isOMPTinitialized) return NULL;
 
   int ancestor_level = 0;
   int type;
@@ -72,54 +58,64 @@ static TaskInfo * getTaskInfo(int * _type = NULL) {
   int success = ompt_get_task_info(
       ancestor_level, &type, &task_data,
       &task_frame, &parallel_data, &thread_num);
-  if(_type)
+  if (_type) {
     *_type = type;
-
-  if(success && task_data)
+  }
+  if (success && task_data) {
     return (TaskInfo*)task_data->ptr;
-
-  return NULL;
+  } else {
+    return NULL;
+  }
 }
 
 /** Callbacks for store operations  */
-inline void INS_AdfMemRead( address addr, ulong size, int lineNo, address funcName  ) {
+inline void INS_MemRead(
+  address addr,
+    ulong size,
+    int lineNo,
+    address funcName) {
 
-  if(!lineNo) return;
+  if (!lineNo) return;
 
   TaskInfo * taskInfo = getTaskInfo();
   //lint value = getMemoryValue( addr, size );
   //uint threadID = (uint)pthread_self();
 
-  if( taskInfo && taskInfo->active ) {
+  if ( taskInfo && taskInfo->active ) {
     INS::Read(*taskInfo, addr, lineNo, (char*)funcName);
 #ifdef DEBUG
     std::stringstream ss;
     ss << std::hex << addr;
     PRINT_DEBUG("READ: addr: " + ss.str() +
-        " taskID: " + to_string(taskInfo->taskID) +
-        " line no: " + to_string(lineNo));
+        " taskID: " + std::to_string(taskInfo->taskID) +
+        " line no: " + std::to_string(lineNo));
 #endif
   }
 }
 
-/** Callbacks for store operations  */
-inline void INS_AdfMemWrite( address addr, lint value, int lineNo, address funcName ) {
+/*
+ * Callbacks for store operations  */
+inline void INS_MemWrite(
+    address addr,
+    lint value,
+    int lineNo,
+    address funcName ) {
 
-  if(!lineNo) return;
+  if (!lineNo) return;
 
   TaskInfo * taskInfo = getTaskInfo();
   //uint threadID = (uint)pthread_self();
 
-  if( taskInfo && taskInfo->active ) {
+  if ( taskInfo && taskInfo->active ) {
     INS::Write(*taskInfo, addr, (lint)value, lineNo, (char*)funcName );
 #ifdef DEBUG
     std::stringstream ss;
     ss << std::hex << addr;
     PRINT_DEBUG("= WRITE: addr: " + ss.str() +
-        ", value: " + to_string((lint)value) +
-        ", taskID: " + to_string(taskInfo->taskID) +
-        ", line number: " + to_string(lineNo) +
-        ", func name: " + string((char*)funcName));
+        ", value: " + std::to_string((lint)value) +
+        ", taskID: " + std::to_string(taskInfo->taskID) +
+        ", line number: " + std::to_string(lineNo) +
+        ", func name: " + std::string((char*)funcName));
 #endif
   }
 }
@@ -132,7 +128,7 @@ void __fsan_write_float(
     float value,
     int lineNo,
     address funcName) {
-  INS_AdfMemWrite(addr, (lint)value, lineNo, funcName);
+  INS_MemWrite(addr, (lint)value, lineNo, funcName);
 }
 
 /**
@@ -142,7 +138,7 @@ void __fsan_write_double(
     double value,
     int lineNo,
     address funcName) {
-  INS_AdfMemWrite(addr, (lint)value, lineNo, funcName);
+  INS_MemWrite(addr, (lint)value, lineNo, funcName);
 }
 
 void __tsan_flush_memory() {
@@ -150,42 +146,42 @@ void __tsan_flush_memory() {
 }
 
 void __tsan_read1(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead(addr, 1, lineNo, funcName);
+  INS_MemRead(addr, 1, lineNo, funcName);
 }
 void __tsan_read2(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead(addr, 2, lineNo, funcName);
+  INS_MemRead(addr, 2, lineNo, funcName);
 }
 
 void __tsan_read4(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead(addr, 4, lineNo, funcName);
+  INS_MemRead(addr, 4, lineNo, funcName);
 }
 
 void __tsan_read8(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead( addr, 8, lineNo, funcName );
+  INS_MemRead( addr, 8, lineNo, funcName );
 }
 
 void __tsan_read16(void *addr, int lineNo, address funcName) {
-  INS_AdfMemRead( addr, 16, lineNo, funcName );
+  INS_MemRead( addr, 16, lineNo, funcName );
 }
 
 void __tsan_write1(void *addr, lint value, int lineNo, address funcName) {
-  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+  INS_MemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_write2(void *addr, lint value, int lineNo, address funcName) {
-  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+  INS_MemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_write4(void *addr, lint value, int lineNo, address funcName) {
-  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+  INS_MemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_write8(void *addr, lint value, int lineNo, address funcName) {
-  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+  INS_MemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_write16(void *addr, lint value, int lineNo, address funcName) {
-  INS_AdfMemWrite((address)addr, value, lineNo, funcName);
+  INS_MemWrite((address)addr, value, lineNo, funcName);
 }
 
 void __tsan_unaligned_read2(const void *addr) {
@@ -261,8 +257,9 @@ void __tsan_func_entry(void *call_pc) {
 }
 
 void __tsan_func_exit(void * funcPtr) {
-  if(funcPtr && string((char*) funcPtr) == "main")
-   INS::Finalize();
+  if (funcPtr && std::string((char*) funcPtr) == "main") {
+    INS::Finalize();
+  }
 #ifdef DEBUG
   PRINT_DEBUG("Flowsan: __tsan_func_exit");
 #endif

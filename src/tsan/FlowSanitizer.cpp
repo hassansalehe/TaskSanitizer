@@ -108,7 +108,8 @@ struct FlowSanitizer : public llvm::FunctionPass {
     const llvm::DataLayout &DL = M.getDataLayout();
     IntptrTy = DL.getIntPtrType(M.getContext());
 // HASSAN:
-//    std::tie(TsanCtorFunction, std::ignore) = createSanitizerCtorAndInitFunctions(
+//    std::tie(TsanCtorFunction, std::ignore)
+//        = createSanitizerCtorAndInitFunctions(
 //      M, kTsanModuleCtorName, kTsanInitName, /*InitArgTypes=*/{},
 //      /*InitArgs=*/{});
 //
@@ -182,7 +183,8 @@ static llvm::RegisterStandardPasses regPass(
 void FlowSanitizer::initializeCallbacks(Module &M) {
   IRBuilder<> IRB(M.getContext());
   AttributeSet Attr;
-  Attr = Attr.addAttribute(M.getContext(), AttributeSet::FunctionIndex, Attribute::NoUnwind);
+  Attr = Attr.addAttribute(M.getContext(),
+      AttributeSet::FunctionIndex, Attribute::NoUnwind);
   // Initialize the callbacks.
   TsanFuncEntry = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
@@ -364,8 +366,8 @@ bool FlowSanitizer::addrPointsToConstantData(Value *Addr) {
 // E.g. two reads from the same temp should be eliminated by CSE,
 // two writes should be eliminated by DSE, etc.
 //
-// 'Local' is a vector of insns within the same BB (no calls between).
-// 'All' is a vector of insns that will be instrumented.
+// 'Local' is a std::vector of insns within the same BB (no calls between).
+// 'All' is a std::vector of insns that will be instrumented.
 void FlowSanitizer::chooseInstructionsToInstrument(
     SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
     const DataLayout &DL) {
@@ -439,7 +441,7 @@ bool FlowSanitizer::runOnFunction(Function &F) {
 
   bool Res = false;
 
-  if(INS::isTaskBodyFunction(F.getName())) {
+  if (INS::isTaskBodyFunction(F.getName())) {
 
     IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
     Value *taskName = IRB.CreateGlobalStringPtr(
@@ -554,8 +556,8 @@ bool FlowSanitizer::instrumentLoadOrStore(Instruction *I,
   if (IsWrite && isVtableAccess(I)) {
     DEBUG(dbgs() << "  VPTR : " << *I << "\n");
     Value *StoredValue = cast<StoreInst>(I)->getValueOperand();
-    // StoredValue may be a vector type if we are storing several vptrs at once.
-    // In this case, just take the first element of the vector since this is
+    // StoredValue may be a std::vector type if we are storing several vptrs at once.
+    // In this case, just take the first element of the std::vector since this is
     // enough to find vptr races.
     if (isa<VectorType>(StoredValue->getType()))
       StoredValue = IRB.CreateExtractElement(
@@ -586,11 +588,11 @@ bool FlowSanitizer::instrumentLoadOrStore(Instruction *I,
   else
     OnAccessFunc = IsWrite ? TsanUnalignedWrite[Idx] : TsanUnalignedRead[Idx];
 
-  if(IsWrite) {
+  if (IsWrite) {
       Value *Val = cast<StoreInst>(I)->getValueOperand();
-      if( Val->getType()->isFloatTy() )
+      if ( Val->getType()->isFloatTy() )
           OnAccessFunc = FlowSan_MemWriteFloat;
-      else if( Val->getType()->isDoubleTy() )
+      else if ( Val->getType()->isDoubleTy() )
           OnAccessFunc = FlowSan_MemWriteDouble;
 
       IRB.CreateCall(OnAccessFunc,

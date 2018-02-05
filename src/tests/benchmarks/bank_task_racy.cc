@@ -46,8 +46,8 @@ int main() {
 
       // wait all tasks to complete
       #pragma omp taskwait
-      //cout << "balance: " << balance << endl;
-      cout<< balance << endl;
+      //cout << "balance: " << balance << std::endl;
+      std::cout<< balance << std::endl;
     }
   }
   return 0;

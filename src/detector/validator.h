@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////
-//  ADFinspec: a lightweight non-determinism checking
-//          tool for ADF applications
+//  FlowSanitizer: a lightweight non-determinism checking
+//          tool for OpenMP task applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -10,7 +10,8 @@
 //
 /////////////////////////////////////////////////////////////////
 
-// Defines the Validator class. It determines whether the bugs detected are real.
+// Defines the Validator class.
+// It determines whether the bugs detected are real.
 
 #ifndef _VALIDATOR_HPP_
 #define _VALIDATOR_HPP_
@@ -28,47 +29,49 @@ class BugValidator {
     void validate(Report & report);
 
   private:
-    unordered_map<string, vector<Instruction>> Tasks;
-    bool involveSimpleOperations(string task1, INTEGER line1);
-    bool isSafe(const vector<Instruction> & trace, INTEGER loc, string operand);
-    //INTEGER getLineNumber(const string & statement);
+    std::unordered_map<std::string, std::vector<Instruction>> Tasks;
+    bool involveSimpleOperations(std::string task1, INTEGER line1);
+    bool isSafe(const std::vector<Instruction> & trace, INTEGER loc,
+                std::string operand);
+    //INTEGER getLineNumber(const std::string & statement);
 
     OperationSet operationSet;
 
     // Helper functions
-    inline bool isEmpty(const string& statement) {
-      return statement.find_first_not_of(' ') == string::npos;
+    inline bool isEmpty(const std::string& statement) {
+      return statement.find_first_not_of(' ') == std::string::npos;
     }
 
-    inline bool isDebugCall(const string& statement) {
-      return statement.find("llvm.dbg.declare") != string::npos;
+    inline bool isDebugCall(const std::string& statement) {
+      return statement.find("llvm.dbg.declare") != std::string::npos;
     }
 
-    inline bool isValid(const string& sttmt) {
+    inline bool isValid(const std::string& sttmt) {
       // valid starts with line number, e.g. "42: "
-      return regex_search (sttmt, regex("^[0-9]+: "));
+      return regex_search (sttmt, std::regex("^[0-9]+: "));
     }
 
-    inline bool isTaskName(const string& sttmt) {
-      return sttmt.find_first_of(' ') == string::npos;
+    inline bool isTaskName(const std::string& sttmt) {
+      return sttmt.find_first_of(' ') == std::string::npos;
     }
 
     /**
-     * Returns the line number from the IR statement string
+     * Returns the line number from the IR statement std::string
      */
-    INTEGER getLineNumber(const string & sttmt) {
-      smatch result; // get line number
-      regex_search(sttmt, result, regex("^[0-9]+") );
+    INTEGER getLineNumber(const std::string & sttmt) {
+      std::smatch result; // get line number
+      regex_search(sttmt, result, std::regex("^[0-9]+") );
 
-      if(result.size() <= 0 || result.size()> 1 ) {
+      if (result.size() <= 0 || result.size()> 1 ) {
         // a line should have only one line number
-        cerr << "Incorrect number of lines: " << sttmt << endl;
+        std::cerr << "Incorrect no. of lines: " << sttmt << std::endl;
         exit(EXIT_FAILURE);
       }
       return stoul(result[0]);
     }
 
-    Instruction makeStoreInstruction(const vector<string> & contents) {
+    Instruction makeStoreInstruction(
+        const std::vector<std::string> & contents) {
       Instruction instr;
       instr.oper = STORE;
       instr.destination = contents[4];

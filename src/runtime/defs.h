@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////
-//  ADFinspec: a lightweight non-determinism checking
-//          tool for ADF applications
+//  FlowSanitizer: a lightweight non-determinism checking
+//          tool for OpenMP task applications
 //
-//    Copyright (c) 2015 - 2017 Hassan Salehe Matar & MSRC at Koc University
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -10,11 +10,10 @@
 //
 /////////////////////////////////////////////////////////////////
 
-
 // This file contains common type defs
 
-#ifndef DEFS_H_ADFinspec
-#define DEFS_H_ADFinspec
+#ifndef FSAN_DEFS_H_
+#define FSAN_DEFS_H_
 
 #include <iostream>
 #include <fstream>
@@ -36,29 +35,28 @@
 //#include<//pthread.h>
 //#include <thread>       // std::thread
 
-using namespace std;
+typedef   bool                      BOOL;
+typedef   void                      VOID;
+typedef   void *                    ADDRESS;
+typedef   std::ofstream             FILEPTR;
+typedef   long int                  INTEGER;
+typedef   long int                  VALUE;
+typedef   const char*               STRING;
+typedef   std::vector<int>          INTVECTOR;
+typedef   std::set<int>             INTSET;
+typedef   std::unordered_set<int>   UNORD_INTSET;
+typedef   std::vector<std::string>  STRVECTOR;
 
-using Void = void;
-typedef        void        VOID;
-typedef      void *        ADDRESS;
-typedef    ofstream        FILEPTR;
-typedef    long int        INTEGER;
-typedef    long int        VALUE;
-typedef const char*        STRING;
-typedef vector<int>        INTVECTOR;
-typedef    set<int>        INTSET;
-typedef unordered_set<int> UNORD_INTSET;
-typedef        bool        BOOL;
-typedef vector<string>     STRVECTOR;
-using uint    =  unsigned int;
-using ulong   =  unsigned long;
-using lint    =  long int;
-using address =  void *;
+using uint      =    unsigned int;
+using ulong     =    unsigned long;
+using lint      =    long int;
+using address   =    void *;
+using Void      =   void;
 
 // for conflict task pairs
-typedef pair<int,int>       IDPAIR;
-typedef set<pair<int,int>>  LINE_PAIRS;
-typedef map<IDPAIR, LINE_PAIRS> CONFLICT_PAIRS;
+typedef  std::pair<int,int>            IDPAIR;
+typedef  std::set<std::pair<int,int>>  LINE_PAIRS;
+typedef  std::map<IDPAIR, LINE_PAIRS>  CONFLICT_PAIRS;
 
 enum OPERATION {
   ALLOCA,
@@ -75,9 +73,10 @@ enum OPERATION {
   SHL,
 };
 
-static string OperRepresentation(OPERATION op) {
+static std::string OperRepresentation(OPERATION op) {
 
-  switch(op) {
+  switch( op )
+  {
     case ALLOCA: return "ALLOCA";
     case BITCAST: return "BITCAST";
     case CALL: return "CALL";

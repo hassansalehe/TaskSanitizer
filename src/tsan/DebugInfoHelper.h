@@ -31,7 +31,7 @@ StringRef demangleName(StringRef name) {
   int status = -1;
   std::string name_(name.str());
   char* d =abi::__cxa_demangle(name_.c_str(), nullptr, nullptr, &status);
-  if(! status) {
+  if (! status) {
     StringRef ab(d);
     return ab;
   }
@@ -45,26 +45,26 @@ std::string createAbsoluteFileName(
   std::string & dir_name,
   std::string &file_name) {
 
-  if(dir_name.size() <= 0 || file_name.size() <= 0)
+  if (dir_name.size() <= 0 || file_name.size() <= 0)
     return file_name;
 
   // has full path already
-  if(file_name[0] == '/')
+  if (file_name[0] == '/')
     return file_name;
 
-  if(file_name[0] == '.' && file_name[1] == '/') {
+  if (file_name[0] == '.' && file_name[1] == '/') {
 
-    if(dir_name[dir_name.length()-1] == '/')
+    if (dir_name[dir_name.length()-1] == '/')
       return dir_name + file_name.substr(2);
     else
       return dir_name + file_name.substr(1);
   }
 
   // file name has full path already
-  if(file_name.find(dir_name) != std::string::npos)
+  if (file_name.find(dir_name) != std::string::npos)
     return file_name;
 
-  if(dir_name[dir_name.length()-1] != '/')
+  if (dir_name[dir_name.length()-1] != '/')
     return dir_name + "/" + file_name;
 
   return dir_name + file_name;
@@ -80,9 +80,9 @@ std::string createAbsoluteFileName(
 
     // get debug information to retrieve file name
     const DebugLoc &location = I->getDebugLoc();
-    if( location ) {
+    if ( location ) {
       auto *Scope = cast<DIScope>( location->getScope() );
-      if(Scope) {
+      if (Scope) {
          name = Scope->getFilename().str();
          dirName = Scope->getDirectory().str();
          name = createAbsoluteFileName(dirName, name);
@@ -102,7 +102,7 @@ std::string createAbsoluteFileName(
 Value* getFuncName(Function & F) {
   StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if(idx != StringRef::npos)
+  if (idx != StringRef::npos)
     name = name.substr(0, idx);
 
   IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
@@ -110,12 +110,12 @@ Value* getFuncName(Function & F) {
 }
 
 /**
- * Return function name as a string
+ * Return function name as a std::string
  */
 StringRef getFuncNameStr(Function & F) {
   StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if(idx != StringRef::npos)
+  if (idx != StringRef::npos)
     name = name.substr(0, idx);
 
   return name;
@@ -131,7 +131,7 @@ StringRef getFuncNameStr(Function & F) {
     Function* F = I->getFunction();
     IRBuilder<> IRB(F->getEntryBlock().getFirstNonPHI());
 
-    if( !obj )
+    if ( !obj )
       return IRB.CreateGlobalStringPtr("unknown", "variable");
 
     return IRB.CreateGlobalStringPtr(obj->getName(), "variable");

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //  FlowSanitizer: a lightweight non-determinism checking
-//          tool for OpenMP applications
+//          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
@@ -20,8 +20,6 @@
 #include <unordered_map>
 #include <sstream>
 
-using namespace std;
-
 extern "C" {
 
   // to initialize the logger
@@ -30,29 +28,27 @@ extern "C" {
   // to finalize and book-keep the logger
   void INS_Fini();
 
-  // callbacks at creation of task
-  void AdfCreateTask(void **intokens, void* fn);
-
   // callbacks for tokens
-  void INS_RegReceiveToken(void * tokenAddr, unsigned long size);
-  void INS_RegSendToken(void * bufferAddr, void * tokenAddr, unsigned long size);
+  void INS_RegReceiveToken(void *tokenAddr, unsigned long size);
+  void INS_RegSendToken(void *bufferAddr, void *tokenAddr,
+                        unsigned long size);
 
   // callbacks for memory access, race detection
-  void INS_AdfMemRead8(void *addr, int lineNo, void * funcName);
-  void INS_AdfMemRead4(void *addr, int lineNo, void * funcName);
-  void INS_AdfMemRead1(void *addr, int lineNo, void * funcName);
-  void INS_AdfMemWrite8(void *addr, long int value, int lineNo, void * funcName);
-  void INS_AdfMemWrite4(void *addr, long int value, int lineNo, void * funcName);
-  void INS_AdfMemWrite1(void *addr, long int value, int lineNo, void * funcName);
+  void INS_MemRead8(void *addr, int lineNo, void *fName);
+  void INS_MemRead4(void *addr, int lineNo, void *fName);
+  void INS_MemRead1(void *addr, int lineNo, void *fName);
+  void INS_MemWrite8(void *addr, long int v, int lnNo, void *fName);
+  void INS_MemWrite4(void *addr, long int v, int lnNo, void *fName);
+  void INS_MemWrite1(void *addr, long int v, int lnNo, void *fName);
 
-  void __fsan_write_float(void * addr, float value, int lineNo, void * funcName);
-  void __fsan_write_double(void * addr, double value, int lineNo, void * funcName);
+  void __fsan_write_float(void *addr, float v, int lnNo, void *fName);
+  void __fsan_write_double(void *addr, double v, int lnNo, void *fName);
 
   // task begin and end callbacks
-  void INS_TaskBeginFunc(void* addr);
-  void INS_TaskFinishFunc(void* addr);
+  void INS_TaskBeginFunc(void *addr);
+  void INS_TaskFinishFunc(void *addr);
 
-  void toolVptrUpdate(void *addr, void * value);
-  void toolVptrLoad(void *addr, void * value);
+  void toolVptrUpdate(void *addr, void *value);
+  void toolVptrLoad(void *addr, void *value);
 };
 #endif // Callback.h

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //  FlowSanitizer: output nondeterminism detection tool
-//          for OpenMP applications
+//          for OpenMP task applications
 //
 //    Copyright (c) 2017 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
@@ -23,64 +23,57 @@
 namespace UTIL {
 
 /**
- * Creates and initializes action logging metadata
- */
+ * Creates and initializes action logging metadata */
 void createNewTaskMetadata(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
-  if(task_data == nullptr) return;
-
+  if (task_data == nullptr) return;
   TaskInfo * taskInfo = (TaskInfo *)task_data->ptr;
-  if(taskInfo == nullptr)
-    taskInfo = new TaskInfo;
+  if (taskInfo == nullptr) taskInfo = new TaskInfo;
 
   taskInfo->threadID = static_cast<uint>( pthread_self() );
-  taskInfo->taskID = INS::GenTaskID();
-  taskInfo->active = true;
-
-  task_data->ptr = (void *)taskInfo;
+  taskInfo->taskID   = INS::GenTaskID();
+  taskInfo->active   = true;
+  task_data->ptr     = (void *)taskInfo;
 
   INS::TaskBeginLog(*taskInfo);
 #ifdef DEBUG
   PRINT_DEBUG("Task_Began, (threadID: " +
-      to_string(taskInfo->threadID) + ", taskID: " +
-      to_string(taskInfo->taskID)   + ")";
+      std::to_string(taskInfo->threadID) + ", taskID: " +
+      std::to_string(taskInfo->taskID)   + ")";
 #endif
 }
 
 /**
  * Marks task metadata of completion of task.
- * It also logs relevant information to file.
- */
+ * It also logs relevant information to file. */
 void markEndOfTask(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
-  if(task_data == nullptr) return;
+  if (task_data == nullptr) return;
 
   TaskInfo *taskInfo = (TaskInfo*)task_data->ptr;
-  uint threadID = (uint)pthread_self();
+  uint threadID      = (uint)pthread_self();
   assert(taskInfo->threadID == threadID);
-  taskInfo->active = false;
+  taskInfo->active   = false;
 
   INS::TaskEndLog(*taskInfo);
 #ifdef DEBUG
-  PRINT_DEBUG("Task_Ended: (threadID: " + to_string(threadID) +
-      ") taskID: " + to_string(taskInfo->taskID));
+  PRINT_DEBUG("Task_Ended: (threadID: " + std::to_string(threadID) +
+      ") taskID: " + std::to_string(taskInfo->taskID));
 #endif
 }
 
 
 /**
- * Marks this task as complete
- */
+ * Marks this task as complete */
 void endThisTask(ompt_data_t *task_data) {
   markEndOfTask(task_data);
 }
 
 /**
- * Changes identifer of the current task to new ID and
- * thus make it look like a new task.
- */
+ * Changes identifer of the current task to
+ * new ID and thus make it look like a new task. */
 void disguiseToTewTask(ompt_data_t *task_data) {
   UTIL::createNewTaskMetadata(task_data);
 }

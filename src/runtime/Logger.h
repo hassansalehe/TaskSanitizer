@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //  FlowSanitizer: a lightweight non-determinism checking
-//          tool for OpenMP
+//          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
@@ -10,9 +10,8 @@
 //
 /////////////////////////////////////////////////////////////////
 
-/*
-This is a logger for all events in an OpenMP application
-*/
+//
+// This is a logger for all events in an OpenMP application
 
 #ifndef LOGGER_H
 #define LOGGER_H
@@ -41,23 +40,23 @@ class INS {
     static inline bool hasHB( INTEGER tID, INTEGER parentID );
 
     // a strictly increasing value, used as tasks unique id generator
-    static atomic<INTEGER> taskIDSeed;
+    static std::atomic<INTEGER> taskIDSeed;
 
     // storing function name pointers
-    static unordered_map<STRING, INTEGER>funcNames;
+    static std::unordered_map<STRING, INTEGER>funcNames;
     static INTEGER funcIDSeed;
 
     // mapping buffer location, value with task id
-    static unordered_map<pair<ADDRESS,INTEGER>, INTEGER, hash_function> idMap;
+    static std::unordered_map<std::pair<ADDRESS,INTEGER>, INTEGER, hash_function> idMap;
 
     // keeping the happens-before relation between tasks
-    static unordered_map<INTEGER, INTSET> HB;
+    static std::unordered_map<INTEGER, INTSET> HB;
 
     // keeping track of the last writer to a memory location
-    static unordered_map<ADDRESS, INTEGER> lastWriter;
+    static std::unordered_map<ADDRESS, INTEGER> lastWriter;
 
     // keeping track of the last reader from a memory location
-    static unordered_map<ADDRESS, INTEGER> lastReader;
+    static std::unordered_map<ADDRESS, INTEGER> lastReader;
 
     // checker instance for detecting nondeterminism online
     static Checker onlineChecker;
@@ -81,7 +80,8 @@ class INS {
       isOMPTinitialized = true;
     }
 
-    /** Generates a unique ID for each new task. */
+    /*
+     * Generates a unique ID for each new task. */
     static inline INTEGER GenTaskID() {
       INTEGER taskID = taskIDSeed.fetch_add(1);
       return taskID;
@@ -89,20 +89,20 @@ class INS {
 
     /**
      * registers the function if not registered yet.
-     * Also prints the function to standard output.
-     */
+     * Also prints the function to standard output. */
     static inline INTEGER RegisterFunction(const STRING funcName) {
 
       guardLock.lock();
       int funcID = 0;
       auto fd = funcNames.find(funcName);
-      if( fd == funcNames.end() ) { // new function
+      if ( fd == funcNames.end() ) { // new function
         funcID = funcIDSeed++;
         funcNames[funcName] = funcID;
-        onlineChecker.registerFuncSignature(string(funcName), funcID);
-      }
-      else
+        onlineChecker.registerFuncSignature(
+            std::string(funcName), funcID);
+      } else {
          funcID = fd->second;
+      }
 
       guardLock.unlock();
       return funcID;
@@ -135,23 +135,26 @@ class INS {
 
       guardLock.lock();
       // if streaming location address not null and there is a sender of the token
-      auto key = make_pair( bufLocAddr, value );
-      if(bufLocAddr && idMap.count( key ) ) { // dependent through a streaming buffer
+      auto key = std::make_pair( bufLocAddr, value );
+      if ( bufLocAddr && idMap.count( key ) ) {
+        // dependent through a streaming buffer
         parentID = idMap[key];
 
-        if(parentID != tid) { // there was a bug where a task could send token to itself
-
+        if (parentID != tid) {
+          // there was a bug where a task could send token to itself
           onlineChecker.saveHappensBeforeEdge(parentID, tid);
 
           // there is a happens before between taskID and parentID:
           //parentID ---happens-before---> taskID
-          if(HB.find( tid ) == HB.end())
+          if (HB.find( tid ) == HB.end()) {
             HB[tid] = INTSET();
+          }
           HB[tid].insert( parentID );
 
           // take the happens-before of the parentID
-          if(HB.find( parentID ) != HB.end())
+          if (HB.find( parentID ) != HB.end()) {
             HB[tid].insert(HB[parentID].begin(), HB[parentID].end());
+          }
         }
       }
       guardLock.unlock();
@@ -159,7 +162,6 @@ class INS {
 
     /** called before the task terminates. */
     static inline VOID TaskEndLog( TaskInfo& task ) {
-
       guardLock.lock(); // protect file descriptor
       // do something
       guardLock.unlock();
@@ -172,8 +174,7 @@ class INS {
     static inline VOID TaskSendTokenLog(TaskInfo & task,
         ADDRESS bufLocAddr, INTEGER value) {
 
-      auto key = make_pair(bufLocAddr, value );
-
+      auto key = std::make_pair(bufLocAddr, value );
       guardLock.lock(); //  protect idMap
       idMap[key] = task.taskID;
       guardLock.unlock();
@@ -185,18 +186,17 @@ class INS {
       INTEGER funcID = task.getFunctionId( funcName );
 
       // register function if not registered yet
-      if( funcID == 0 ) {
+      if (funcID == 0) {
         funcID = RegisterFunction( funcName );
         task.registerFunction( funcName, funcID );
       }
 
       //task.saveReadAction(addr, lineNo, funcID);
-      stringstream ssin(to_string((VALUE)addr) + " 0 " +
-          to_string(lineNo) + " " + to_string(funcID));
+      std::stringstream ssin(std::to_string((VALUE)addr) + " 0 " +
+          std::to_string(lineNo) + " " + std::to_string(funcID));
 
       guardLock.lock();
-      onlineChecker.detectNondeterminismOnMem(
-          task.taskID, "R", ssin);
+      onlineChecker.detectNondeterminismOnMem(task.taskID, "R", ssin);
       guardLock.unlock();
     }
 
@@ -207,26 +207,27 @@ class INS {
       INTEGER funcID = task.getFunctionId( funcName );
 
       // register function if not registered yet
-      if( funcID == 0 ) {
+      if (funcID == 0) {
         funcID = RegisterFunction( funcName );
         task.registerFunction( funcName, funcID );
       }
 
       //task.saveWriteAction(addr, value, lineNo, funcID);
-      stringstream ssin(to_string((VALUE)addr) + " " + to_string(value)
-          + " " + to_string(lineNo) + " " + to_string(funcID));
+      std::stringstream ssin(std::to_string((VALUE)addr) + " " +
+          std::to_string(value) + " " + std::to_string(lineNo) +
+          " " + std::to_string(funcID));
 
       guardLock.lock();
-      onlineChecker.detectNondeterminismOnMem(
-          task.taskID, "W", ssin);
+      onlineChecker.detectNondeterminismOnMem(task.taskID, "W", ssin);
       guardLock.unlock();
     }
 
     /** Saves IDs of child tasks at a barrier */
     static inline VOID saveChildHBs(TaskInfo & task) {
       guardLock.lock();
-      for(int uncleID : task.childrenIDs)
+      for (int uncleID : task.childrenIDs) {
         onlineChecker.saveHappensBeforeEdge(uncleID, task.taskID);
+      }
       task.childrenIDs.clear();
       guardLock.unlock();
     }

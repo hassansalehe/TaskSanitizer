@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////
 //  FlowSanitizer: a lightweight non-determinism checking
-//          tool for OpenMP applications
+//          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
@@ -25,9 +25,9 @@
 //// Helper functions
 //////////////////////////////////////////////////
 std::mutex printLock;
-void PRINT_DEBUG(string msg) {
+void PRINT_DEBUG(std::string msg) {
   printLock.lock();
-  cout << static_cast<uint>(pthread_self()) << ": " << msg << endl;
+  std::cout << static_cast<uint>(pthread_self()) << ": " << msg << std::endl;
   printLock.unlock();
 }
 
@@ -51,8 +51,8 @@ static ompt_get_task_info_t ompt_get_task_info;
 do{                                                           \
   type f_##name = &on_##name;                                 \
   if (ompt_set_callback(name, (ompt_callback_t)f_##name) ==   \
-      ompt_set_never)                                         \
-    printf("0: Could not register callback '" #name "'\n");   \
+      ompt_set_never) {                                       \
+    printf("0: Could not register callback '" #name "'\n"); } \
 }while(0)
 
 #define register_callback(name) register_callback_t(name, name##_t)
@@ -64,10 +64,12 @@ on_ompt_callback_implicit_task(
     ompt_data_t *task_data,
     unsigned int team_size,
     unsigned int thread_num) {
-  switch(endpoint) {
+  switch( endpoint )
+  {
     case ompt_scope_begin:
-      if(task_data->ptr == NULL)
-	FlowSan_TaskBeginFunc(task_data);
+      if (task_data->ptr == NULL) {
+        FlowSan_TaskBeginFunc(task_data);
+      }
       break;
     case ompt_scope_end:
       INS_TaskFinishFunc(task_data);
@@ -84,21 +86,24 @@ on_ompt_callback_task_create( // called in the context of the creator
     int has_dependences,
     const void *codeptr_ra) {         /* pointer to outlined function */
   int tid = ompt_get_thread_data()->value;
-  switch((int)type) {
+  switch ((int)type)
+  {
     case ompt_task_initial:
       PRINT_DEBUG("FlowSan: initial task created");
       break;
-    case ompt_task_implicit: {
+    case ompt_task_implicit:
+    {
       PRINT_DEBUG("FlowSan: implicit task created");
       break;
     }
-    case ompt_task_explicit: {
+    case ompt_task_explicit:
+    {
       PRINT_DEBUG("FlowSan: explicit task created");
-      if(new_task_data->ptr == NULL)
+      if (new_task_data->ptr == NULL) {
         FlowSan_TaskBeginFunc(new_task_data);
-
+      }
       void * depAddr = parent_task_data->ptr;
-      if(depAddr) { // valid parent task
+      if (depAddr) { // valid parent task
         // send and receive token
         INTEGER value = reinterpret_cast<INTEGER>(depAddr);
         INS::TaskSendTokenLog(
@@ -136,18 +141,19 @@ on_ompt_callback_task_schedule( // called in the context of the task
     ompt_task_status_t prior_task_status, /* status of prior task  */
     ompt_data_t *next_task_data) {        /* data of next task     */
 
-  if(next_task_data->ptr == NULL)
+  if (next_task_data->ptr == NULL) {
     FlowSan_TaskBeginFunc(next_task_data);
-
+  }
   PRINT_DEBUG("Task is being scheduled (p:" +
-      to_string(next_task_data->value) + " t:" +
-      to_string(prior_task_data->value) +  ")" );
+      std::to_string(next_task_data->value) + " t:" +
+      std::to_string(prior_task_data->value) +  ")" );
 
   // int tid = ompt_get_thread_data()->value;
-  // if(prior_task_status == ompt_task_complete)
+  // if (prior_task_status == ompt_task_complete)
 }
 
-/** Callbacks for tokens */
+/*
+ * Callbacks for tokens */
 static void
 on_ompt_callback_task_dependences(
     ompt_data_t *task_data,
@@ -157,12 +163,13 @@ on_ompt_callback_task_dependences(
   TaskInfo * taskInfo = (TaskInfo*)task_data->ptr;
   PRINT_DEBUG("on_ompt_callback_task_dependences");
 
-  for(int i = 0; i < ndeps; i++) {
+  for (int i = 0; i < ndeps; i++) {
 
     void * depAddr = deps[i].variable_addr;
     INTEGER value = reinterpret_cast<INTEGER>(depAddr);
 
-    switch(deps[i].dependence_flags) {
+    switch (deps[i].dependence_flags)
+    {
       case ompt_task_dependence_type_out:
         INS::TaskSendTokenLog(*taskInfo, depAddr,  value);
         break;
@@ -184,8 +191,8 @@ on_ompt_callback_task_dependence(
     ompt_data_t *first_task_data,
     ompt_data_t *second_task_data) {
   PRINT_DEBUG("One task dependence is going for registration " +
-      to_string(first_task_data->value) + " " +
-      to_string(second_task_data->value));
+      std::to_string(first_task_data->value) + " " +
+      std::to_string(second_task_data->value));
 }
 
 // Executed when a task inters or leaves a barrier
@@ -196,18 +203,23 @@ static void on_ompt_callback_sync_region(
     ompt_data_t *parallel_data,     /* data of parallel region        */
     ompt_data_t *task_data,         /* data of task                   */
     const void *codeptr_ra) {       /* return address of runtime call */
-  switch(kind) {
-    case ompt_sync_region_barrier: {
+  switch (kind)
+  {
+    case ompt_sync_region_barrier:
+    {
       break;
     }
-    case ompt_sync_region_taskwait: {
+    case ompt_sync_region_taskwait:
+    {
       TaskInfo * taskInfo = (TaskInfo*)task_data->ptr;
-      switch(endpoint) {
-        case ompt_scope_begin: {
+      switch (endpoint) {
+        case ompt_scope_begin:
+        {
           printf("Taskwait begin scope %d\n", taskInfo->taskID);
           break;
         }
-        case ompt_scope_end: {
+        case ompt_scope_end:
+        {
           taskInfo->addChild(taskInfo->taskID);
           UTIL::endThisTask(task_data);
           UTIL::disguiseToTewTask(task_data);
@@ -218,7 +230,8 @@ static void on_ompt_callback_sync_region(
       }
       break;
     }
-    case ompt_sync_region_taskgroup: {
+    case ompt_sync_region_taskgroup:
+    {
       break;
     }
   }
@@ -227,8 +240,8 @@ static void on_ompt_callback_sync_region(
 /// Initialization and Termination callbacks
 
 static int dfinspec_initialize(
-  ompt_function_lookup_t lookup,
-  ompt_data_t *tool_data) {
+    ompt_function_lookup_t lookup,
+    ompt_data_t *tool_data) {
 
   // Register OMPT callbacks
   ompt_set_callback_t ompt_set_callback =
@@ -255,14 +268,13 @@ static int dfinspec_initialize(
   return 1;
 }
 
-static void dfinspec_finalize(
-  ompt_data_t *tool_data) {
+static void dfinspec_finalize(ompt_data_t *tool_data) {
   std::cout << "FlowSan: Everything is finalizing\n";
 }
 
 ompt_start_tool_result_t* ompt_start_tool(
-  unsigned int omp_version,
-  const char *runtime_version) {
+    unsigned int omp_version,
+    const char *runtime_version) {
 
   static ompt_start_tool_result_t ompt_start_end = {
       &dfinspec_initialize,

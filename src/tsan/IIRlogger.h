@@ -28,22 +28,22 @@ namespace IIRlog {
   void Init( StringRef cppName ) {
     errs() <<  "File name will be " << cppName << "\n";
     logFile.open("" + cppName.str() + ".iir",  ofstream::out | ofstream::trunc);
-    if( !logFile.is_open() )
+    if ( !logFile.is_open() )
       errs() << "FILE NO OPEN \n";
   }
 
   void LogNewTask( StringRef taskName ) {
 
      errs() << taskName.str() << "\n";
-     logFile << taskName.str() << endl << flush;
+     logFile << taskName.str() << std::endl << flush;
   }
 
   void LogNewIIRcode(int lineNo, Instruction& IIRcode ) {
     //errs() << lineNo << ": " << IIRcode.str() << "\n";
-    string tempBuf;
+    std::string tempBuf;
     raw_string_ostream rso(tempBuf);
     IIRcode.print(rso);
-    logFile << lineNo << ": " << tempBuf << endl;
+    logFile << lineNo << ": " << tempBuf << std::endl;
   }
 
   /**
@@ -56,7 +56,7 @@ namespace IIRlog {
     for (auto &BB : F) {
       for (auto &Inst : BB) {
         unsigned lineNo = 0;
-         if(auto Loc = Inst.getDebugLoc())
+         if (auto Loc = Inst.getDebugLoc())
            lineNo = Loc->getLine();
          IIRlog::LogNewIIRcode( lineNo, Inst);
       }
