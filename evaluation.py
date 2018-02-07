@@ -64,7 +64,8 @@ class BenchArgs( object ):
         return self.cppFiles + self.cppArgs
 
     def getFromattedInput( self, size ):
-        pass
+        rtSz = str (int( math.sqrt( float(size) ) ) )
+        return ["-n", size, "-r", rtSz, "-i", rtSz, "-b", rtSz]
     # end class BenchArgs
 
 class Fibonacci( BenchArgs ):
@@ -98,11 +99,6 @@ class Strassen( BenchArgs ):
             "kastors/strassen/src/strassen-task-dep.c",
             "kastors/strassen/src/strassen.c"] )
         self.cppArgs.extend( ["-I./kastors/strassen/include"] )
-
-    def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
-
     # end class Strassen
 
 class Jacobi( BenchArgs ):
@@ -114,10 +110,6 @@ class Jacobi( BenchArgs ):
             dir + "poisson.c",
             dir + "jacobi-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/jacobi/include"] )
-
-    def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
     # end class Jacobi
 
 class SparseLU( BenchArgs ):
@@ -131,8 +123,9 @@ class SparseLU( BenchArgs ):
         self.cppArgs.extend( ["-I./kastors/sparselu/include", "-DSMSIZE"] )
 
     def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz, "-m", blockSz]
+        result = BenchArgs.getFromattedInput(self, size)
+        result.extend( ["-m", result[-1]] )
+        return result
     # end class SparseLU
 
 class Plasma( BenchArgs ):
@@ -181,26 +174,19 @@ class Dgeqrf( Plasma ):
         self.cppFiles.extend([self.dir + "time_dgeqrf-task.c"])
 
     def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz, "-ib", blockSz]
+        result = BenchArgs.getFromattedInput( self, size )
+        result.extend( ["-ib", result[-1]] )
+        return result
 
 class Dgetrf( Plasma ):
     def __init__( self ):
         Plasma.__init__(self)
         self.cppFiles.extend([self.dir + "time_dgetrf-task.c"])
 
-    def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
-
 class Dpotrf( Plasma ):
     def __init__( self ):
         Plasma.__init__(self)
         self.cppFiles.extend([self.dir + "time_dpotrf-task.c"])
-
-    def getFromattedInput( self, size ):
-        blockSz = str (int( math.sqrt( float(size) ) ) )
-        return ["-n", size, "-r", size, "-i", size, "-b", blockSz]
 
 class BenchArgFactory( object ):
     @staticmethod
@@ -342,7 +328,7 @@ class Performance( Experiment ):
         Experiment.__init__(self)
         self.repetitions = 10
         if len(self.inputSizes) < 1:
-            self.inputSizes = [2, 4, 8, 16]
+            self.inputSizes = [2, 4, 8, 16, 32, 64, 128]
 
     def compileOriginalApp( self, appName ):
         outName  = appName + "Orig.exe"
