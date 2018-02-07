@@ -93,4 +93,16 @@ static std::string OperRepresentation(OPERATION op) {
       return "UNKNOWN";
   }
 };
+
+/**
+  * Definition below is for debugging printfs */
+static std::mutex printLock;
+void inline PRINT_DEBUG(const std::string msg) {
+#ifdef DEBUG
+  printLock.lock();
+  std::cout << static_cast<uint>(pthread_self()) << ": " << msg << std::endl;
+  printLock.unlock();
+#endif // debug
+}
+
 #endif

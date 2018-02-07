@@ -162,9 +162,9 @@ class INS {
 
     /** called before the task terminates. */
     static inline VOID TaskEndLog( TaskInfo& task ) {
-      guardLock.lock(); // protect file descriptor
+      //guardLock.lock(); // protect file descriptor
       // do something
-      guardLock.unlock();
+      //guardLock.unlock();
     }
 
     /**

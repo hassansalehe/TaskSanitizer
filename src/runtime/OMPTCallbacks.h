@@ -24,13 +24,6 @@
 //////////////////////////////////////////////////
 //// Helper functions
 //////////////////////////////////////////////////
-std::mutex printLock;
-void PRINT_DEBUG(std::string msg) {
-  printLock.lock();
-  std::cout << static_cast<uint>(pthread_self()) << ": " << msg << std::endl;
-  printLock.unlock();
-}
-
 void FlowSan_TaskBeginFunc(ompt_data_t *task_data) {
   UTIL::createNewTaskMetadata(task_data);
 }
@@ -186,6 +179,7 @@ on_ompt_callback_task_dependences(
   }
 }
 
+// FIXME Hassan
 static void
 on_ompt_callback_task_dependence(
     ompt_data_t *first_task_data,
@@ -215,7 +209,7 @@ static void on_ompt_callback_sync_region(
       switch (endpoint) {
         case ompt_scope_begin:
         {
-          printf("Taskwait begin scope %d\n", taskInfo->taskID);
+          PRINT_DEBUG("Taskwait begin scope " + std::to_string(taskInfo->taskID) );
           break;
         }
         case ompt_scope_end:
@@ -224,7 +218,7 @@ static void on_ompt_callback_sync_region(
           UTIL::endThisTask(task_data);
           UTIL::disguiseToTewTask(task_data);
           INS::saveChildHBs(*taskInfo);
-          printf("Taskwait end scope %d\n", taskInfo->taskID);
+          PRINT_DEBUG("Taskwait end scope " + std::to_string(taskInfo->taskID) );
           break;
         }
       }
@@ -261,15 +255,13 @@ static int dfinspec_initialize(
   register_callback(ompt_callback_sync_region);
 
   INS::InitFlowsanRuntime();
-  #ifdef DEBUG
-    PRINT_DEBUG("Flowsan: init");
-  #endif
+  PRINT_DEBUG("Flowsan: init");
 
   return 1;
 }
 
 static void dfinspec_finalize(ompt_data_t *tool_data) {
-  std::cout << "FlowSan: Everything is finalizing\n";
+  PRINT_DEBUG("FlowSan: Everything is finalizing");
 }
 
 ompt_start_tool_result_t* ompt_start_tool(
