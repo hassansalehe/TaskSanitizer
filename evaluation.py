@@ -3,8 +3,8 @@
 # Copyright (c) 2017 - 2018, Hassan Salehe Matar
 # All rights reserved.
 #
-# This file is part of FlowSanitizer. For details, see
-# https://github.com/hassansalehe/FlowSanitizer. Please also see the LICENSE file
+# This file is part of TaskSanitizer. For details, see
+# https://github.com/hassansalehe/TaskSanitizer. Please also see the LICENSE file
 # for additional BSD notice
 #
 # Redistribution and use in source and binary forms, with or without
@@ -296,7 +296,7 @@ class Correctness( Experiment ):
             print app
             name = app + "Perf.exe"
             options = BenchArgFactory.getInstance( app )
-            commands = ["./flowsan", "-o", name]
+            commands = ["./tasksan", "-o", name]
             commands.extend( options.getFullCommand() )
             print commands
             output, err = self.execute( commands )
@@ -343,7 +343,7 @@ class Performance( Experiment ):
 
     def compileInstrumentedApp( self, appName ):
         outName  = appName + "Instr.exe"
-        command = ["./flowsan", "-o", outName]
+        command = ["./tasksan", "-o", outName]
         args = BenchArgFactory.getInstance( appName ).getFullCommand()
         command.extend( args )
         print command

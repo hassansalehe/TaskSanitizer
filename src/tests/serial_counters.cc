@@ -5,8 +5,8 @@
 // Copyright (c) 2017 - 2018, Hassan Salehe Matar
 // All rights reserved.
 //
-// This file is part of FlowSanitizer. For details, see
-// https://github.com/hassansalehe/FlowSanitizer. Please also
+// This file is part of TaskSanitizer. For details, see
+// https://github.com/hassansalehe/TaskSanitizer. Please also
 // see the LICENSE file for additional BSD notice
 //
 // Redistribution and use in source and binary forms, with

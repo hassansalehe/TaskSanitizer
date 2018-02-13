@@ -21,7 +21,7 @@ using namespace llvm;
 
 // Implements helper functions for manipulating debugging
 // information that is sent to the runtime nondeterminism
-// reporting of FlowSanitizer.
+// reporting of TaskSanitizer.
 namespace fsan {
 
 /**

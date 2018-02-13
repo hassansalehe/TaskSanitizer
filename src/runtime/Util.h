@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  FlowSanitizer: output nondeterminism detection tool
+//  TaskSanitizer: output nondeterminism detection tool
 //          for OpenMP task applications
 //
 //    Copyright (c) 2017 - 2018 Hassan Salehe Matar

@@ -3,8 +3,8 @@
 # Copyright (c) 2017, Hassan Salehe Matar
 # All rights reserved.
 #
-# This file is part of FlowSanitizer. For details, see
-# https://github.com/hassansalehe/FlowSanitizer. Please also see the LICENSE file
+# This file is part of TaskSanitizer. For details, see
+# https://github.com/hassansalehe/TaskSanitizer. Please also see the LICENSE file
 # for additional BSD notice
 #
 # Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ reportIfSuccessful
 cd -
 mkdir -p build
 cd build
-rm -rf libFlowSanitizer.so
+rm -rf libTaskSanitizer.so
 CXX=clang++ cmake ../src/tsan
 make
 reportIfSuccessful
@@ -75,7 +75,7 @@ for test in "${TESTS[@]}"; do
   rm -rf Trace* HBlog*
   rm -rf a.out
   echo "RUNNING $test"
-  flowsan $test
+  tasksan $test
   ./a.out
 done
 

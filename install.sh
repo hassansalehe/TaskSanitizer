@@ -3,8 +3,8 @@
 # Copyright (c) 2017 - 2018, Hassan Salehe Matar
 # All rights reserved.
 #
-# This file is part of FlowSanitizer. For details, see
-# https://github.com/hassansalehe/FlowSanitizer. Please also see the LICENSE file
+# This file is part of TaskSanitizer. For details, see
+# https://github.com/hassansalehe/TaskSanitizer. Please also see the LICENSE file
 # for additional BSD notice
 #
 # Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ if [ ! -e "${fsanHomeDir}/kastors" ]; then
   git clone https://scm.gforge.inria.fr/anonscm/git/kastors/kastors.git kastors
 fi
 
-# Build FlowSanitizer
+# Build TaskSanitizer
 
 cd src/runtime
 ./install.sh
@@ -103,7 +103,7 @@ reportIfSuccessful
 cd -
 mkdir -p build
 cd build
-rm -rf libFlowSanitizer.so
+rm -rf libTaskSanitizer.so
 CXX=clang++ cmake ../src/tsan
 make
 reportIfSuccessful

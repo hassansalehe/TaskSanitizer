@@ -14,7 +14,7 @@
 
 # Variables
 DEST=.
-tSanLib=libflowsan
+taSanLib=libtasksan
 
 # Function to Check if a prior command was successful
 checkIfActionOK() {
@@ -26,15 +26,15 @@ checkIfActionOK() {
 
 # Compile and build static library
 
-clang++ -c MemoryCallbacks.cc -o ${tSanLib}.o	\
+clang++ -c MemoryCallbacks.cc -o ${taSanLib}.o	\
     -g -static -std=c++11 -pthread -fpermissive	\
-    -fopenmp -I/home/hmatar/Research/FlowSanitizer/bin/include	\
-    -I/home/hmatar/Research/FlowSanitizer/src/detector 	\
-    -I/home/hmatar/Research/FlowSanitizer/src/runtime
+    -fopenmp -I/home/hmatar/Research/TaskSanitizer/bin/include	\
+    -I/home/hmatar/Research/TaskSanitizer/src/detector 	\
+    -I/home/hmatar/Research/TaskSanitizer/src/runtime
 checkIfActionOK
 
 # Generate etsan as static library
-ar rcs ${tSanLib}.a ${tSanLib}.o
+ar rcs ${taSanLib}.a ${taSanLib}.o
 checkIfActionOK
-mv ${tSanLib}.a ../../bin/
-echo -e "\033[1;32m etsan runtime library successful installed.\033[m"
+mv ${taSanLib}.a ../../bin/
+echo -e "\033[1;32m TaskSanitizer runtime library successful installed.\033[m"

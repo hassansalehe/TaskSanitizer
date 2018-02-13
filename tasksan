@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017, Hassan Salehe Matar
+# Copyright (c) 2017 - 2018, Hassan Salehe Matar
 # All rights reserved.
 #
-# This file is part of FlowSanitizer. For details, see
-# https://github.com/hassansalehe/FlowSanitizer. Please also see the LICENSE file
+# This file is part of TaskSanitizer. For details, see
+# https://github.com/hassansalehe/TaskSanitizer. Please also see the LICENSE file
 # for additional BSD notice
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,11 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-link_flags="-L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib -L/home/hmatar/Research/FlowSanitizer/bin/lib -Wl,-rpath=/home/hmatar/Research/FlowSanitizer/bin/lib -larcher"
+tasanHome="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+link_flags="-L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib -L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib -larcher"
 
-/usr/bin/clang++ -Xclang -load -Xclang /home/hmatar/Research/FlowSanitizer/bin/lib/LLVMArcher.so   \
-   -Xclang -load -Xclang ./bin/libFlowSanitizer.so  \
-   -I/home/hmatar/Research/FlowSanitizer/bin/include   \
-   -fopenmp  $link_flags -g "$@" -L/home/hmatar/Research/FlowSanitizer/bin -lflowsan	\
-   -L/home/hmatar/Research/FlowSanitizer/bin -lLogger
+/usr/bin/clang++ -Xclang -load -Xclang ${tasanHome}/bin/lib/LLVMArcher.so   \
+   -Xclang -load -Xclang ${tasanHome}/bin/libTaskSanitizer.so  \
+   -I${tasanHome}/bin/include   \
+   -fopenmp  $link_flags -g "$@" -L${tasanHome}/bin -ltasksan	\
+   -L${tasanHome}/bin -lLogger
