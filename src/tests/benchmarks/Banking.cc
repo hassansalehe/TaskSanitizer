@@ -1,9 +1,25 @@
+///////////////////////////////////////////////////////////////////////
+//
+//                  (c) 2017, 2018 - Hassan Salehe Matar
+//
+//  Description:
+//
+//   This app simulates banking operations. The first task sets 1000
+//   to "balance" and then three other concurrent tasks do:
+//    - One task sets 200 to "balance"
+//    - One more task withdraws 500 from "balance"
+//    - Another task adds 20% commission
+//
+//   Output nondeterminism:
+//    - There is output nondeterminism among the three concurrent
+//      tasks.
+//
+//////////////////////////////////////////////////////////////////////
+
 #include <iostream>
 #include <cstring>
 
 #include <omp.h>
-
-using namespace std;
 
 // balance
 float balance;
@@ -46,8 +62,7 @@ int main() {
 
       // wait all tasks to complete
       #pragma omp taskwait
-      //cout << "balance: " << balance << std::endl;
-      std::cout<< balance << std::endl;
+      std::cout << "balance: " <<  balance << std::endl;
     }
   }
   return 0;

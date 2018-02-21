@@ -54,6 +54,7 @@ class BenchArgs( object ):
          (b) The list of compiler options may be long
     """
     def __init__( self ):
+        self.benchDir = "./src/tests/benchmarks/"
         self.cppFiles = []
         self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-g",
                          "-fpermissive", "-DMSIZE", "-DCUTOFF_SIZE",
@@ -68,29 +69,64 @@ class BenchArgs( object ):
         return ["-n", size, "-r", rtSz, "-i", rtSz, "-b", rtSz]
     # end class BenchArgs
 
-class Fibonacci( BenchArgs ):
+class BackgroundExample( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = ["./src/tests/benchmarks/fibonacci.cc"]
+        self.cppFiles = [self.benchDir + "BackgroundExample.cc"]
+
+class Banking( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "Banking.cc"]
 
     def getFromattedInput( self, size ):
         return [size]
+
+class Fibonacci( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "Fibonacci.cc"]
+
+    def getFromattedInput( self, size ):
+        return [size]
+
+class MapReduce( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "MapReduce.cc"]
 
 class PointerChasing( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = ["./src/tests/benchmarks/pointer_chasing.cc"]
+        self.cppFiles = [self.benchDir + "PointerChasing.cc"]
 
     def getFromattedInput( self, size ):
         return [size]
 
-class BankTaskRacy( BenchArgs ):
+class Sectionslock1OrigNo( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = ["./src/tests/benchmarks/bank_task_racy.cc"]
+        self.cppFiles = [self.benchDir + "sectionslock1-orig-no.cc"]
 
-    def getFromattedInput( self, size ):
-        return [size]
+class Taskdep1OrigNo( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "taskdep1-orig-no.cc"]
+
+class Taskdep2OrigNo( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "taskdep2-orig-no.cc"]
+
+class Taskdep3OrigNo( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "taskdep3-orig-no.cc"]
+
+class TaskdependmissingOrigYes( BenchArgs ):
+    def __init__( self ):
+        BenchArgs.__init__(self)
+        self.cppFiles = [self.benchDir + "taskdependmissing-orig-yes.cc"]
 
 class Strassen( BenchArgs ):
     def __init__( self ):
@@ -191,14 +227,29 @@ class Dpotrf( Plasma ):
 class BenchArgFactory( object ):
     @staticmethod
     def getInstance( benchName ):
-        if "strassen" in benchName:
-            return Strassen()
-        if "fibonacci" in benchName:
+        if "BackgroundExample" in benchName:
+            return BackgroundExample()
+        if "Banking" in benchName:
+            return Banking()
+        if "Fibonacci" in benchName:
             return Fibonacci()
-        if "pointer_chasing" in benchName:
+        if "MapReduce" in benchName:
+            return MapReduce()
+        if "PointerChasing" in benchName:
            return PointerChasing()
-        if "bank_task_racy" in benchName:
-            return BankTaskRacy()
+        if "sectionslock1-orig-no" in benchName:
+           return Sectionslock1OrigNo()
+        if "taskdep1-orig-no" in benchName:
+           return Taskdep1OrigNo()
+        if "taskdep2-orig-no" in benchName:
+           return Taskdep2OrigNo()
+        if "taskdep3-orig-no" in benchName:
+           return Taskdep3OrigNo()
+        if "taskdependmissing-orig-yes" in benchName:
+           return TaskdependmissingOrigYes()
+        ''' Ignoring KaSTORs benchmarks for now
+        if "Strassen" in benchName:
+            return Strassen()
         if "jacobi" in benchName:
             return Jacobi()
         if "sparselu" in benchName:
@@ -209,6 +260,7 @@ class BenchArgFactory( object ):
             return Dgetrf()
         if "dpotrf" in benchName:
             return Dpotrf()
+        '''
         # else:
         # no such penchmark
         print "No such a benchmark", benchName
@@ -226,19 +278,28 @@ class Experiment( object ):
     correctness and performance experiments.
     """
     def __init__( self ):
-        self.app_path = "./src/tests/benchmarks/"
-        self.apps = os.listdir( self.app_path )
+        self.benchDir = "./src/tests/benchmarks/"
+        self.apps = os.listdir( self.benchDir )
         self.results = []
         self.inputSizes = []
-        self.apps = ["fibonacci",
-                     "pointer_chasing",
-                     "bank_task_racy",
+        self.apps = ["BackgroundExample",
+                     "Banking",
+                     "Fibonacci",
+                     "MapReduce",
+                     "PointerChasing",
+                     "sectionslock1-orig-no",
+                     "taskdep1-orig-no",
+                     "taskdep2-orig-no",
+                     "taskdep3-orig-no",
+                     "taskdependmissing-orig-yes"];
+        ''' Ignoring KaSTORs benchmarks for now
                      "jacobi",
                      "sparselu",
                      "strassen",
                      "dgeqrf",
                      "dgetrf",
-                     "dpotrf"];
+                     "dpotrf"
+        '''
 
         if len(sys.argv) > 1:
             self.experiment = sys.argv[1]
@@ -294,7 +355,7 @@ class Correctness( Experiment ):
         print head
         for app in self.apps:
             print app
-            name = app + "Perf.exe"
+            name = app + "Corr.exe"
             options = BenchArgFactory.getInstance( app )
             commands = ["./tasksan", "-o", name]
             commands.extend( options.getFullCommand() )
@@ -327,6 +388,9 @@ class Performance( Experiment ):
     def __init__( self ):
         Experiment.__init__(self)
         self.repetitions = 10
+        if len(self.apps) > 3:
+            self.apps = ["Fibonacci", "MapReduce", "PointerChasing"]
+
         if len(self.inputSizes) < 1:
             self.inputSizes = [2, 4, 8, 16, 32, 64, 128]
 
@@ -428,15 +492,26 @@ class Help( object ):
         print ""
         print "    <experiment> is \"correctness\" or \"performance\" "
         print "    <application> can be one of:"
-        print "         fibonacci"
-        print "         pointer_chasing"
-        print "         bank_task_racy"
+        print "         BackgroundExample"
+        print "         Banking"
+        print "         Fibonacci"
+        print "         MapReduce"
+        print "         PointerChasing"
+        print "         sectionslock1-orig-no"
+        print "         taskdep1-orig-no"
+        print "         taskdep2-orig-no"
+        print "         taskdep3-orig-no"
+        print "         taskdependmissing-orig-yes"
+
+        ''' Ignoring KaSTORs benchmarks for now
         print "         jacobi"
         print "         sparselu"
         print "         strassen"
         print "         dgeqrf"
         print "         dgetrf"
         print "         dpotrf"
+        '''
+
         print ""
         print " NOTE:"
         print "   1. If you do not specify input size, your application"

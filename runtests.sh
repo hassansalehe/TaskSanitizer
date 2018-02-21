@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017, Hassan Salehe Matar
+# Copyright (c) 2017 - 2018, Hassan Salehe Matar
 # All rights reserved.
 #
 # This file is part of TaskSanitizer. For details, see
@@ -70,7 +70,7 @@ reportIfSuccessful
 cd ..
 reset
 
-TESTS=($(grep -l main src/tests/*.cc))
+TESTS=($(grep -l main src/tests/benchmarks/*.cc))
 for test in "${TESTS[@]}"; do
   rm -rf Trace* HBlog*
   rm -rf a.out
