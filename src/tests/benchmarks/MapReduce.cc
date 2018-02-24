@@ -28,6 +28,8 @@
 #include <iterator>
 #include <algorithm>
 
+#define NTHREADS 4
+
 void prepareInputs(std::vector<std::string> &words, char *file) {
 
   std::ifstream text( file );
@@ -43,63 +45,99 @@ void prepareInputs(std::vector<std::string> &words, char *file) {
 }
 
 void updateHistogram(std::map<std::string, int> &histogram,
-                     std::string &word, int count ) {
-  if ( histogram.find( word ) != histogram.end() ) {
-    histogram[word] = histogram[word] + count;
-  } else {
-    histogram[word] = count;
+                     std::map<std::string, int> &word_hist) {
+
+  for (auto elem = word_hist.begin(); elem != word_hist.end(); elem++) {
+    std::string word = elem->first;
+    int count = elem->second;
+
+    if ( histogram.find( word ) != histogram.end() ) {
+      histogram[word] = histogram[word] + count;
+    } else {
+      histogram[word] = count;
+    }
+  }
+}
+
+void splitInput(std::vector<std::string> &words,
+                std::vector<std::string> &sub_words,
+                int pos) {
+  int chunk_size = words.size() / NTHREADS;
+  int start      = chunk_size *pos;
+  int end        = start + chunk_size;
+
+  while (start < end) {
+    sub_words.push_back(words[start++]);
+  }
+}
+
+void mapWords(std::vector<std::string> &words,
+              std::map<std::string, int> &hist) {
+  for (auto word = words.begin(); word != words.end(); word++) {
+    hist[*word] = 1;
+  }
+}
+
+void printHistogram(const std::map<std::string, int> & histogram) {
+  for (auto word = histogram.begin();
+       word != histogram.end();
+       word++) {
+    std::cout << word->first << ": " << word->second << std::endl;
   }
 }
 
 int main(int argc, char* argv[] ) {
-  std::map<std::string, int> histogram;
-  std::map<std::string, int> sub_hist;
+  std::map<std::string, int>  histogram;
+  std::map<std::string, int>  sub_hist[NTHREADS];
+  std::vector<std::string>    sub_words[NTHREADS];
+  std::vector<std::string>    words;
 
-  // Prepare inputs.
-  std::vector<std::string> words;
-  prepareInputs(words, argv[1] );
+  prepareInputs(words, argv[1]);
 
-  #pragma omp parallel num_threads(4)
+  #pragma omp parallel num_threads(NTHREADS)  \
+  shared(sub_hist) shared(sub_words) shared(histogram)
   {
     #pragma omp single
     {
       // split words into 4 buckets
-      #pragma omp task depend(out: sub_hist) shared(sub_hist) shared(histogram)
-      { // Map task
-        for (auto word = words.begin(); word != words.end(); word++) {
-          updateHistogram( sub_hist, *word, 1 );
+      for (int i = 0; i < NTHREADS; i++) {
+        // split words into 4 buckets
+        #pragma omp task depend(out: sub_words[i])  \
+        firstprivate(i)  shared(sub_words)
+        {
+          splitInput(words, sub_words[i], i);
         }
-        std::cout << "map thread no: "
-                  << omp_get_thread_num() << std::endl;
       }
 
-      #pragma omp task depend(in: sub_hist) depend(out: histogram) shared(sub_hist)
-      //shared(histogram)
-      { // Reduce task
-        for (auto elem = sub_hist.begin();
-             elem != sub_hist.end();
-             elem++) {
-
-          std::string word = elem->first;
-          int count = elem->second;
-          updateHistogram(histogram, word, count );
+      for (int i = 0; i < NTHREADS; i++) {
+        #pragma omp task depend(out:sub_hist[i]) depend(in:sub_words[i])  \
+        firstprivate(i)
+        { // Map task
+          mapWords(sub_words[i], sub_hist[i]);
+          std::cout << "map thread: " << omp_get_thread_num() << "\n";
         }
-        std::cout << "reduce thread no: "
-                  << omp_get_thread_num() << std::endl;
-        //delete sub_hist;
+      }
+
+      for (int i = 0; i < NTHREADS; i++) {
+        #pragma omp task depend(in: sub_hist[i]) depend(out: histogram)   \
+        shared(sub_hist)
+        //shared(histogram)
+        { // Reduce task
+
+          updateHistogram(histogram, sub_hist[i]);
+          std::cout << "reduce thread: " << omp_get_thread_num() << "\n";
+          //delete sub_hist;
+        }
       }
 
       #pragma omp task depend(in: histogram) shared(histogram)
       { // Printer task
-        std::cout << "printer thread no: "
-                  << omp_get_thread_num() << std::endl;
-
-        for (auto word = histogram.begin();
-             word != histogram.end();
-             word++) {
-          std::cout << word->first << ": " << word->second << std::endl;
-        }
+        std::cout << "printer thread no: " << omp_get_thread_num()
+                  << "\n Total words: "    << histogram.size()
+                  << std::endl;
+                  printHistogram(histogram);
       }
+
       #pragma omp taskwait
     }
   } // end parallel omp
