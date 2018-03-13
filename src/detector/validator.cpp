@@ -17,7 +17,8 @@
 
 // includes and definitions
 #include "validator.h"
-#include "conflictReport.h"
+#include "conflict.h"
+#include "report.h"
 
 VOID BugValidator::parseTasksIR(char * IRlogName) {
   std::vector<Instruction> * currentTask = NULL;

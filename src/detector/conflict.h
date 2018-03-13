@@ -37,14 +37,4 @@ class Conflict {
   }
 }; // end Conflict
 
-
-// For storing names of conflicting tasks
-// and the addresses they conflict at
-class Report {
- public:
-  int task1ID;
-  int task2ID;
-  std::set<Conflict> buggyAccesses;
-}; // end Report
-
 #endif // end conflictReport.h

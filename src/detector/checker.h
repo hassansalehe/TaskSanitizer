@@ -19,7 +19,8 @@
 // includes and definitions
 #include "defs.h"
 #include "action.h" // defines Action class
-#include "conflictReport.h" // defines Conflict and Report structs
+#include "conflict.h" // defines Conflict and Report structs
+#include "report.h"
 #include "MemoryActions.h"
 #include "validator.h"
 #include <list>

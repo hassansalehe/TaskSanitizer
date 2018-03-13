@@ -20,7 +20,8 @@
 #include "defs.h"
 #include "instruction.h"
 #include "operationSet.h"
-#include "conflictReport.h"
+#include "conflict.h"
+#include "report.h"
 
 class BugValidator {
 
