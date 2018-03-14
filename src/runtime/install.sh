@@ -7,8 +7,9 @@
 #  License: Follows License of LLVM/Clang. Read the licence file LICENSE.md
 #
 #
-# This script builds and installs the EmbedSanitizer race detection runtime
-# for 32-bit ARM
+# This script builds and installs the TaskSanitizer output nondeterminism
+# detection runtime
+#
 #
 #########################################################################
 

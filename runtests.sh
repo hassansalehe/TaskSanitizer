@@ -75,7 +75,7 @@ for test in "${TESTS[@]}"; do
   rm -rf Trace* HBlog*
   rm -rf a.out
   echo "RUNNING $test"
-  tasksan $test
+  tasksan $test -std=c++11
   ./a.out
 done
 

@@ -56,8 +56,8 @@ class BenchArgs( object ):
     def __init__( self ):
         self.benchDir = "./src/tests/benchmarks/"
         self.cppFiles = []
-        self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-g",
-                         "-fpermissive", "-DMSIZE", "-DCUTOFF_SIZE",
+        self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-std=c++11",
+                         "-g", "-fpermissive", "-DMSIZE", "-DCUTOFF_SIZE",
                          "-DCUTOFF_DEPTH", "-D_POSIX_C_SOURCE=199309L",
                          "-DBSIZE", "-DTITER", "-I./kastors/common"]
 

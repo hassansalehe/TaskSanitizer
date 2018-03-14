@@ -37,4 +37,4 @@ class Conflict {
   }
 }; // end Conflict
 
-#endif // end conflictReport.h
+#endif // end conflict.h

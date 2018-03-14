@@ -10,8 +10,8 @@
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef _CONFLICT_HPP_
-#define _CONFLICT_HPP_
+#ifndef _DETECTOR_REPORT_HPP_
+#define _DETECTOR_REPORT_HPP_
 
 // includes and definitions
 #include "defs.h"
@@ -26,4 +26,4 @@ class Report {
   std::set<Conflict> buggyAccesses;
 }; // end Report
 
-#endif // end conflictReport.h
+#endif // end report.h
