@@ -253,44 +253,6 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
 #endif
 }
 
-void Checker::removeDuplicateConflicts() {
-
-  // generate simplified version of conflicts from scratch
-  conflictTasksAndLines.clear();
-
-  // a pair of conflicting task body with a set of line numbers
-  for (auto it = conflictTable.begin();
-       it != conflictTable.end(); ++it) {
-
-    std::pair<int, int> taskIdPair =
-        std::make_pair(it->second.task1ID, it->second.task2ID);
-
-    // erase duplicates
-    for (auto conf = it->second.buggyAccesses.begin();
-         conf != it->second.buggyAccesses.end(); ) {
-      std::pair<int,int> lines =
-          std::make_pair(conf->action1.lineNo, conf->action2.lineNo);
-      auto inserted = conflictTasksAndLines[ taskIdPair ].insert(lines);
-      if (inserted.second == false) {
-        conf = it->second.buggyAccesses.erase( conf );
-      } else {
-        conf++;
-      }
-    } // end for
-  }
-
-  // a pair of conflicting task body with a set of line numbers
-  for (auto it = conflictTable.begin(); it != conflictTable.end(); ) {
-    Report & report = it->second;
-    // validator.validate( report );
-    if ( !report.buggyAccesses.size() ) {
-       it = conflictTable.erase(it);
-    } else {
-      ++it;
-    }
-  } // end for
-}
-
 void Checker::checkCommutativeOperations(BugValidator & validator) {
   // a pair of conflicting task body with a set of line numbers
   for (auto it = conflictTable.begin(); it != conflictTable.end(); ) {

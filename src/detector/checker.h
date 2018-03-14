@@ -49,7 +49,6 @@ class Checker {
 
   // a pair of conflicting task body with a set of line numbers
   VOID checkCommutativeOperations(BugValidator & validator);
-  VOID removeDuplicateConflicts();
 
   VOID registerFuncSignature(std::string funcName, int funcID);
   VOID onTaskCreate(int taskID);
@@ -57,6 +56,10 @@ class Checker {
   VOID detectNondeterminismOnMem(int taskID,
                                  std::string operation,
                                  std::stringstream & ssin);
+
+  std::map<std::pair<int, int>, Report> & getConflicts() {
+    return conflictTable;
+  }
   VOID reportConflicts();
   VOID testing();
   ~Checker();

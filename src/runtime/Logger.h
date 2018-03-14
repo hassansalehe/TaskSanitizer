@@ -20,6 +20,7 @@
 #include "TaskInfo.h"
 #include "checker.h"  // header
 #include "validator.h"
+#include "duplicateManager.h"
 #include <atomic>
 
 struct hash_function {
@@ -115,7 +116,7 @@ class INS {
       idMap.clear(); HB.clear();
       lastReader.clear();
       lastWriter.clear();
-      onlineChecker.removeDuplicateConflicts();
+      DuplicateManager::removeDuplicates( onlineChecker.getConflicts() );
       onlineChecker.reportConflicts();
       guardLock.unlock();
     }

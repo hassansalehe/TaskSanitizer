@@ -76,6 +76,6 @@ for test in "${TESTS[@]}"; do
   rm -rf a.out
   echo "RUNNING $test"
   tasksan $test -std=c++11
-  ./a.out
+  ./a.out 12
 done
 
