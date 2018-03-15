@@ -32,8 +32,16 @@ class Conflict {
     addr    = curMemAction.addr;
   }
 
+  inline int getTask1Id() {
+    return action1.taskId;
+  }
+
+  inline int getTask2Id() {
+    return action2.taskId;
+  }
+
   bool operator<(const Conflict &RHS) const {
-    return addr < RHS.addr || action1.taskId < action2.taskId;
+    return addr < RHS.addr;
   }
 }; // end Conflict
 

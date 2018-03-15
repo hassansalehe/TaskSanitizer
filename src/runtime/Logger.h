@@ -116,7 +116,7 @@ class INS {
       idMap.clear(); HB.clear();
       lastReader.clear();
       lastWriter.clear();
-      DuplicateManager::removeDuplicates( onlineChecker.getConflicts() );
+      //DuplicateManager::removeDuplicates( onlineChecker.getConflicts() );
       onlineChecker.reportConflicts();
       guardLock.unlock();
     }

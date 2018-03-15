@@ -28,6 +28,7 @@ class BugValidator {
   public:
     VOID parseTasksIR(char * IRlogName);
     void validate(Report & report);
+    bool isCommutative(const Conflict & conflict) { return false; }
 
   private:
     std::unordered_map<std::string, std::vector<Instruction>> Tasks;

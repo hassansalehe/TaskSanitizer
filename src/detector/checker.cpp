@@ -195,18 +195,15 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
  */
 VOID Checker::saveNondeterminismReport(const Action& curMemAction,
                                        const Action& prevMemAction) {
-  Conflict report(curMemAction, prevMemAction);
+  Conflict aConflict(curMemAction, prevMemAction);
 
   // code for recording errors
-  auto taskPair = std::make_pair(curMemAction.taskId, prevMemAction.taskId);
-  if (conflictTable.find(taskPair) != conflictTable.end()) {// exists
-    conflictTable[taskPair].buggyAccesses.insert( report );
-  } else { // add new
-    conflictTable[taskPair] = Report();
-    conflictTable[taskPair].task1ID = curMemAction.taskId;
-    conflictTable[taskPair].task2ID = prevMemAction.taskId;
-    conflictTable[taskPair].buggyAccesses.insert( report );
-  }
+  std::pair<int, int> linePair =
+      {
+        std::min(curMemAction.lineNo, prevMemAction.lineNo),
+        std::max(curMemAction.lineNo, prevMemAction.lineNo)
+      };
+  conflictTable[linePair].insert( aConflict );
 }
 
 
@@ -256,12 +253,18 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
 void Checker::checkCommutativeOperations(BugValidator & validator) {
   // a pair of conflicting task body with a set of line numbers
   for (auto it = conflictTable.begin(); it != conflictTable.end(); ) {
-    Report & report = it->second;
-    validator.validate( report );
-    if ( !report.buggyAccesses.size() ) {
-       it = conflictTable.erase(it);
-    } else {
-      ++it;
+    for ( auto aConflict = it->second.begin();
+        aConflict != it->second.end(); ) {
+      if ( validator.isCommutative( *aConflict ) ) {
+        aConflict = it->second.erase(aConflict);
+        if ( 0 == it->second.size() ) {
+           it = conflictTable.erase(it);
+        } else {
+          ++it;
+        }
+      } else {
+        ++aConflict;
+      }
     }
   }
 }
@@ -286,58 +289,36 @@ VOID Checker::reportConflicts() {
   // print appropriate message in case no errors found
   if (! conflictTable.size() ) {
     std::cout << "                 No nondeterminism found! " << std::endl;
-#ifdef VERBOSE // print full summary
   } else {
     std::cout << " The following " << conflictTable.size()
               << " task pairs have conflicts: " << std::endl;
   }
 
-  for (auto it = conflictTable.begin(); it != conflictTable.end(); ++it) {
-    std::cout << "    "<< it->first.first << " ("
-              << it->second.task1ID <<")  <--> "
-              << it->first.second << " (" << it->second.task2ID << ")"
-              << " on "<< it->second.buggyAccesses.size()
+  for (auto it : conflictTable) {
+    std::cout << "    " << it.first.first << " ("
+              << it.first.first <<")  <--> "
+              << it.first.second << " (" << it.first.second << ")"
+              << " on " << it.second.size()
               << " memory addresses"                    << std::endl;
 
-    if (it->second.buggyAccesses.size() > 10) {
+    if (it.second.size() > 10) {
+      // we want to print at most 10 addresses if they are too many.
       std::cout << "    showing at most 10 addresses: " << std::endl;
     }
     int addressCount = 0;
 
-    Report & report = it->second;
-    for (auto conf = report.buggyAccesses.begin();
-        conf != report.buggyAccesses.end(); conf++) {
-      std::cout << "      " <<  conf->addr << " lines: " << " "
-                << functions.at( conf->action1.funcId )
-                << ": " << conf->action1.lineNo
-                << ", "<< functions.at( conf->action2.funcId)
-                << ": " << conf->action2.lineNo << std::endl;
+    for (auto aConflict : it.second) {
+      std::cout << "      " <<  aConflict.addr << " lines: " << " "
+                << functions.at( aConflict.action1.funcId )
+                << ": "     << aConflict.action1.lineNo
+                << ", "     << functions.at( aConflict.action2.funcId )
+                << ": "     << aConflict.action2.lineNo << std::endl;
       addressCount++;
 
-      if (addressCount == 10) {
-        // we want to print at most 10 addresses if they are too many.
-        break;
-      }
+      if (addressCount == 10) break;
     } // end for
   }
 
-#else
-
-  // a pair of conflicting task body with a set of line numbers
-  for (auto it = conflictTable.begin();
-       it != conflictTable.end(); it++) {
-    Report & report = it->second;
-    std::cout << report.task1ID << " <--> "
-              << report.task2ID << ": line numbers  {";
-
-    for (auto conflict = report.buggyAccesses.begin();
-         conflict != report.buggyAccesses.end(); conflict++) {
-      std::cout << conflict->action1.lineNo << " - "
-                << conflict->action2.lineNo << ", ";
-    }
-    std::cout << "}" << std::endl;
-  }
-#endif
   std::cout << emptyLine     << std::endl;
   std::cout << borderLine    << std::endl;
 }

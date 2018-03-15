@@ -57,7 +57,7 @@ class Checker {
                                  std::string operation,
                                  std::stringstream & ssin);
 
-  std::map<std::pair<int, int>, Report> & getConflicts() {
+  std::map<std::pair<int, int>, std::set<Conflict>> & getConflicts() {
     return conflictTable;
   }
   VOID reportConflicts();
@@ -77,7 +77,7 @@ class Checker {
     std::unordered_map<INTEGER, Task> graph;  // in and out edges
     // for write actions
     std::unordered_map<ADDRESS, std::list<MemoryActions>> writes;
-    std::map<std::pair<int, int>, Report> conflictTable;
+    std::map<std::pair<int, int>, std::set<Conflict>> conflictTable;
     CONFLICT_PAIRS conflictTasksAndLines;
 
     // For holding function signatures.
