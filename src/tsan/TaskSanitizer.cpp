@@ -46,7 +46,7 @@
 
 #include "Libs.h"
 
-#include "Excludes.h"
+#include "Util.h"
 #include "IIRlogger.h"
 #include "DebugInfoHelper.h"
 
@@ -104,6 +104,9 @@ struct TaskSanitizer : public llvm::FunctionPass {
   }
 
   bool doInitialization(llvm::Module &M) override {
+
+    // initialization of task IIR logger.
+    tasan::IIRlog::InitializeLogger( M.getName() );
 
     const llvm::DataLayout &DL = M.getDataLayout();
     IntptrTy = DL.getIntPtrType(M.getContext());
@@ -441,21 +444,10 @@ bool TaskSanitizer::runOnFunction(Function &F) {
 
   bool Res = false;
 
-  if (INS::isTaskBodyFunction(F.getName())) {
-
-    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
-    Value *taskName = IRB.CreateGlobalStringPtr(
-      INS::getPlainFuncName(F), "taskName");
-
-    IRB.CreateCall(FlowSan_TaskBeginFunc,
-                   {IRB.CreatePointerCast(taskName, IRB.getInt8PtrTy())});
-
-    IIRlog::logTaskBody(F, INS::getPlainFuncName(F));
-    Res = true;
-  }
+  tasan::IIRlog::logTaskBody(F, tasan::util::getPlainFuncName(F));
 
   // Register function name
-  StringRef funcName = INS::demangleName(F.getName());
+  StringRef funcName = tasan::util::demangleName(F.getName());
   IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   funcNamePtr = IRB.CreateGlobalStringPtr(funcName, "functionName");
 
@@ -597,12 +589,16 @@ bool TaskSanitizer::instrumentLoadOrStore(Instruction *I,
 
       IRB.CreateCall(OnAccessFunc,
           {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()), Val,
-           IRB.CreateIntCast(fsan::getLineNumber(I), IRB.getInt8Ty(), false),
+           IRB.CreateIntCast(tasan::debug::getLineNumber(I),
+                             IRB.getInt8Ty(),
+                             false),
            IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
   } else {
     IRB.CreateCall(OnAccessFunc,
         {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()),
-         IRB.CreateIntCast(fsan::getLineNumber(I), IRB.getInt8Ty(), false),
+         IRB.CreateIntCast(tasan::debug::getLineNumber(I),
+                           IRB.getInt8Ty(),
+                           false),
          IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
   }
 

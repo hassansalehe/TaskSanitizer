@@ -19,10 +19,12 @@
 
 using namespace llvm;
 
+namespace tasan {
+
 // Implements helper functions for manipulating debugging
 // information that is sent to the runtime nondeterminism
 // reporting of TaskSanitizer.
-namespace fsan {
+namespace debug {
 
 /**
  * Demangles names of attributes, functions, etc
@@ -73,7 +75,7 @@ std::string createAbsoluteFileName(
   /**
    * Returns the name of the file which an instruction belongs to.
    */
-  Value* getFileName(Instruction* I) {
+  Value* getFileName(llvm::Instruction* I) {
 
     std::string name = "Unknown";
     std::string dirName = "";
@@ -125,7 +127,7 @@ StringRef getFuncNameStr(Function & F) {
    * Returns the name of the memory location involved.
    * By object, this refers to the name of the variable.
    */
-  Value * getObjectName(Value *V, Instruction* I, const DataLayout &DL) {
+  Value * getObjectName(Value *V, llvm::Instruction* I, const DataLayout &DL) {
     Value* obj = GetUnderlyingObject(V, DL);
 
     Function* F = I->getFunction();
@@ -141,7 +143,7 @@ StringRef getFuncNameStr(Function & F) {
    * Retrieves the line number of the instruction
    * being instrumented.
    */
-  Value* getLineNumber(Instruction* I) {
+  Value* getLineNumber(llvm::Instruction* I) {
 
     if (auto Loc = I->getDebugLoc()) { // Here I is an LLVM instruction
       IRBuilder<> IRB(I);
@@ -154,6 +156,21 @@ StringRef getFuncNameStr(Function & F) {
     }
   }
 
-} // fsan
+  /**
+   * Retrieves the line number of the instruction
+   * being instrumented.
+   */
+  unsigned int getLineNo(llvm::Instruction* I) {
+
+    if (auto Loc = I->getDebugLoc()) { // Here I is an LLVM instruction
+      return Loc->getLine();
+    } else {
+      return 0;
+    }
+  }
+
+} // namespace debug
+
+} // tasan
 
 #endif
