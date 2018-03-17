@@ -6,20 +6,20 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 //
 
-#ifndef RUNTIME_OMPTCALLBACKS_H
-#define RUNTIME_OMPTCALLBACKS_H
+#ifndef _INSTRUMENTOR_EVENTLOGGER_OMPTCALLBACKS_H_
+#define _INSTRUMENTOR_EVENTLOGGER_OMPTCALLBACKS_H_
 
+#include "instrumentor/eventlogger/Logger.h"
+#include "instrumentor/eventlogger/Util.h"
+#include "instrumentor/eventlogger/TaskInfo.h"
+#include "instrumentor/eventlogger/Callbacks.h"
 #include <omp.h>
 #include <ompt.h>
-#include "Logger.h"
-#include "Util.h"
-#include "TaskInfo.h"
-#include "Callbacks.h"
 
 //////////////////////////////////////////////////
 //// Helper functions

@@ -88,13 +88,13 @@ fi
 
 # Build TaskSanitizer
 
-cd src/runtime
-./install.sh
-reportIfSuccessful
+cd src/instrumentor/eventlogger
+#./install.sh
+#reportIfSuccessful
 
 mkdir -p build
 cd -
-cd src/runtime/build
+cd src/instrumentor/eventlogger/build
 rm -rf libLogger.a
 CXX=clang++ cmake ..
 make
@@ -104,6 +104,6 @@ cd -
 mkdir -p build
 cd build
 rm -rf libTaskSanitizer.so
-CXX=clang++ cmake ../src/tsan
+CXX=clang++ cmake ../src/instrumentor/pass/
 make
 reportIfSuccessful

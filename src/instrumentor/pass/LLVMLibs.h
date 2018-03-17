@@ -6,13 +6,13 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Contains all the relevant LLVM includes for the project
-#ifndef LLVM_LIBS_INCLUDE_HPP_
-#define LLVM_LIBS_INCLUDE_HPP_
+#ifndef _INSTRUMENTOR_PASS_LLVMLIBS_H_
+#define _INSTRUMENTOR_PASS_LLVMLIBS_H_
 
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"

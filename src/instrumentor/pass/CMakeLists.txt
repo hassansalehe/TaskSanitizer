@@ -6,7 +6,7 @@
 #//      Copying or using this code by any means whatsoever
 #//      without consent of the owner is strictly prohibited.
 #//
-#//   Contact: hmatar-at-ku-dot-edu-dot-tr
+#//   Contact: hassansalehe-at-gmail-dot-com
 #//
 #/////////////////////////////////////////////////////////////////
 
@@ -14,13 +14,13 @@ cmake_minimum_required(VERSION 3.4.3)
 
 find_package(LLVM REQUIRED CONFIG)
 add_definitions(${LLVM_DEFINITIONS})
-include_directories(${LLVM_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+include_directories(${LLVM_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 link_directories(${LLVM_LIBRARY_DIRS})
 
 ## Set destination directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
 
 # List source files for libraries and compiler passes.
 add_library(TaskSanitizer MODULE TaskSanitizer.cc)

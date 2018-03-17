@@ -6,16 +6,16 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef _CONFLICT_HPP_
-#define _CONFLICT_HPP_
+#ifndef _DETECTOR_NONDETERMINISM_CONFLICT_H_
+#define _DETECTOR_NONDETERMINISM_CONFLICT_H_
 
 // includes and definitions
-#include "defs.h"
-#include "action.h" // defines Action class
+#include "common/defs.h"
+#include "common/action.h" // defines Action class
 
 // This struct keeps the line information of the
 // address with determinism conflict

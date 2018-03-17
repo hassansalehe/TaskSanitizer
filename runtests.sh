@@ -47,23 +47,18 @@ reportIfSuccessful() {
 
 reset
 
-cd src/runtime
-./install.sh
-reportIfSuccessful
-
+rm -rf build
 mkdir -p build
-cd -
-cd src/runtime/build
-rm -rf libLogger.a
-CXX=clang++ cmake ..
+cd build
+CXX=clang++ cmake ../src/instrumentor/eventlogger/
 make
 reportIfSuccessful
 
 cd -
+rm -rf build
 mkdir -p build
 cd build
-rm -rf libTaskSanitizer.so
-CXX=clang++ cmake ../src/tsan
+CXX=clang++ cmake ../src/instrumentor/pass/
 make
 reportIfSuccessful
 

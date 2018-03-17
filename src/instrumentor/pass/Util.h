@@ -6,18 +6,16 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Include for the instrumentation passes.
 
-#ifndef _TASAN_UTIL_H
-#define _TASAN_UTIL_H
+#ifndef _INSTRUMENTOR_PASS_UTIL_H_
+#define _INSTRUMENTOR_PASS_UTIL_H_
 
-#include "Libs.h" // the LLVM includes put there
-
-using namespace std;
+#include "instrumentor/pass/LLVMLibs.h" // the LLVM includes put there
 
 /// general namespace for TaskSanitizer tool
 namespace tasan {

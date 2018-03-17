@@ -6,18 +6,18 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Include for the instrumentation passes.
 
-#ifndef IIRLOGGER_H_P_P
-#define IIRLOGGER_H_P_P
+#ifndef _INSTRUMENTOR_PASS_IIRLOGGER_H_
+#define _INSTRUMENTOR_PASS_IIRLOGGER_H_
 
-#include "Libs.h" // all LLVM includes stored there
-#include "DebugInfoHelper.h"
-#include "CriticalSignatures.h"
+#include "instrumentor/pass/LLVMLibs.h" // all LLVM includes stored there
+#include "instrumentor/pass/DebugInfoHelper.h"
+#include "common/CriticalSignatures.h"
 
 /// general namespace for TaskSanitizer tool
 namespace tasan {
@@ -32,18 +32,18 @@ namespace tasan {
 namespace IIRlog {
 
   // the log out stream
-  ofstream logFile;
+  std::ofstream logFile;
 
   /**
    * Opens an output log file which is later used for
    * logging all instructions in program's critical sections.
    */
-  void InitializeLogger( StringRef cppName ) {
+  void InitializeLogger( llvm::StringRef cppName ) {
     std::string full_file_name = "" + cppName.str() + ".iir";
 
-    logFile.open(full_file_name,  ofstream::out | ofstream::trunc);
+    logFile.open(full_file_name, std::ofstream::out | std::ofstream::trunc);
     if ( !logFile.is_open() ) {
-      errs() << "FILE NO OPEN \n";
+      llvm::errs() << "FILE NO OPEN \n";
     }
   }
 
@@ -51,8 +51,8 @@ namespace IIRlog {
   /**
    * Saves a string to a log file
    */
-  void SaveToLogFile( StringRef taskName ) {
-     logFile << taskName.str() << std::endl << flush;
+  void SaveToLogFile( llvm::StringRef taskName ) {
+     logFile << taskName.str() << std::endl << std::flush;
   }
 
   /**
@@ -62,10 +62,10 @@ namespace IIRlog {
    * This function is used in logging instructions which
    * are in critical sections of a program.
    */
-  void LogNewIIRcode(int lineNo, Instruction& IIRcode ) {
+  void LogNewIIRcode(int lineNo, llvm::Instruction& IIRcode ) {
     //errs() << lineNo << ": " << IIRcode.str() << "\n";
     std::string tempBuf;
-    raw_string_ostream rso(tempBuf);
+    llvm::raw_string_ostream rso(tempBuf);
     IIRcode.print(rso);
     logFile << lineNo << ": " << tempBuf << std::endl;
   }
@@ -73,7 +73,7 @@ namespace IIRlog {
   /**
    * Returns signature (function name) of call being made
    */
-  StringRef getCalledFunction(Instruction & Inst) {
+  llvm::StringRef getCalledFunction(llvm::Instruction & Inst) {
     if ( llvm::isa<llvm::CallInst>(Inst) ) {
       llvm::CallInst *M = llvm::dyn_cast<llvm::CallInst>(&Inst);
       llvm::Function *calledF = M->getCalledFunction();
@@ -95,10 +95,10 @@ namespace IIRlog {
   /**
    * Checks if the function call is for acquiring a lock
    */
-  bool isLockInvocation(Instruction & Instr) {
-    StringRef funcName = getCalledFunction(Instr);
-    if (funcName.find("omp_set_lock") != StringRef::npos ||
-        funcName.find("__kmpc_critical") != StringRef::npos) {
+  bool isLockInvocation(llvm::Instruction & Instr) {
+    llvm::StringRef funcName = getCalledFunction(Instr);
+    if (funcName.find("omp_set_lock") != llvm::StringRef::npos ||
+        funcName.find("__kmpc_critical") != llvm::StringRef::npos) {
       return true;
     } else {
       return false;
@@ -108,10 +108,10 @@ namespace IIRlog {
   /**
    * Checks if function call is related to lock release
    */
-  bool isUnlockInvocation(Instruction & Instr) {
-    StringRef funcName = getCalledFunction(Instr);
-    if (funcName.find("omp_unset_lock") != StringRef::npos ||
-        funcName.find("__kmpc_end_critical") != StringRef::npos) {
+  bool isUnlockInvocation(llvm::Instruction & Instr) {
+    llvm::StringRef funcName = getCalledFunction(Instr);
+    if (funcName.find("omp_unset_lock") != llvm::StringRef::npos ||
+        funcName.find("__kmpc_end_critical") != llvm::StringRef::npos) {
       return true;
     } else {
       return false;
@@ -122,7 +122,7 @@ namespace IIRlog {
    * Logs all statements in critical sections for commutativity
    * checking in verification of nondererminism bugs
    */
-  void logTaskBody(Function & F, StringRef name) {
+  void logTaskBody(llvm::Function & F, llvm::StringRef name) {
 
     int in_critical_section = 0;
 

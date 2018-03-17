@@ -6,7 +6,7 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
@@ -14,11 +14,11 @@
 // action of a dataflow program. Example actions are the write, read,
 // token receive, token send, task begin, and task end
 
-#ifndef _ACTION_HPP_
-#define _ACTION_HPP_
+#ifndef _COMMON_EVENTLOGGER_ACTION_H__
+#define _COMMON_EVENTLOGGER_ACTION_H__
 
 // includes and definitions
-#include "defs.h"
+#include "common/defs.h"
 
 class Action {
  public:

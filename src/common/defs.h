@@ -6,14 +6,14 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // This file contains common type defs
 
-#ifndef FSAN_DEFS_H_
-#define FSAN_DEFS_H_
+#ifndef _COMMON_DEFS_H_
+#define _COMMON_DEFS_H_
 
 #include <iostream>
 #include <fstream>

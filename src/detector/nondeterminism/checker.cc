@@ -6,14 +6,14 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // this file implements the checking tool functionalities.
+#include "detector/nondeterminism/checker.h"  // header
+#include "common/MemoryActions.h"
 #include <cassert>
-#include "checker.h"  // header
-#include "MemoryActions.h"
 
 #define VERBOSE
 #define CONC_THREASHOLD 5

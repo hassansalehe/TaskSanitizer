@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////
 //
-// TaskSanitizer.cpp
+// TaskSanitizer.cc
 //
 // Copyright (c) 2017 - 2018 Hassan Salehe Matar
 // All rights reserved.
@@ -44,32 +44,29 @@
 //
 //////////////////////////////////////////////////////////////
 
-#include "Libs.h"
-
-#include "Util.h"
-#include "IIRlogger.h"
-#include "DebugInfoHelper.h"
-
-using namespace llvm;
+#include "instrumentor/pass/LLVMLibs.h"
+#include "instrumentor/pass/Util.h"
+#include "instrumentor/pass/IIRlogger.h"
+#include "instrumentor/pass/DebugInfoHelper.h"
 
 #define DEBUG_TYPE "tasksan"
 
-static cl::opt<bool>  ClInstrumentMemoryAccesses(
-    "tasksan-instrument-memory-accesses", cl::init(true),
-    cl::desc("Instrument memory accesses"), cl::Hidden);
-static cl::opt<bool>  ClInstrumentFuncEntryExit(
-    "tasksan-instrument-func-entry-exit", cl::init(true),
-    cl::desc("Instrument function entry and exit"), cl::Hidden);
-static cl::opt<bool>  ClHandleCxxExceptions(
-    "tasksan-handle-cxx-exceptions", cl::init(true),
-    cl::desc("Handle C++ exceptions (insert cleanup blocks for unwinding)"),
-    cl::Hidden);
-static cl::opt<bool>  ClInstrumentAtomics(
-    "tasksan-instrument-atomics", cl::init(true),
-    cl::desc("Instrument atomics"), cl::Hidden);
-static cl::opt<bool>  ClInstrumentMemIntrinsics(
-    "tasksan-instrument-memintrinsics", cl::init(true),
-    cl::desc("Instrument memintrinsics (memset/memcpy/memmove)"), cl::Hidden);
+static llvm::cl::opt<bool>  ClInstrumentMemoryAccesses(
+    "tasksan-instrument-memory-accesses", llvm::cl::init(true),
+    llvm::cl::desc("Instrument memory accesses"), llvm::cl::Hidden);
+static llvm::cl::opt<bool>  ClInstrumentFuncEntryExit(
+    "tasksan-instrument-func-entry-exit", llvm::cl::init(true),
+    llvm::cl::desc("Instrument function entry and exit"), llvm::cl::Hidden);
+static llvm::cl::opt<bool>  ClHandleCxxExceptions(
+    "tasksan-handle-cxx-exceptions", llvm::cl::init(true),
+    llvm::cl::desc("Handle C++ exceptions (insert cleanup blocks for unwinding)"),
+    llvm::cl::Hidden);
+static llvm::cl::opt<bool>  ClInstrumentAtomics(
+    "tasksan-instrument-atomics", llvm::cl::init(true),
+    llvm::cl::desc("Instrument atomics"), llvm::cl::Hidden);
+static llvm::cl::opt<bool>  ClInstrumentMemIntrinsics(
+    "tasksan-instrument-memintrinsics", llvm::cl::init(true),
+    llvm::cl::desc("Instrument memintrinsics (memset/memcpy/memmove)"), llvm::cl::Hidden);
 
 STATISTIC(NumInstrumentedReads, "Number of instrumented reads");
 STATISTIC(NumInstrumentedWrites, "Number of instrumented writes");
@@ -99,8 +96,8 @@ struct TaskSanitizer : public llvm::FunctionPass {
     return "TaskSanitizer";
   }
 
-  void getAnalysisUsage(AnalysisUsage &AU) const override {
-    AU.addRequired<TargetLibraryInfoWrapperPass>();
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
+    AU.addRequired<llvm::TargetLibraryInfoWrapperPass>();
   }
 
   bool doInitialization(llvm::Module &M) override {
@@ -129,56 +126,56 @@ struct TaskSanitizer : public llvm::FunctionPass {
   bool runOnFunction(llvm::Function &F) override;
 
  private:
-  void initializeCallbacks(Module &M);
-  bool instrumentLoadOrStore(Instruction *I, const DataLayout &DL);
-  bool instrumentAtomic(Instruction *I, const DataLayout &DL);
-  bool instrumentMemIntrinsic(Instruction *I);
-  void chooseInstructionsToInstrument(SmallVectorImpl<Instruction *> &Local,
-                                      SmallVectorImpl<Instruction *> &All,
-                                      const DataLayout &DL);
-  bool addrPointsToConstantData(Value *Addr);
-  int getMemoryAccessFuncIndex(Value *Addr, const DataLayout &DL);
-  void InsertRuntimeIgnores(Function &F);
+  void initializeCallbacks(llvm::Module &M);
+  bool instrumentLoadOrStore(llvm::Instruction *I, const llvm::DataLayout &DL);
+  bool instrumentAtomic(llvm::Instruction *I, const llvm::DataLayout &DL);
+  bool instrumentMemIntrinsic(llvm::Instruction *I);
+  void chooseInstructionsToInstrument(llvm::SmallVectorImpl<llvm::Instruction *> &Local,
+                                      llvm::SmallVectorImpl<llvm::Instruction *> &All,
+                                      const llvm::DataLayout &DL);
+  bool addrPointsToConstantData(llvm::Value *Addr);
+  int getMemoryAccessFuncIndex(llvm::Value *Addr, const llvm::DataLayout &DL);
+  void InsertRuntimeIgnores(llvm::Function &F);
 
-  Type *IntptrTy;
-  IntegerType *OrdTy;
+  llvm::Type *IntptrTy;
+  llvm::IntegerType *OrdTy;
 
   // register every new instrumented function
-  Value *funcNamePtr = NULL;
+  llvm::Value *funcNamePtr = NULL;
 
   // Data for registering IIR file name
-  Value *IIRfile;
+  llvm::Value *IIRfile;
   std::string IIRfileURL;
 
   // Callbacks to run-time library are computed in doInitialization.
-  Function *RegisterIIRfile;
-  Function *TsanFuncEntry;
-  Function *TsanFuncExit;
-  Function *TsanIgnoreBegin;
-  Function *TsanIgnoreEnd;
+  llvm::Function *RegisterIIRfile;
+  llvm::Function *TsanFuncEntry;
+  llvm::Function *TsanFuncExit;
+  llvm::Function *TsanIgnoreBegin;
+  llvm::Function *TsanIgnoreEnd;
 
-  Function *FlowSan_TaskBeginFunc;
+  llvm::Function *FlowSan_TaskBeginFunc;
 
   // callbacks for instrumenting doubles and floats
-  Constant *FlowSan_MemWriteFloat;
-  Constant *FlowSan_MemWriteDouble;
+  llvm::Constant *FlowSan_MemWriteFloat;
+  llvm::Constant *FlowSan_MemWriteDouble;
 
   // Accesses sizes are powers of two: 1, 2, 4, 8, 16.
   static const size_t kNumberOfAccessSizes = 5;
-  Function *TsanRead[kNumberOfAccessSizes];
-  Function *TsanWrite[kNumberOfAccessSizes];
-  Function *TsanUnalignedRead[kNumberOfAccessSizes];
-  Function *TsanUnalignedWrite[kNumberOfAccessSizes];
-  Function *TsanAtomicLoad[kNumberOfAccessSizes];
-  Function *TsanAtomicStore[kNumberOfAccessSizes];
-  Function *TsanAtomicRMW[AtomicRMWInst::LAST_BINOP + 1][kNumberOfAccessSizes];
-  Function *TsanAtomicCAS[kNumberOfAccessSizes];
-  Function *TsanAtomicThreadFence;
-  Function *TsanAtomicSignalFence;
-  Function *TsanVptrUpdate;
-  Function *TsanVptrLoad;
-  Function *MemmoveFn, *MemcpyFn, *MemsetFn;
-  Function *TsanCtorFunction;
+  llvm::Function *TsanRead[kNumberOfAccessSizes];
+  llvm::Function *TsanWrite[kNumberOfAccessSizes];
+  llvm::Function *TsanUnalignedRead[kNumberOfAccessSizes];
+  llvm::Function *TsanUnalignedWrite[kNumberOfAccessSizes];
+  llvm::Function *TsanAtomicLoad[kNumberOfAccessSizes];
+  llvm::Function *TsanAtomicStore[kNumberOfAccessSizes];
+  llvm::Function *TsanAtomicRMW[llvm::AtomicRMWInst::LAST_BINOP + 1][kNumberOfAccessSizes];
+  llvm::Function *TsanAtomicCAS[kNumberOfAccessSizes];
+  llvm::Function *TsanAtomicThreadFence;
+  llvm::Function *TsanAtomicSignalFence;
+  llvm::Function *TsanVptrUpdate;
+  llvm::Function *TsanVptrLoad;
+  llvm::Function *MemmoveFn, *MemcpyFn, *MemsetFn;
+  llvm::Function *TsanCtorFunction;
 
 }; // end of TaskSanitizer
 } // end of namespace
@@ -193,11 +190,11 @@ static llvm::RegisterStandardPasses regPass(
    llvm::PassManagerBuilder::EP_EarlyAsPossible,
    registerTaskSanitizer);
 
-void TaskSanitizer::initializeCallbacks(Module &M) {
-  IRBuilder<> IRB(M.getContext());
-  AttributeSet Attr;
+void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
+  llvm::IRBuilder<> IRB(M.getContext());
+  llvm::AttributeSet Attr;
   Attr = Attr.addAttribute(M.getContext(),
-      AttributeSet::FunctionIndex, Attribute::NoUnwind);
+      llvm::AttributeSet::FunctionIndex, llvm::Attribute::NoUnwind);
   // Initialize the callbacks.
   RegisterIIRfile = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
@@ -217,77 +214,77 @@ void TaskSanitizer::initializeCallbacks(Module &M) {
       "FlowSan_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
 
   // functions to instrument floats and doubles
-  LLVMContext &Ctx = M.getContext();
+  llvm::LLVMContext &Ctx = M.getContext();
   FlowSan_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
-      Type::getVoidTy(Ctx), Type::getFloatPtrTy(Ctx), Type::getFloatTy(Ctx),
-      Type::getInt8Ty(Ctx), NULL);
+      llvm::Type::getVoidTy(Ctx), llvm::Type::getFloatPtrTy(Ctx), llvm::Type::getFloatTy(Ctx),
+      llvm::Type::getInt8Ty(Ctx), NULL);
 
   FlowSan_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
-      Type::getVoidTy(Ctx), Type::getDoublePtrTy(Ctx), Type::getDoubleTy(Ctx),
-      Type::getInt8Ty(Ctx), NULL);
+      llvm::Type::getVoidTy(Ctx), llvm::Type::getDoublePtrTy(Ctx), llvm::Type::getDoubleTy(Ctx),
+      llvm::Type::getInt8Ty(Ctx), NULL);
 
   OrdTy = IRB.getInt32Ty();
   for (size_t i = 0; i < kNumberOfAccessSizes; ++i) {
     const unsigned ByteSize = 1U << i;
     const unsigned BitSize = ByteSize * 8;
-    std::string ByteSizeStr = utostr(ByteSize);
-    std::string BitSizeStr = utostr(BitSize);
-    SmallString<32> ReadName("__tsan_read" + ByteSizeStr);
+    std::string ByteSizeStr = llvm::utostr(ByteSize);
+    std::string BitSizeStr = llvm::utostr(BitSize);
+    llvm::SmallString<32> ReadName("__tsan_read" + ByteSizeStr);
     TsanRead[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         ReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
         IRB.getInt64Ty(), nullptr));
 
-    SmallString<32> WriteName("__tsan_write" + ByteSizeStr);
+    llvm::SmallString<32> WriteName("__tsan_write" + ByteSizeStr);
     TsanWrite[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         WriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
         IRB.getInt64Ty(), IRB.getInt8Ty(), nullptr));
 
-    SmallString<64> UnalignedReadName("__tsan_unaligned_read" + ByteSizeStr);
+    llvm::SmallString<64> UnalignedReadName("__tsan_unaligned_read" + ByteSizeStr);
     TsanUnalignedRead[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
             UnalignedReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
 
-    SmallString<64> UnalignedWriteName("__tsan_unaligned_write" + ByteSizeStr);
+    llvm::SmallString<64> UnalignedWriteName("__tsan_unaligned_write" + ByteSizeStr);
     TsanUnalignedWrite[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
             UnalignedWriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
 
-    Type *Ty = Type::getIntNTy(M.getContext(), BitSize);
-    Type *PtrTy = Ty->getPointerTo();
-    SmallString<32> AtomicLoadName("__tsan_atomic" + BitSizeStr + "_load");
+    llvm::Type *Ty = llvm::Type::getIntNTy(M.getContext(), BitSize);
+    llvm::Type *PtrTy = Ty->getPointerTo();
+    llvm::SmallString<32> AtomicLoadName("__tsan_atomic" + BitSizeStr + "_load");
     TsanAtomicLoad[i] = checkSanitizerInterfaceFunction(
         M.getOrInsertFunction(AtomicLoadName, Attr, Ty, PtrTy, OrdTy, nullptr));
 
-    SmallString<32> AtomicStoreName("__tsan_atomic" + BitSizeStr + "_store");
+    llvm::SmallString<32> AtomicStoreName("__tsan_atomic" + BitSizeStr + "_store");
     TsanAtomicStore[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         AtomicStoreName, Attr, IRB.getVoidTy(), PtrTy, Ty, OrdTy, nullptr));
 
-    for (int op = AtomicRMWInst::FIRST_BINOP;
-        op <= AtomicRMWInst::LAST_BINOP; ++op) {
+    for (int op = llvm::AtomicRMWInst::FIRST_BINOP;
+        op <= llvm::AtomicRMWInst::LAST_BINOP; ++op) {
       TsanAtomicRMW[op][i] = nullptr;
       const char *NamePart = nullptr;
-      if (op == AtomicRMWInst::Xchg)
+      if (op == llvm::AtomicRMWInst::Xchg)
         NamePart = "_exchange";
-      else if (op == AtomicRMWInst::Add)
+      else if (op == llvm::AtomicRMWInst::Add)
         NamePart = "_fetch_add";
-      else if (op == AtomicRMWInst::Sub)
+      else if (op == llvm::AtomicRMWInst::Sub)
         NamePart = "_fetch_sub";
-      else if (op == AtomicRMWInst::And)
+      else if (op == llvm::AtomicRMWInst::And)
         NamePart = "_fetch_and";
-      else if (op == AtomicRMWInst::Or)
+      else if (op == llvm::AtomicRMWInst::Or)
         NamePart = "_fetch_or";
-      else if (op == AtomicRMWInst::Xor)
+      else if (op == llvm::AtomicRMWInst::Xor)
         NamePart = "_fetch_xor";
-      else if (op == AtomicRMWInst::Nand)
+      else if (op == llvm::AtomicRMWInst::Nand)
         NamePart = "_fetch_nand";
       else
         continue;
-      SmallString<32> RMWName("__tsan_atomic" + itostr(BitSize) + NamePart);
+      llvm::SmallString<32> RMWName("__tsan_atomic" + llvm::itostr(BitSize) + NamePart);
       TsanAtomicRMW[op][i] = checkSanitizerInterfaceFunction(
           M.getOrInsertFunction(RMWName, Attr, Ty, PtrTy, Ty, OrdTy, nullptr));
     }
 
-    SmallString<32> AtomicCASName("__tsan_atomic" + BitSizeStr +
+    llvm::SmallString<32> AtomicCASName("__tsan_atomic" + BitSizeStr +
                                   "_compare_exchange_val");
     TsanAtomicCAS[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         AtomicCASName, Attr, Ty, PtrTy, Ty, Ty, OrdTy, OrdTy, nullptr));
@@ -313,23 +310,23 @@ void TaskSanitizer::initializeCallbacks(Module &M) {
                             IRB.getInt32Ty(), IntptrTy, nullptr));
 }
 
-static bool isVtableAccess(Instruction *I) {
-  if (MDNode *Tag = I->getMetadata(LLVMContext::MD_tbaa))
+static bool isVtableAccess(llvm::Instruction *I) {
+  if (llvm::MDNode *Tag = I->getMetadata(llvm::LLVMContext::MD_tbaa))
     return Tag->isTBAAVtableAccess();
   return false;
 }
 
 // Do not instrument known races/"benign races" that come from compiler
 // instrumentatin. The user has no way of suppressing them.
-static bool shouldInstrumentReadWriteFromAddress(Value *Addr) {
+static bool shouldInstrumentReadWriteFromAddress(llvm::Value *Addr) {
   // Peel off GEPs and BitCasts.
   Addr = Addr->stripInBoundsOffsets();
 
-  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+  if (llvm::GlobalVariable *GV = llvm::dyn_cast<llvm::GlobalVariable>(Addr)) {
     if (GV->hasSection()) {
-      StringRef SectionName = GV->getSection();
+      llvm::StringRef SectionName = GV->getSection();
       // Check if the global is in the PGO counters section.
-      if (SectionName.endswith(getInstrProfCountersSectionName(
+      if (SectionName.endswith(llvm::getInstrProfCountersSectionName(
             /*AddSegment=*/false)))
         return false;
     }
@@ -343,7 +340,7 @@ static bool shouldInstrumentReadWriteFromAddress(Value *Addr) {
   // Do not instrument acesses from different address spaces; we cannot deal
   // with them.
   if (Addr) {
-    Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
+    llvm::Type *PtrTy = llvm::cast<llvm::PointerType>(Addr->getType()->getScalarType());
     if (PtrTy->getPointerAddressSpace() != 0)
       return false;
   }
@@ -351,18 +348,18 @@ static bool shouldInstrumentReadWriteFromAddress(Value *Addr) {
   return true;
 }
 
-bool TaskSanitizer::addrPointsToConstantData(Value *Addr) {
+bool TaskSanitizer::addrPointsToConstantData(llvm::Value *Addr) {
   // If this is a GEP, just analyze its pointer operand.
-  if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr))
+  if (llvm::GetElementPtrInst *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Addr))
     Addr = GEP->getPointerOperand();
 
-  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+  if (llvm::GlobalVariable *GV = llvm::dyn_cast<llvm::GlobalVariable>(Addr)) {
     if (GV->isConstant()) {
       // Reads from constant globals can not race with any writes.
       NumOmittedReadsFromConstantGlobals++;
       return true;
     }
-  } else if (LoadInst *L = dyn_cast<LoadInst>(Addr)) {
+  } else if (llvm::LoadInst *L = llvm::dyn_cast<llvm::LoadInst>(Addr)) {
     if (isVtableAccess(L)) {
       // Reads from a vtable pointer can not race with any writes.
       NumOmittedReadsFromVtable++;
@@ -385,19 +382,19 @@ bool TaskSanitizer::addrPointsToConstantData(Value *Addr) {
 // 'Local' is a std::vector of insns within the same BB (no calls between).
 // 'All' is a std::vector of insns that will be instrumented.
 void TaskSanitizer::chooseInstructionsToInstrument(
-    SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
-    const DataLayout &DL) {
-  SmallSet<Value*, 8> WriteTargets;
+    llvm::SmallVectorImpl<llvm::Instruction *> &Local, llvm::SmallVectorImpl<llvm::Instruction *> &All,
+    const llvm::DataLayout &DL) {
+  llvm::SmallSet<llvm::Value*, 8> WriteTargets;
   // Iterate from the end.
-  for (Instruction *I : reverse(Local)) {
-    if (StoreInst *Store = dyn_cast<StoreInst>(I)) {
-      Value *Addr = Store->getPointerOperand();
+  for (llvm::Instruction *I : reverse(Local)) {
+    if (llvm::StoreInst *Store = llvm::dyn_cast<llvm::StoreInst>(I)) {
+      llvm::Value *Addr = Store->getPointerOperand();
       if (!shouldInstrumentReadWriteFromAddress(Addr))
         continue;
       WriteTargets.insert(Addr);
     } else {
-      LoadInst *Load = cast<LoadInst>(I);
-      Value *Addr = Load->getPointerOperand();
+      llvm::LoadInst *Load = llvm::cast<llvm::LoadInst>(I);
+      llvm::Value *Addr = Load->getPointerOperand();
       if (!shouldInstrumentReadWriteFromAddress(Addr))
         continue;
       if (WriteTargets.count(Addr)) {
@@ -410,10 +407,10 @@ void TaskSanitizer::chooseInstructionsToInstrument(
         continue;
       }
     }
-    Value *Addr = isa<StoreInst>(*I)
-        ? cast<StoreInst>(I)->getPointerOperand()
-        : cast<LoadInst>(I)->getPointerOperand();
-    if (isa<AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
+    llvm::Value *Addr = llvm::isa<llvm::StoreInst>(*I)
+        ? llvm::cast<llvm::StoreInst>(I)->getPointerOperand()
+        : llvm::cast<llvm::LoadInst>(I)->getPointerOperand();
+    if (llvm::isa<llvm::AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
         !PointerMayBeCaptured(Addr, true, true)) {
       // The variable is addressable but not captured, so it cannot be
       // referenced from a different thread and participate in a data race
@@ -426,30 +423,30 @@ void TaskSanitizer::chooseInstructionsToInstrument(
   Local.clear();
 }
 
-static bool isAtomic(Instruction *I) {
-  if (LoadInst *LI = dyn_cast<LoadInst>(I))
-    return LI->isAtomic() && LI->getSynchScope() == CrossThread;
-  if (StoreInst *SI = dyn_cast<StoreInst>(I))
-    return SI->isAtomic() && SI->getSynchScope() == CrossThread;
-  if (isa<AtomicRMWInst>(I))
+static bool isAtomic(llvm::Instruction *I) {
+  if (llvm::LoadInst *LI = llvm::dyn_cast<llvm::LoadInst>(I))
+    return LI->isAtomic() && LI->getSynchScope() == llvm::CrossThread;
+  if (llvm::StoreInst *SI = llvm::dyn_cast<llvm::StoreInst>(I))
+    return SI->isAtomic() && SI->getSynchScope() == llvm::CrossThread;
+  if (llvm::isa<llvm::AtomicRMWInst>(I))
     return true;
-  if (isa<AtomicCmpXchgInst>(I))
+  if (llvm::isa<llvm::AtomicCmpXchgInst>(I))
     return true;
-  if (isa<FenceInst>(I))
+  if (llvm::isa<llvm::FenceInst>(I))
     return true;
   return false;
 }
 
-void TaskSanitizer::InsertRuntimeIgnores(Function &F) {
-  IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+void TaskSanitizer::InsertRuntimeIgnores(llvm::Function &F) {
+  llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   IRB.CreateCall(TsanIgnoreBegin);
-  EscapeEnumerator EE(F, "tsan_ignore_cleanup", ClHandleCxxExceptions);
-  while (IRBuilder<> *AtExit = EE.Next()) {
+  llvm::EscapeEnumerator EE(F, "tsan_ignore_cleanup", ClHandleCxxExceptions);
+  while (llvm::IRBuilder<> *AtExit = EE.Next()) {
     AtExit->CreateCall(TsanIgnoreEnd);
   }
 }
 
-bool TaskSanitizer::runOnFunction(Function &F) {
+bool TaskSanitizer::runOnFunction(llvm::Function &F) {
   // This is required to prevent instrumenting call to
   // __tsan_init from within the module constructor.
   if (&F == TsanCtorFunction)
@@ -460,33 +457,33 @@ bool TaskSanitizer::runOnFunction(Function &F) {
   tasan::IIRlog::logTaskBody(F, tasan::util::getPlainFuncName(F));
 
   // Register function name
-  StringRef funcName = tasan::util::demangleName(F.getName());
-  IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+  llvm::StringRef funcName = tasan::util::demangleName(F.getName());
+  llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   funcNamePtr = IRB.CreateGlobalStringPtr(funcName, "functionName");
 
   initializeCallbacks(*F.getParent());
-  SmallVector<Instruction*, 8> AllLoadsAndStores;
-  SmallVector<Instruction*, 8> LocalLoadsAndStores;
-  SmallVector<Instruction*, 8> AtomicAccesses;
-  SmallVector<Instruction*, 8> MemIntrinCalls;
+  llvm::SmallVector<llvm::Instruction*, 8> AllLoadsAndStores;
+  llvm::SmallVector<llvm::Instruction*, 8> LocalLoadsAndStores;
+  llvm::SmallVector<llvm::Instruction*, 8> AtomicAccesses;
+  llvm::SmallVector<llvm::Instruction*, 8> MemIntrinCalls;
 
   bool HasCalls = false;
   bool SanitizeFunction = true; //HASSAN F.hasFnAttribute(Attribute::SanitizeThread);
-  const DataLayout &DL = F.getParent()->getDataLayout();
-  const TargetLibraryInfo *TLI =
-      &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
+  const llvm::DataLayout &DL = F.getParent()->getDataLayout();
+  const llvm::TargetLibraryInfo *TLI =
+      &getAnalysis<llvm::TargetLibraryInfoWrapperPass>().getTLI();
 
   // Traverse all instructions, collect loads/stores/returns, check for calls.
   for (auto &BB : F) {
     for (auto &Inst : BB) {
       if (isAtomic(&Inst))
         AtomicAccesses.push_back(&Inst);
-      else if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst))
+      else if (llvm::isa<llvm::LoadInst>(Inst) || llvm::isa<llvm::StoreInst>(Inst))
         LocalLoadsAndStores.push_back(&Inst);
-      else if (isa<CallInst>(Inst) || isa<InvokeInst>(Inst)) {
-        if (CallInst *CI = dyn_cast<CallInst>(&Inst))
+      else if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
+        if (llvm::CallInst *CI = llvm::dyn_cast<llvm::CallInst>(&Inst))
           maybeMarkSanitizerLibraryCallNoBuiltin(CI, TLI);
-        if (isa<MemIntrinsic>(Inst))
+        if (llvm::isa<llvm::MemIntrinsic>(Inst))
           MemIntrinCalls.push_back(&Inst);
         HasCalls = true;
         chooseInstructionsToInstrument(LocalLoadsAndStores, AllLoadsAndStores,
@@ -519,14 +516,14 @@ bool TaskSanitizer::runOnFunction(Function &F) {
     }
 
   if (F.hasFnAttribute("sanitize_thread_no_checking_at_run_time")) {
-    assert(!F.hasFnAttribute(Attribute::SanitizeThread));
+    assert(!F.hasFnAttribute(llvm::Attribute::SanitizeThread));
     if (HasCalls)
       InsertRuntimeIgnores(F);
   }
 
   // save full path name of .iir log file
   if ( tasan::util::isMainFunction(F) ) {
-    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+    llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
     IIRfile = IRB.CreateGlobalStringPtr(IIRfileURL, "iirFileLoc");
     IRB.CreateCall(RegisterIIRfile,
                    IRB.CreatePointerCast(IIRfile, IRB.getInt8PtrTy()));
@@ -534,14 +531,14 @@ bool TaskSanitizer::runOnFunction(Function &F) {
 
   // Instrument function entry/exit points if there were instrumented accesses.
   if ((Res || HasCalls) && ClInstrumentFuncEntryExit) {
-    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
-    Value *ReturnAddress = IRB.CreateCall(
-        Intrinsic::getDeclaration(F.getParent(), Intrinsic::returnaddress),
+    llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+    llvm::Value *ReturnAddress = IRB.CreateCall(
+        llvm::Intrinsic::getDeclaration(F.getParent(), llvm::Intrinsic::returnaddress),
         IRB.getInt32(0));
     IRB.CreateCall(TsanFuncEntry, ReturnAddress);
 
-    EscapeEnumerator EE(F, "tsan_cleanup", ClHandleCxxExceptions);
-    while (IRBuilder<> *AtExit = EE.Next()) {
+    llvm::EscapeEnumerator EE(F, "tsan_cleanup", ClHandleCxxExceptions);
+    while (llvm::IRBuilder<> *AtExit = EE.Next()) {
       AtExit->CreateCall(TsanFuncExit, {funcNamePtr});
     }
     Res = true;
@@ -549,13 +546,13 @@ bool TaskSanitizer::runOnFunction(Function &F) {
   return Res;
 }
 
-bool TaskSanitizer::instrumentLoadOrStore(Instruction *I,
-                                            const DataLayout &DL) {
-  IRBuilder<> IRB(I);
-  bool IsWrite = isa<StoreInst>(*I);
-  Value *Addr = IsWrite
-      ? cast<StoreInst>(I)->getPointerOperand()
-      : cast<LoadInst>(I)->getPointerOperand();
+bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
+                                            const llvm::DataLayout &DL) {
+  llvm::IRBuilder<> IRB(I);
+  bool IsWrite = llvm::isa<llvm::StoreInst>(*I);
+  llvm::Value *Addr = IsWrite
+      ? llvm::cast<llvm::StoreInst>(I)->getPointerOperand()
+      : llvm::cast<llvm::LoadInst>(I)->getPointerOperand();
 
   // swifterror memory addresses are mem2reg promoted by instruction selection.
   // As such they cannot have regular uses like an instrumentation function and
@@ -567,14 +564,14 @@ bool TaskSanitizer::instrumentLoadOrStore(Instruction *I,
   if (Idx < 0)
     return false;
   if (IsWrite && isVtableAccess(I)) {
-    DEBUG(dbgs() << "  VPTR : " << *I << "\n");
-    Value *StoredValue = cast<StoreInst>(I)->getValueOperand();
+    DEBUG(llvm::dbgs() << "  VPTR : " << *I << "\n");
+    llvm::Value *StoredValue = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
     // StoredValue may be a std::vector type if we are storing several vptrs at once.
     // In this case, just take the first element of the std::vector since this is
     // enough to find vptr races.
-    if (isa<VectorType>(StoredValue->getType()))
+    if (llvm::isa<llvm::VectorType>(StoredValue->getType()))
       StoredValue = IRB.CreateExtractElement(
-          StoredValue, ConstantInt::get(IRB.getInt32Ty(), 0));
+          StoredValue, llvm::ConstantInt::get(IRB.getInt32Ty(), 0));
     if (StoredValue->getType()->isIntegerTy())
       StoredValue = IRB.CreateIntToPtr(StoredValue, IRB.getInt8PtrTy());
     // Call TsanVptrUpdate.
@@ -591,18 +588,18 @@ bool TaskSanitizer::instrumentLoadOrStore(Instruction *I,
     return true;
   }
   const unsigned Alignment = IsWrite
-      ? cast<StoreInst>(I)->getAlignment()
-      : cast<LoadInst>(I)->getAlignment();
-  Type *OrigTy = cast<PointerType>(Addr->getType())->getElementType();
+      ? llvm::cast<llvm::StoreInst>(I)->getAlignment()
+      : llvm::cast<llvm::LoadInst>(I)->getAlignment();
+  llvm::Type *OrigTy = llvm::cast<llvm::PointerType>(Addr->getType())->getElementType();
   const uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
-  Value *OnAccessFunc = nullptr;
+  llvm::Value *OnAccessFunc = nullptr;
   if (Alignment == 0 || Alignment >= 8 || (Alignment % (TypeSize / 8)) == 0)
     OnAccessFunc = IsWrite ? TsanWrite[Idx] : TsanRead[Idx];
   else
     OnAccessFunc = IsWrite ? TsanUnalignedWrite[Idx] : TsanUnalignedRead[Idx];
 
   if (IsWrite) {
-      Value *Val = cast<StoreInst>(I)->getValueOperand();
+      llvm::Value *Val = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
       if ( Val->getType()->isFloatTy() )
           OnAccessFunc = FlowSan_MemWriteFloat;
       else if ( Val->getType()->isDoubleTy() )
@@ -628,19 +625,19 @@ bool TaskSanitizer::instrumentLoadOrStore(Instruction *I,
   return true;
 }
 
-static ConstantInt *createOrdering(IRBuilder<> *IRB, AtomicOrdering ord) {
+static llvm::ConstantInt *createOrdering(llvm::IRBuilder<> *IRB, llvm::AtomicOrdering ord) {
   uint32_t v = 0;
   switch (ord) {
-    case AtomicOrdering::NotAtomic:
+    case llvm::AtomicOrdering::NotAtomic:
       llvm_unreachable("unexpected atomic ordering!");
-    case AtomicOrdering::Unordered:              LLVM_FALLTHROUGH;
-    case AtomicOrdering::Monotonic:              v = 0; break;
+    case llvm::AtomicOrdering::Unordered:              LLVM_FALLTHROUGH;
+    case llvm::AtomicOrdering::Monotonic:              v = 0; break;
     // Not specified yet:
-    // case AtomicOrdering::Consume:                v = 1; break;
-    case AtomicOrdering::Acquire:                v = 2; break;
-    case AtomicOrdering::Release:                v = 3; break;
-    case AtomicOrdering::AcquireRelease:         v = 4; break;
-    case AtomicOrdering::SequentiallyConsistent: v = 5; break;
+    // case llvm::AtomicOrdering::Consume:                v = 1; break;
+    case llvm::AtomicOrdering::Acquire:                v = 2; break;
+    case llvm::AtomicOrdering::Release:                v = 3; break;
+    case llvm::AtomicOrdering::AcquireRelease:         v = 4; break;
+    case llvm::AtomicOrdering::SequentiallyConsistent: v = 5; break;
   }
   return IRB->getInt32(v);
 }
@@ -653,18 +650,18 @@ static ConstantInt *createOrdering(IRBuilder<> *IRB, AtomicOrdering ord) {
 // Since tsan is running after everyone else, the calls should not be
 // replaced back with intrinsics. If that becomes wrong at some point,
 // we will need to call e.g. __tsan_memset to avoid the intrinsics.
-bool TaskSanitizer::instrumentMemIntrinsic(Instruction *I) {
-  IRBuilder<> IRB(I);
-  if (MemSetInst *M = dyn_cast<MemSetInst>(I)) {
+bool TaskSanitizer::instrumentMemIntrinsic(llvm::Instruction *I) {
+  llvm::IRBuilder<> IRB(I);
+  if (llvm::MemSetInst *M = llvm::dyn_cast<llvm::MemSetInst>(I)) {
     IRB.CreateCall(
         MemsetFn,
         {IRB.CreatePointerCast(M->getArgOperand(0), IRB.getInt8PtrTy()),
          IRB.CreateIntCast(M->getArgOperand(1), IRB.getInt32Ty(), false),
          IRB.CreateIntCast(M->getArgOperand(2), IntptrTy, false)});
     I->eraseFromParent();
-  } else if (MemTransferInst *M = dyn_cast<MemTransferInst>(I)) {
+  } else if (llvm::MemTransferInst *M = llvm::dyn_cast<llvm::MemTransferInst>(I)) {
     IRB.CreateCall(
-        isa<MemCpyInst>(M) ? MemcpyFn : MemmoveFn,
+        llvm::isa<llvm::MemCpyInst>(M) ? MemcpyFn : MemmoveFn,
         {IRB.CreatePointerCast(M->getArgOperand(0), IRB.getInt8PtrTy()),
          IRB.CreatePointerCast(M->getArgOperand(1), IRB.getInt8PtrTy()),
          IRB.CreateIntCast(M->getArgOperand(2), IntptrTy, false)});
@@ -681,101 +678,101 @@ bool TaskSanitizer::instrumentMemIntrinsic(Instruction *I) {
 // The following page contains more background information:
 // http://www.hpl.hp.com/personal/Hans_Boehm/c++mm/
 
-bool TaskSanitizer::instrumentAtomic(Instruction *I, const DataLayout &DL) {
-  IRBuilder<> IRB(I);
-  if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
-    Value *Addr = LI->getPointerOperand();
+bool TaskSanitizer::instrumentAtomic(llvm::Instruction *I, const llvm::DataLayout &DL) {
+  llvm::IRBuilder<> IRB(I);
+  if (llvm::LoadInst *LI = llvm::dyn_cast<llvm::LoadInst>(I)) {
+    llvm::Value *Addr = LI->getPointerOperand();
     int Idx = getMemoryAccessFuncIndex(Addr, DL);
     if (Idx < 0)
       return false;
     const unsigned ByteSize = 1U << Idx;
     const unsigned BitSize = ByteSize * 8;
-    Type *Ty = Type::getIntNTy(IRB.getContext(), BitSize);
-    Type *PtrTy = Ty->getPointerTo();
-    Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
+    llvm::Type *Ty = llvm::Type::getIntNTy(IRB.getContext(), BitSize);
+    llvm::Type *PtrTy = Ty->getPointerTo();
+    llvm::Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
                      createOrdering(&IRB, LI->getOrdering())};
-    Type *OrigTy = cast<PointerType>(Addr->getType())->getElementType();
-    Value *C = IRB.CreateCall(TsanAtomicLoad[Idx], Args);
-    Value *Cast = IRB.CreateBitOrPointerCast(C, OrigTy);
+    llvm::Type *OrigTy = llvm::cast<llvm::PointerType>(Addr->getType())->getElementType();
+    llvm::Value *C = IRB.CreateCall(TsanAtomicLoad[Idx], Args);
+    llvm::Value *Cast = IRB.CreateBitOrPointerCast(C, OrigTy);
     I->replaceAllUsesWith(Cast);
-  } else if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
-    Value *Addr = SI->getPointerOperand();
+  } else if (llvm::StoreInst *SI = llvm::dyn_cast<llvm::StoreInst>(I)) {
+    llvm::Value *Addr = SI->getPointerOperand();
     int Idx = getMemoryAccessFuncIndex(Addr, DL);
     if (Idx < 0)
       return false;
     const unsigned ByteSize = 1U << Idx;
     const unsigned BitSize = ByteSize * 8;
-    Type *Ty = Type::getIntNTy(IRB.getContext(), BitSize);
-    Type *PtrTy = Ty->getPointerTo();
-    Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
+    llvm::Type *Ty = llvm::Type::getIntNTy(IRB.getContext(), BitSize);
+    llvm::Type *PtrTy = Ty->getPointerTo();
+    llvm::Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
                      IRB.CreateBitOrPointerCast(SI->getValueOperand(), Ty),
                      createOrdering(&IRB, SI->getOrdering())};
-    CallInst *C = CallInst::Create(TsanAtomicStore[Idx], Args);
+    llvm::CallInst *C = llvm::CallInst::Create(TsanAtomicStore[Idx], Args);
     ReplaceInstWithInst(I, C);
-  } else if (AtomicRMWInst *RMWI = dyn_cast<AtomicRMWInst>(I)) {
-    Value *Addr = RMWI->getPointerOperand();
+  } else if (llvm::AtomicRMWInst *RMWI = llvm::dyn_cast<llvm::AtomicRMWInst>(I)) {
+    llvm::Value *Addr = RMWI->getPointerOperand();
     int Idx = getMemoryAccessFuncIndex(Addr, DL);
     if (Idx < 0)
       return false;
-    Function *F = TsanAtomicRMW[RMWI->getOperation()][Idx];
+    llvm::Function *F = TsanAtomicRMW[RMWI->getOperation()][Idx];
     if (!F)
       return false;
     const unsigned ByteSize = 1U << Idx;
     const unsigned BitSize = ByteSize * 8;
-    Type *Ty = Type::getIntNTy(IRB.getContext(), BitSize);
-    Type *PtrTy = Ty->getPointerTo();
-    Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
+    llvm::Type *Ty = llvm::Type::getIntNTy(IRB.getContext(), BitSize);
+    llvm::Type *PtrTy = Ty->getPointerTo();
+    llvm::Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
                      IRB.CreateIntCast(RMWI->getValOperand(), Ty, false),
                      createOrdering(&IRB, RMWI->getOrdering())};
-    CallInst *C = CallInst::Create(F, Args);
+    llvm::CallInst *C = llvm::CallInst::Create(F, Args);
     ReplaceInstWithInst(I, C);
-  } else if (AtomicCmpXchgInst *CASI = dyn_cast<AtomicCmpXchgInst>(I)) {
-    Value *Addr = CASI->getPointerOperand();
+  } else if (llvm::AtomicCmpXchgInst *CASI = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(I)) {
+    llvm::Value *Addr = CASI->getPointerOperand();
     int Idx = getMemoryAccessFuncIndex(Addr, DL);
     if (Idx < 0)
       return false;
     const unsigned ByteSize = 1U << Idx;
     const unsigned BitSize = ByteSize * 8;
-    Type *Ty = Type::getIntNTy(IRB.getContext(), BitSize);
-    Type *PtrTy = Ty->getPointerTo();
-    Value *CmpOperand =
+    llvm::Type *Ty = llvm::Type::getIntNTy(IRB.getContext(), BitSize);
+    llvm::Type *PtrTy = Ty->getPointerTo();
+    llvm::Value *CmpOperand =
       IRB.CreateBitOrPointerCast(CASI->getCompareOperand(), Ty);
-    Value *NewOperand =
+    llvm::Value *NewOperand =
       IRB.CreateBitOrPointerCast(CASI->getNewValOperand(), Ty);
-    Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
+    llvm::Value *Args[] = {IRB.CreatePointerCast(Addr, PtrTy),
                      CmpOperand,
                      NewOperand,
                      createOrdering(&IRB, CASI->getSuccessOrdering()),
                      createOrdering(&IRB, CASI->getFailureOrdering())};
-    CallInst *C = IRB.CreateCall(TsanAtomicCAS[Idx], Args);
-    Value *Success = IRB.CreateICmpEQ(C, CmpOperand);
-    Value *OldVal = C;
-    Type *OrigOldValTy = CASI->getNewValOperand()->getType();
+    llvm::CallInst *C = IRB.CreateCall(TsanAtomicCAS[Idx], Args);
+    llvm::Value *Success = IRB.CreateICmpEQ(C, CmpOperand);
+    llvm::Value *OldVal = C;
+    llvm::Type *OrigOldValTy = CASI->getNewValOperand()->getType();
     if (Ty != OrigOldValTy) {
       // The value is a pointer, so we need to cast the return value.
       OldVal = IRB.CreateIntToPtr(C, OrigOldValTy);
     }
 
-    Value *Res =
-      IRB.CreateInsertValue(UndefValue::get(CASI->getType()), OldVal, 0);
+    llvm::Value *Res =
+      IRB.CreateInsertValue(llvm::UndefValue::get(CASI->getType()), OldVal, 0);
     Res = IRB.CreateInsertValue(Res, Success, 1);
 
     I->replaceAllUsesWith(Res);
     I->eraseFromParent();
-  } else if (FenceInst *FI = dyn_cast<FenceInst>(I)) {
-    Value *Args[] = {createOrdering(&IRB, FI->getOrdering())};
-    Function *F = FI->getSynchScope() == SingleThread ?
+  } else if (llvm::FenceInst *FI = llvm::dyn_cast<llvm::FenceInst>(I)) {
+    llvm::Value *Args[] = {createOrdering(&IRB, FI->getOrdering())};
+    llvm::Function *F = FI->getSynchScope() == llvm::SingleThread ?
         TsanAtomicSignalFence : TsanAtomicThreadFence;
-    CallInst *C = CallInst::Create(F, Args);
+    llvm::CallInst *C = llvm::CallInst::Create(F, Args);
     ReplaceInstWithInst(I, C);
   }
   return true;
 }
 
-int TaskSanitizer::getMemoryAccessFuncIndex(Value *Addr,
-                                              const DataLayout &DL) {
-  Type *OrigPtrTy = Addr->getType();
-  Type *OrigTy = cast<PointerType>(OrigPtrTy)->getElementType();
+int TaskSanitizer::getMemoryAccessFuncIndex(llvm::Value *Addr,
+                                              const llvm::DataLayout &DL) {
+  llvm::Type *OrigPtrTy = Addr->getType();
+  llvm::Type *OrigTy = llvm::cast<llvm::PointerType>(OrigPtrTy)->getElementType();
   assert(OrigTy->isSized());
   uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
   if (TypeSize != 8  && TypeSize != 16 &&
@@ -784,7 +781,7 @@ int TaskSanitizer::getMemoryAccessFuncIndex(Value *Addr,
     // Ignore all unusual sizes.
     return -1;
   }
-  size_t Idx = countTrailingZeros(TypeSize / 8);
+  size_t Idx = llvm::countTrailingZeros(TypeSize / 8);
   assert(Idx < kNumberOfAccessSizes);
   return Idx;
 }

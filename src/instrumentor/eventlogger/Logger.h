@@ -6,21 +6,20 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 //
 // This is a logger for all events in an OpenMP application
 
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef _INSTRUMENTOR_EVENLOGGER_LOGGER_H_
+#define _INSTRUMENTOR_EVENLOGGER_LOGGER_H_
 
-#include "defs.h"
-#include "TaskInfo.h"
-#include "checker.h"  // header
+#include "common/defs.h"
+#include "instrumentor/eventlogger/TaskInfo.h"
+#include "detector/nondeterminism/checker.h"
 #include "detector/commutativity/CommutativityChecker.h"
-#include "duplicateManager.h"
 #include <atomic>
 
 struct hash_function {

@@ -1,25 +1,35 @@
-//===-- tsan_interface.h ----------------------------------------*- C++ -*-===//
+//===-- tsan_interface.h -------------------------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
 // This file is distributed under the University of Illinois Open Source
 // License. See LICENSE.TXT for details.
 //
-//===----------------------------------------------------------------------===//
+//===------------------------------------------------------------===//
 //
 // This file is a part of ThreadSanitizer (TSan), a race detector.
 //
-// The functions declared in this header will be inserted by the instrumentation
-// module.
-// This header can be included by the instrumented program or by TSan tests.
-//===----------------------------------------------------------------------===//
-#ifndef TSAN_INTERFACE_H
-#define TSAN_INTERFACE_H
+// The functions declared in this header will be inserted by the
+// instrumentation module.
+// This header can be included by the instrumented program or by TSan
+// tests.
+//===------------------------------------------------------------===//
+
+//===------------------------------------------------------------====//
+//
+// This file has been modified by Hassan Salehe Mater
+//     Purpose:
+//         - To detect output nondeterminism in OpenMP tasks
+//
+//===-------------------------------------------------------------====//
+
+#ifndef _INSTRUMENTOR_EVENTLOGGER_TSAN_INTERFACE_H_
+#define _INSTRUMENTOR_EVENTLOGGER_TSAN_INTERFACE_H_
 
 // This header should NOT include any other headers.
 // All functions in this header are extern "C" and start with __tsan_.
 
-#include "defs.h"
+#include "common/defs.h"
 
 #ifdef __cplusplus
 extern "C" {

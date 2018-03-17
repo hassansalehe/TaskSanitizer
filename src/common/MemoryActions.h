@@ -6,17 +6,17 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 //
 // This class holds the first action to a memory location and the last
 // write action. Every new write action replaces the previous write.
 
-#ifndef MEMORY_ACTIONS_H
-#define MEMORY_ACTIONS_H
+#ifndef _COMMON_MEMORYACTIONS_H_
+#define _COMMON_MEMORYACTIONS_H_
 
-#include "action.h"
+#include "common/action.h"
 
 class MemoryActions {
   public:

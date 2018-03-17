@@ -6,16 +6,12 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef _DETECTOR_REPORT_HPP_
-#define _DETECTOR_REPORT_HPP_
-
-// includes and definitions
-#include "defs.h"
-#include "action.h" // defines Action class
+#ifndef _DETECTOR_NONDETERMINISM_REPORT_H_
+#define _DETECTOR_NONDETERMINISM_REPORT_H_
 
 // For storing names of conflicting tasks
 // and the addresses they conflict at

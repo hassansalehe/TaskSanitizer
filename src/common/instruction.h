@@ -6,17 +6,17 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Defines the Instruction class.
 // on a variable to determine if two operations commute.
 
-#ifndef _INSTRUCTION_HPP_
-#define _INSTRUCTION_HPP_
+#ifndef _COMMON_INSTRUCTION_H_
+#define _COMMON_INSTRUCTION_H_
 
-#include "defs.h"
+#include "common/defs.h"
 
 class Instruction {
   public:

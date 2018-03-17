@@ -6,14 +6,14 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // callbacks for instrumentation
 
-#ifndef LLVM_CALLBACKS_HPP
-#define LLVM_CALLBACKS_HPP
+#ifndef _INSTRUMENTOR_EVENTLOGGER_CALLBACKS_H_
+#define _INSTRUMENTOR_EVENTLOGGER_CALLBACKS_H_
 
 #include <iostream>
 #include <pthread.h>

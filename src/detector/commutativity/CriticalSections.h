@@ -1,9 +1,21 @@
-#ifndef DETECTOR_COMMUTATIVITY_CRITICALSECTIONS_H
-#define DETECTOR_COMMUTATIVITY_CRITICALSECTIONS_H
+/////////////////////////////////////////////////////////////////
+//  TaskSanitizer: a lightweight non-determinism checking
+//          tool for OpenMP task applications
+//
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
+//      Copying or using this code by any means whatsoever
+//      without consent of the owner is strictly prohibited.
+//
+//   Contact: hassansalehe-at-gmail-dot-com
+//
+/////////////////////////////////////////////////////////////////
 
+#ifndef _DETECTOR_COMMUTATIVITY_CRITICALSECTIONS_H_
+#define _DETECTOR_COMMUTATIVITY_CRITICALSECTIONS_H_
+
+#include "detector/commutativity/CriticalSectionBody.h"
 #include <map>
 #include <cassert>
-#include "detector/commutativity/CriticalSectionBody.h"
 
 namespace tasan {
 

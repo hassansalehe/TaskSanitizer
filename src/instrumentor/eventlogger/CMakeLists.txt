@@ -3,23 +3,23 @@ cmake_minimum_required(VERSION 3.4.3)
 find_package(LLVM REQUIRED CONFIG)
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..
                     ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../common
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../detector
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../detector/commutativity)
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../common
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../detector
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../detector/commutativity)
 link_directories(${LLVM_LIBRARY_DIRS})
 
 ## Set destination directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../../bin")
 
 # List source files for libraries.
 add_library(Logger STATIC
             Logger.cc
-            ../detector/checker.cc
-            ../detector/commutativity/CommutativityChecker.cc)
+            ../../detector/nondeterminism/checker.cc
+            ../../detector/commutativity/CommutativityChecker.cc)
 
 # Use C++11 to compile our pass (i.e., supply -std=c++11).
 target_compile_features(Logger PRIVATE cxx_range_for cxx_auto_type)

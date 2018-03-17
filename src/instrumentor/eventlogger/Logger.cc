@@ -6,14 +6,11 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // implements logging functionalities
-
-#ifndef LOGGER_CPP
-#define LOGGER_CPP
 
 #include "Logger.h"
 
@@ -30,4 +27,3 @@ std::unordered_map<ADDRESS, INTEGER> INS::lastReader;
 
 bool INS::isOMPTinitialized = false;
 Checker INS::onlineChecker;
-#endif

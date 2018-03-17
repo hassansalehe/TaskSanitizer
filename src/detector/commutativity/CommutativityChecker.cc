@@ -6,19 +6,16 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Defines Validator class which verifies that bugs detected are real.
 
-#ifndef _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_CPP_
-#define _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_CPP_
-
 // includes and definitions
 #include "detector/commutativity/CommutativityChecker.h"
-#include "conflict.h"
-#include "report.h"
+#include "detector/nondeterminism/conflict.h"
+#include "detector/nondeterminism/report.h"
 
 VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
   std::vector<Instruction> currentTask;
@@ -195,5 +192,3 @@ bool CommutativityChecker::isSafe(
   return isSafe(taskBody, loc-1, operand);
   // GETEMEMENTSPTR
 }
-
-#endif // end validator.cpp

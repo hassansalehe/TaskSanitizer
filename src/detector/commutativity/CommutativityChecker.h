@@ -6,7 +6,7 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
@@ -17,12 +17,12 @@
 #define _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_H_
 
 // includes and definitions
-#include "defs.h"
-#include "instruction.h"
-#include "operationSet.h"
-#include "conflict.h"
-#include "report.h"
+#include "common/defs.h"
+#include "common/instruction.h"
 #include "common/CriticalSignatures.h"
+#include "detector/nondeterminism/operationSet.h"
+#include "detector/nondeterminism/conflict.h"
+#include "detector/nondeterminism/report.h"
 #include "detector/commutativity/CriticalSections.h"
 
 class CommutativityChecker {

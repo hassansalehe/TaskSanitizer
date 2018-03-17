@@ -8,33 +8,32 @@
 //===----------------------------------------------------------------------===//
 //
 // (c) 2017 - 2018 Hassan Salehe Matar
-//            Email: hmatar@ku.edu.tr
+//            Contact: hassansalehe-at-gmail-dot-com
 //
 //===----------------------------------------------------------------------===//
 
-#include "Libs.h"
+#ifndef _INSTRUMENTOR_PASS_DEBUGINFOHELPER_H_
+#define _INSTRUMENTOR_PASS_DEBUGINFOHELPER_H_
 
-#ifndef TSAN_DebugInfoHelper_h
-#define TSAN_DebugInfoHelper_h
+#include "instrumentor/pass/LLVMLibs.h"
 
-using namespace llvm;
-
+/// main namespace for TaskSanitizer
 namespace tasan {
 
-// Implements helper functions for manipulating debugging
-// information that is sent to the runtime nondeterminism
-// reporting of TaskSanitizer.
+/// Implements helper functions for manipulating debugging
+/// information that is sent to the runtime nondeterminism
+/// reporting of TaskSanitizer.
 namespace debug {
 
 /**
  * Demangles names of attributes, functions, etc
  */
-StringRef demangleName(StringRef name) {
+llvm::StringRef demangleName(llvm::StringRef name) {
   int status = -1;
   std::string name_(name.str());
   char* d =abi::__cxa_demangle(name_.c_str(), nullptr, nullptr, &status);
   if (! status) {
-    StringRef ab(d);
+    llvm::StringRef ab(d);
     return ab;
   }
   return name;
@@ -97,14 +96,14 @@ std::string getFullFilename(llvm::Module & M) {
  * Returns name of the function under instrumentation
  * as a value. The name is retrieved later at runtime.
  */
-Value* getFuncName(Function & F) {
-  StringRef name = demangleName(F.getName());
+llvm::Value* getFuncName(llvm::Function & F) {
+  llvm::StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if (idx != StringRef::npos) {
+  if (idx != llvm::StringRef::npos) {
     name = name.substr(0, idx);
   }
 
-  IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+  llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   return IRB.CreateGlobalStringPtr(name, "func_name");
 }
 
@@ -114,7 +113,7 @@ Value* getFuncName(Function & F) {
 llvm::StringRef getFuncNameStr(llvm::Function & F) {
   llvm::StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if (idx != StringRef::npos) {
+  if (idx != llvm::StringRef::npos) {
     name = name.substr(0, idx);
   }
 
@@ -122,7 +121,7 @@ llvm::StringRef getFuncNameStr(llvm::Function & F) {
 }
 
 bool hasMainFunction(llvm::Module & M) {
-  DebugInfoFinder dFinder;
+  llvm::DebugInfoFinder dFinder;
   dFinder.processModule(M);
   auto subprograms = dFinder.subprograms();
   for (auto sp : dFinder.subprograms()) {
@@ -137,11 +136,11 @@ bool hasMainFunction(llvm::Module & M) {
    * Returns the name of the memory location involved.
    * By object, this refers to the name of the variable.
    */
-  Value * getObjectName(Value *V, llvm::Instruction* I, const DataLayout &DL) {
-    Value* obj = GetUnderlyingObject(V, DL);
+  llvm::Value * getObjectName(llvm::Value *V, llvm::Instruction* I, const llvm::DataLayout &DL) {
+    llvm::Value* obj = GetUnderlyingObject(V, DL);
 
-    Function* F = I->getFunction();
-    IRBuilder<> IRB(F->getEntryBlock().getFirstNonPHI());
+    llvm::Function* F = I->getFunction();
+    llvm::IRBuilder<> IRB(F->getEntryBlock().getFirstNonPHI());
 
     if ( !obj ) {
       return IRB.CreateGlobalStringPtr("unknown", "variable");
@@ -154,15 +153,15 @@ bool hasMainFunction(llvm::Module & M) {
    * Retrieves the line number of the instruction
    * being instrumented.
    */
-  Value* getLineNumber(llvm::Instruction* I) {
+  llvm::Value* getLineNumber(llvm::Instruction* I) {
 
     if (auto Loc = I->getDebugLoc()) { // Here I is an LLVM instruction
-      IRBuilder<> IRB(I);
+      llvm::IRBuilder<> IRB(I);
       unsigned Line = Loc->getLine();
-      return ConstantInt::get(Type::getInt32Ty(I->getContext()), Line);
+      return llvm::ConstantInt::get(llvm::Type::getInt32Ty(I->getContext()), Line);
     }
     else {
-      Constant* zero = ConstantInt::get(Type::getInt32Ty(I->getContext()), 0);
+      llvm::Constant* zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(I->getContext()), 0);
       return zero;
     }
   }

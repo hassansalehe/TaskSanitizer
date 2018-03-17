@@ -6,17 +6,17 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Defines a class to hold task identification info
 
-#ifndef LLVM_TASK_INFO_HPP
-#define LLVM_TASK_INFO_HPP
+#ifndef _INSTRUMENTOR_EVENTLOGGER_H_
+#define _INSTRUMENTOR_EVENTLOGGER_H_
 
-#include "defs.h"
-#include "MemoryActions.h"
+#include "common/defs.h"
+#include "common/MemoryActions.h"
 
 typedef struct TaskInfo {
   uint threadID = 0;

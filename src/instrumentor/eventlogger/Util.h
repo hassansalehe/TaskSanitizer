@@ -6,17 +6,17 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef RUNTIME_UTIL_H
-#define RUNTIME_UTIL_H
+#ifndef _INSTRUMENTOR_EVENTLOGGER_UTIL_H_
+#define _INSTRUMENTOR_EVENTLOGGER_UTIL_H_
 
-#include <cassert>
+#include "instrumentor/eventlogger/TaskInfo.h"
+#include "instrumentor/eventlogger/Callbacks.h"
 #include <ompt.h>
-#include "TaskInfo.h"
-#include "Callbacks.h"
+#include <cassert>
 
 // Namespace which contains small helper/utility functions
 // used in task action logging callbacks.

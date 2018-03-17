@@ -6,18 +6,18 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // Defines the OperationSet class which keeps a sequence of
 // operations on a variable to determine if the operations commute.
 
-#ifndef _OPERATION_SET_HPP_
-#define _OPERATION_SET_HPP_
+#ifndef _DETECTOR_NONDETERMINISM_OPERATIONSET_H_
+#define _DETECTOR_NONDETERMINISM_OPERATIONSET_H_
 
 // includes and definitions
-#include "defs.h"
+#include "common/defs.h"
 
 class OperationSet {
   public:

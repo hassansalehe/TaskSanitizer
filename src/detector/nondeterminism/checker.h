@@ -6,22 +6,21 @@
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
-//   Contact: hmatar-at-ku-dot-edu-dot-tr
+//   Contact: hassansalehe-at-gmail-dot-com
 //
 /////////////////////////////////////////////////////////////////
 
 // this files redifines data types for redability and
 // WORE (Write-Once-Reuse-Everywhere). Defines the Checker class
 
-#ifndef _CHECKER_HPP_
-#define _CHECKER_HPP_
+#ifndef _DETECTOR_NONDETERMINISM_CHECKER_H_
+#define _DETECTOR_NONDETERMINISM_CHECKER_H_
 
 // includes and definitions
-#include "defs.h"
-#include "action.h" // defines Action class
-#include "conflict.h" // defines Conflict and Report structs
-#include "report.h"
-#include "MemoryActions.h"
+#include "common/defs.h"
+#include "common/MemoryActions.h"
+#include "detector/nondeterminism/conflict.h"
+#include "detector/nondeterminism/report.h"
 #include "detector/commutativity/CommutativityChecker.h"
 #include <list>
 
