@@ -45,24 +45,24 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 /*
-Two tasks without depend clause to protect data writes. 
+Two tasks without depend clause to protect data writes.
 i is shared for two tasks based on implicit data-sharing attribute rules.
-Data race pair: i@61:5 vs. i@63:5  
+Data race pair: i@61:5 vs. i@63:5
 */
-#include <assert.h> 
-#include <stdio.h> 
+#include <assert.h>
+#include <stdio.h>
 int main()
 {
   int i=0;
 #pragma omp parallel
 #pragma omp single
   {
-#pragma omp task shared(i) 
-    i = 1;    
 #pragma omp task shared(i)
-    i = 2;    
+    i = 1;
+#pragma omp task shared(i)
+    i = 2;
   }
 
   printf ("i=%d\n",i);
   return 0;
-} 
+}

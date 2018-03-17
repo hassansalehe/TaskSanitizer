@@ -197,13 +197,17 @@ VOID Checker::saveNondeterminismReport(const Action& curMemAction,
                                        const Action& prevMemAction) {
   Conflict aConflict(curMemAction, prevMemAction);
 
-  // code for recording errors
-  std::pair<int, int> linePair =
-      {
-        std::min(curMemAction.lineNo, prevMemAction.lineNo),
-        std::max(curMemAction.lineNo, prevMemAction.lineNo)
-      };
-  conflictTable[linePair].insert( aConflict );
+  // store only if conflict is not commutative
+  if ( !commutativeChecker.isCommutative(aConflict) ) {
+
+    // code for recording errors
+    std::pair<int, int> linePair =
+        {
+          std::min(curMemAction.lineNo, prevMemAction.lineNo),
+          std::max(curMemAction.lineNo, prevMemAction.lineNo)
+        };
+    conflictTable[linePair].insert( aConflict );
+  }
 }
 
 
@@ -250,7 +254,7 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
 #endif
 }
 
-void Checker::checkCommutativeOperations(BugValidator & validator) {
+void Checker::checkCommutativeOperations(CommutativityChecker & validator) {
   // a pair of conflicting task body with a set of line numbers
   for (auto it = conflictTable.begin(); it != conflictTable.end(); ) {
     for ( auto aConflict = it->second.begin();

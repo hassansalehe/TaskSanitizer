@@ -129,6 +129,10 @@ void __fsan_write_float(
   INS_MemWrite(addr, (lint)value, lineNo, funcName);
 }
 
+void __tsan_register_iir_file(void * fileName) {
+  INS::initCommutativityChecker( (char *)fileName );
+}
+
 /**
  * A callback for memory writes of doubles */
 void __fsan_write_double(

@@ -31,6 +31,9 @@ clang++ -c MemoryCallbacks.cc -o ${taSanLib}.o	\
     -g -static -std=c++11 -pthread -fpermissive	\
     -fopenmp -I/home/hmatar/Research/TaskSanitizer/bin/include	\
     -I/home/hmatar/Research/TaskSanitizer/src/detector 	\
+    -I/home/hmatar/Research/TaskSanitizer/src/detector/commutativity 	\
+    -I/home/hmatar/Research/TaskSanitizer/src 	\
+    -I/home/hmatar/Research/TaskSanitizer/src/common 	\
     -I/home/hmatar/Research/TaskSanitizer/src/runtime
 checkIfActionOK
 

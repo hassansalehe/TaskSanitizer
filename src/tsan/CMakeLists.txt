@@ -23,7 +23,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 
 # List source files for libraries and compiler passes.
-add_library(TaskSanitizer MODULE TaskSanitizer.cpp)
+add_library(TaskSanitizer MODULE TaskSanitizer.cc)
 
 # Use C++11 to compile our pass (i.e., supply -std=c++11).
 target_compile_features(TaskSanitizer PRIVATE cxx_range_for cxx_auto_type)

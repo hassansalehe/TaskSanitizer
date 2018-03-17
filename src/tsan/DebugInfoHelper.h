@@ -47,19 +47,19 @@ std::string createAbsoluteFileName(
   std::string & dir_name,
   std::string &file_name) {
 
-  if (dir_name.size() <= 0 || file_name.size() <= 0)
+  if (dir_name.size() <= 0 || file_name.size() <= 0) {
     return file_name;
+  }
 
   // has full path already
-  if (file_name[0] == '/')
-    return file_name;
+  if (file_name[0] == '/') return file_name;
 
   if (file_name[0] == '.' && file_name[1] == '/') {
-
-    if (dir_name[dir_name.length()-1] == '/')
+    if (dir_name[dir_name.length()-1] == '/') {
       return dir_name + file_name.substr(2);
-    else
+    } else {
       return dir_name + file_name.substr(1);
+    }
   }
 
   // file name has full path already
@@ -72,30 +72,26 @@ std::string createAbsoluteFileName(
   return dir_name + file_name;
 }
 
-  /**
-   * Returns the name of the file which an instruction belongs to.
-   */
-  Value* getFileName(llvm::Instruction* I) {
+/**
+ * Returns absolute file name of which the function belongs to.
+ */
+std::string getFullFilename(llvm::Module & M) {
 
-    std::string name = "Unknown";
-    std::string dirName = "";
+  std::string name      =  "Unknown";
+  std::string dirName   =  "";
+  llvm::DebugInfoFinder dFinder;
+  dFinder.processModule(M);
+  for (auto aScope : dFinder.scopes() ) {
+    dirName = aScope->getDirectory().str();
+    name    = aScope->getFilename().str();
+    name    = createAbsoluteFileName(dirName, name);
 
-    // get debug information to retrieve file name
-    const DebugLoc &location = I->getDebugLoc();
-    if ( location ) {
-      auto *Scope = cast<DIScope>( location->getScope() );
-      if (Scope) {
-         name = Scope->getFilename().str();
-         dirName = Scope->getDirectory().str();
-         name = createAbsoluteFileName(dirName, name);
-      }
+    if (name.find("Unknown.iir") == std::string::npos) {
+      return name;
     }
-
-    Function* F = I->getFunction();
-    IRBuilder<> IRB(F->getEntryBlock().getFirstNonPHI());
-
-    return IRB.CreateGlobalStringPtr(name, "fName");
   }
+  return name;
+}
 
 /**
  * Returns name of the function under instrumentation
@@ -104,8 +100,9 @@ std::string createAbsoluteFileName(
 Value* getFuncName(Function & F) {
   StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if (idx != StringRef::npos)
+  if (idx != StringRef::npos) {
     name = name.substr(0, idx);
+  }
 
   IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   return IRB.CreateGlobalStringPtr(name, "func_name");
@@ -114,13 +111,26 @@ Value* getFuncName(Function & F) {
 /**
  * Return function name as a std::string
  */
-StringRef getFuncNameStr(Function & F) {
-  StringRef name = demangleName(F.getName());
+llvm::StringRef getFuncNameStr(llvm::Function & F) {
+  llvm::StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
-  if (idx != StringRef::npos)
+  if (idx != StringRef::npos) {
     name = name.substr(0, idx);
+  }
 
   return name;
+}
+
+bool hasMainFunction(llvm::Module & M) {
+  DebugInfoFinder dFinder;
+  dFinder.processModule(M);
+  auto subprograms = dFinder.subprograms();
+  for (auto sp : dFinder.subprograms()) {
+    if ( "main" == sp->getName() ) {
+      return true;
+    }
+  }
+  return false;
 }
 
   /**
@@ -133,10 +143,11 @@ StringRef getFuncNameStr(Function & F) {
     Function* F = I->getFunction();
     IRBuilder<> IRB(F->getEntryBlock().getFirstNonPHI());
 
-    if ( !obj )
+    if ( !obj ) {
       return IRB.CreateGlobalStringPtr("unknown", "variable");
-
-    return IRB.CreateGlobalStringPtr(obj->getName(), "variable");
+    } else {
+      return IRB.CreateGlobalStringPtr(obj->getName(), "variable");
+    }
   }
 
   /**

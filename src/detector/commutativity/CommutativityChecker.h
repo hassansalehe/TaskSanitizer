@@ -13,8 +13,8 @@
 // Defines the Validator class.
 // It determines whether the bugs detected are real.
 
-#ifndef _VALIDATOR_HPP_
-#define _VALIDATOR_HPP_
+#ifndef _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_H_
+#define _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_H_
 
 // includes and definitions
 #include "defs.h"
@@ -22,17 +22,18 @@
 #include "operationSet.h"
 #include "conflict.h"
 #include "report.h"
+#include "common/CriticalSignatures.h"
+#include "detector/commutativity/CriticalSections.h"
 
-class BugValidator {
+class CommutativityChecker {
 
   public:
     VOID parseTasksIR(char * IRlogName);
-    void validate(Report & report);
-    bool isCommutative(const Conflict & conflict) { return false; }
+    bool isCommutative(const Conflict & conflict);
 
   private:
-    std::unordered_map<std::string, std::vector<Instruction>> Tasks;
-    bool involveSimpleOperations(std::string task1, INTEGER line1);
+    tasan::commute::CriticalSections Tasks;
+    bool involveSimpleOperations(/*std::string task1, */INTEGER line1);
     bool isSafe(const std::vector<Instruction> & trace, INTEGER loc,
                 std::string operand);
     //INTEGER getLineNumber(const std::string & statement);
@@ -48,15 +49,18 @@ class BugValidator {
       return statement.find("llvm.dbg.declare") != std::string::npos;
     }
 
-    inline bool isValid(const std::string& sttmt) {
+    inline bool isValidStatement(const std::string& sttmt) {
       // valid starts with line number, e.g. "42: "
       return regex_search (sttmt, std::regex("^[0-9]+: "));
     }
 
-    inline bool isTaskName(const std::string& sttmt) {
-      return sttmt.find_first_of(' ') == std::string::npos;
+    inline bool isCriticalSectionStart(const std::string& sttmt) {
+      return tasan::getStartCriticalSignature() == sttmt;
     }
 
+    inline bool isCriticalSectionEnd(const std::string& sttmt) {
+      return tasan::getEndCriticalSignature() == sttmt;
+    }
     /**
      * Returns the line number from the IR statement std::string
      */

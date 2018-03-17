@@ -48,7 +48,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 Two tasks with depend clause to ensure execution order:
 i is shared for two tasks based on implicit data-sharing attribute rules.
 */
-#include <assert.h> 
+#include <assert.h>
+
 int main()
 {
   int i=0;
@@ -56,11 +57,11 @@ int main()
 #pragma omp single
   {
 #pragma omp task depend (out:i)
-    i = 1;    
+    i = 1;
 #pragma omp task depend (in:i)
-    i = 2;    
+    i = 2;
   }
 
   assert (i==2);
   return 0;
-} 
+}

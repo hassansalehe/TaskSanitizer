@@ -154,7 +154,8 @@ on_ompt_callback_task_dependences(
     int ndeps) {
 
   TaskInfo * taskInfo = (TaskInfo*)task_data->ptr;
-  PRINT_DEBUG("on_ompt_callback_task_dependences");
+  std::cout << ("on_ompt_callback_task_dependences ")
+            << std::to_string(task_data->value) << std::endl;
 
   for (int i = 0; i < ndeps; i++) {
 
@@ -184,9 +185,9 @@ static void
 on_ompt_callback_task_dependence(
     ompt_data_t *first_task_data,
     ompt_data_t *second_task_data) {
-  PRINT_DEBUG("One task dependence is going for registration " +
-      std::to_string(first_task_data->value) + " " +
-      std::to_string(second_task_data->value));
+  std::cout << ("One task dependence is going for registration " +
+      std::to_string(first_task_data->value) + " --> " +
+      std::to_string(second_task_data->value)) << std::endl;
 }
 
 // Executed when a task inters or leaves a barrier

@@ -15,17 +15,18 @@ void process(elem_t * elem) {
 }
 
 void process_list(elem_t *elem) {
-  #pragma omp parallel
+  #pragma omp parallel num_threads(4)
   {
     #pragma omp single
     {
       while ( elem != NULL ) {
-        #pragma omp task
+        #pragma omp task firstprivate(elem)
         {
           // elem is firstprivate by default
           process( elem );
         }
         elem = elem->next;
+        printf("Parent %p\n " ,elem);
       }
     }
   }
@@ -62,7 +63,7 @@ int main(int argc, char **argv) {
   else {
     size = atoi( argv[1] );
   }
-  printf("List size %d\n", size);
+  printf("List size %d\n", 4);
   elem_t * elems_head = pchase::initialize(size);
   pchase::process_list(elems_head);
   pchase::clean(elems_head);

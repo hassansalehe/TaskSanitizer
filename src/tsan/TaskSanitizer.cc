@@ -108,6 +108,11 @@ struct TaskSanitizer : public llvm::FunctionPass {
     // initialization of task IIR logger.
     tasan::IIRlog::InitializeLogger( M.getName() );
 
+    if ( tasan::debug::hasMainFunction(M) ) {
+      IIRfileURL = std::string(
+          tasan::debug::getFullFilename(M) + ".iir");
+    }
+
     const llvm::DataLayout &DL = M.getDataLayout();
     IntptrTy = DL.getIntPtrType(M.getContext());
 // HASSAN:
@@ -141,7 +146,12 @@ struct TaskSanitizer : public llvm::FunctionPass {
   // register every new instrumented function
   Value *funcNamePtr = NULL;
 
+  // Data for registering IIR file name
+  Value *IIRfile;
+  std::string IIRfileURL;
+
   // Callbacks to run-time library are computed in doInitialization.
+  Function *RegisterIIRfile;
   Function *TsanFuncEntry;
   Function *TsanFuncExit;
   Function *TsanIgnoreBegin;
@@ -189,6 +199,9 @@ void TaskSanitizer::initializeCallbacks(Module &M) {
   Attr = Attr.addAttribute(M.getContext(),
       AttributeSet::FunctionIndex, Attribute::NoUnwind);
   // Initialize the callbacks.
+  RegisterIIRfile = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
+      "__tsan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+
   TsanFuncEntry = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
   TsanFuncExit = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
@@ -509,6 +522,14 @@ bool TaskSanitizer::runOnFunction(Function &F) {
     assert(!F.hasFnAttribute(Attribute::SanitizeThread));
     if (HasCalls)
       InsertRuntimeIgnores(F);
+  }
+
+  // save full path name of .iir log file
+  if ( tasan::util::isMainFunction(F) ) {
+    IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
+    IIRfile = IRB.CreateGlobalStringPtr(IIRfileURL, "iirFileLoc");
+    IRB.CreateCall(RegisterIIRfile,
+                   IRB.CreatePointerCast(IIRfile, IRB.getInt8PtrTy()));
   }
 
   // Instrument function entry/exit points if there were instrumented accesses.

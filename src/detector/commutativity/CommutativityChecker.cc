@@ -12,16 +12,16 @@
 
 // Defines Validator class which verifies that bugs detected are real.
 
-#ifndef _VALIDATOR_CPP_
-#define _VALIDATOR_CPP_
+#ifndef _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_CPP_
+#define _DETECTOR_COMMUTATIVITY_COMMUTATIVITYCHECKER_CPP_
 
 // includes and definitions
-#include "validator.h"
+#include "detector/commutativity/CommutativityChecker.h"
 #include "conflict.h"
 #include "report.h"
 
-VOID BugValidator::parseTasksIR(char * IRlogName) {
-  std::vector<Instruction> * currentTask = NULL;
+VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
+  std::vector<Instruction> currentTask;
   std::string sttmt; // program statement
   std::ifstream IRcode(IRlogName); //  open IRlog file
 
@@ -30,7 +30,7 @@ VOID BugValidator::parseTasksIR(char * IRlogName) {
     if ( isDebugCall(sttmt) ) continue; // skip debug call
 
     sttmt = Instruction::trim( sttmt ); // trim spaces
-    if ( isValid(sttmt) ) { // check if normal statement
+    if ( isValidStatement(sttmt) ) { // check if normal statement
       INTEGER lineNo = getLineNumber( sttmt );
       // skip instruction with line # 0: args to task body
       if (lineNo <= 0) continue;
@@ -39,27 +39,28 @@ VOID BugValidator::parseTasksIR(char * IRlogName) {
                            sttmt.find_first_of(' ')));
       Instruction instr( sttmt );
       instr.lineNo = lineNo;
-      currentTask->push_back(instr);
+      currentTask.push_back(instr);
       continue;
     } // if
 
-    if ( isTaskName(sttmt) ) { // else a new task name
+    if ( isCriticalSectionStart(sttmt) ) { // else a new task name
 #ifdef DEBUG
       std::cout << "Task name: " << sttmt << std::endl;
 #endif
-      Tasks[sttmt] = std::vector<Instruction>();
-      currentTask  = &Tasks[sttmt];
-      //map<std::string, map<INTEGER, std::vector<std::string>>> Tasks;
-      continue;
+      currentTask = std::vector<Instruction>();
     }
 
+    if (isCriticalSectionEnd(sttmt) ) {
+      Tasks.insert( currentTask );
+    }
 #ifdef DEBUG
     // got here :-(, wierd std::string!
     std::cout << "Unexpected program statement: " << sttmt << std::endl;
 #endif
   } // end while
   IRcode.close();
-  std::cout << "No task bodies in IIR: " << Tasks.size() << std::endl;
+  std::cout << "No. critical sections in IIR: " << Tasks.getSize()
+            << std::endl;
 }
 
 
@@ -67,56 +68,46 @@ VOID BugValidator::parseTasksIR(char * IRlogName) {
  * Checks for commutative task operations which have been
  * flagged as conflicts.
  */
-VOID BugValidator::validate(Report & conflictSet) {
+bool CommutativityChecker::isCommutative(const Conflict & conflict) {
 
-  // get task names
-  std::string task1 = std::to_string(conflictSet.task1ID);
-  std::string task2 = std::to_string(conflictSet.task2ID);
-
-  // for each action pair
-  auto  conflict   = conflictSet.buggyAccesses.begin();
-  while (conflict != conflictSet.buggyAccesses.end()) {
-
-     // skip commutativity check if read-write conflict
-     if (conflict->action1.isWrite != conflict->action2.isWrite) {
-       conflict++;
-       continue;
-     }
+  // skip commutativity check if read-write conflict
+  if (conflict.action1.isWrite != conflict.action2.isWrite) {
+    return false;
+  }
 #ifdef DEBUG
-     std::cout << task1 << " <--> "<< task2 << std::endl;
+  std::cout << task1 << " <--> "<< task2 << std::endl;
 #endif
-     INTEGER line1 = conflict->action1.lineNo;
-     INTEGER line2 = conflict->action2.lineNo;
+  INTEGER line1 = conflict.action1.lineNo;
+  INTEGER line2 = conflict.action2.lineNo;
 #ifdef DEBUG
-     std::cout << "Lines " << line1 << " <--> " << line2 << std::endl;
+  std::cout << "Lines " << line1 << " <--> " << line2 << std::endl;
 #endif
-     operationSet.clear(); // clear set of commuting operations
+  operationSet.clear(); // clear set of commuting operations
 
-     // check if line1 operations commute & line2 operations commute
-     if ( involveSimpleOperations( task1, line1 ) &&
-          involveSimpleOperations( task2, line2 ) ) {
-       //it->second.erase(temPair);
-       conflict = conflictSet.buggyAccesses.erase( conflict );
+  // check if line1 operations commute & line2 operations commute
+  if ( involveSimpleOperations( /*function ID*/ line1 ) &&
+       involveSimpleOperations( /*function ID*/ line2 ) ) {
+    return true;
 #ifdef DEBUG
-       std::cout << "THERE IS SAFETY line1: " << line1 << " line2: "
-                 << line2 << std::endl;
+    std::cout << "THERE IS SAFETY line1: " << line1 << " line2: "
+              << line2 << std::endl;
 #endif
-     } else {
-       conflict++;
-     }
-  } // end while
+  }
+  return false;
 }
 
-BOOL BugValidator::involveSimpleOperations(
-    std::string taskName,
+BOOL CommutativityChecker::involveSimpleOperations(
+    /*std::string taskName,*/
     INTEGER lineNumber) {
 
   // get the instructions of a task
-  std::vector<Instruction> &taskBody = Tasks[taskName];
+  tasan::commute::CriticalSectionBody *taskBody = Tasks.find(lineNumber);
+  if (nullptr == taskBody) return false;
+
   Instruction instr;
   INTEGER index = -1;
 
-  for (auto i = taskBody.begin(); i != taskBody.end(); i++) {
+  for (auto i = taskBody->begin(); i != taskBody->end(); i++) {
      if (i->lineNo > lineNumber) break;
      if (i->lineNo == lineNumber) instr  = *i;
      index++;
@@ -127,16 +118,18 @@ BOOL BugValidator::involveSimpleOperations(
 #endif
   // expected to be a store
   if (instr.oper == STORE) {
-    return isSafe(taskBody, index, instr.operand1);
+    return isSafe(taskBody->getCriticalSectionBody(),
+        index, instr.operand1);
     //bool r1 = isOnsimpleOperations(lineNumber - 1, istr.destination);
     //bool r2 = isOnsimpleOperations(lineNumber - 1, istr.operand1);
   }
   return false;
 }
 
-bool BugValidator::isSafe(
+bool CommutativityChecker::isSafe(
     const std::vector<Instruction> & taskBody,
-    INTEGER loc, std::string operand) {
+    INTEGER loc,
+    std::string operand) {
 
   if (loc < 0) return true;
 

@@ -22,7 +22,7 @@
 #include "conflict.h" // defines Conflict and Report structs
 #include "report.h"
 #include "MemoryActions.h"
-#include "validator.h"
+#include "detector/commutativity/CommutativityChecker.h"
 #include <list>
 
 // a bag to hold the tasks that happened-before
@@ -48,7 +48,7 @@ class Checker {
   VOID saveTaskActions(const MemoryActions & taskActions);
 
   // a pair of conflicting task body with a set of line numbers
-  VOID checkCommutativeOperations(BugValidator & validator);
+  VOID checkCommutativeOperations(CommutativityChecker & validator);
 
   VOID registerFuncSignature(std::string funcName, int funcID);
   VOID onTaskCreate(int taskID);
@@ -59,6 +59,10 @@ class Checker {
 
   std::map<std::pair<int, int>, std::set<Conflict>> & getConflicts() {
     return conflictTable;
+  }
+
+  VOID initializeCommutativityChecker(char *fileName) {
+    commutativeChecker.parseTasksIR(fileName);
   }
   VOID reportConflicts();
   VOID testing();
@@ -82,6 +86,9 @@ class Checker {
 
     // For holding function signatures.
     std::unordered_map<INTEGER, std::string> functions;
+
+    // the commutativity checker
+   CommutativityChecker commutativeChecker;
 };
 
 #endif // end checker.h

@@ -88,6 +88,14 @@ llvm::StringRef getPlainFuncName(llvm::Function & F) {
   return name;
 }
 
+/**
+ * Checks if function is main function of the program
+ * under instrumentation.
+ */
+bool isMainFunction(llvm::Function &F ) {
+   return tasan::util::getPlainFuncName(F) == "main";
+}
+
 bool isTaskBodyFunction(llvm::StringRef name) {
 
   int status = -1;

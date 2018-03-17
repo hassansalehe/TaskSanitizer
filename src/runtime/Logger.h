@@ -19,7 +19,7 @@
 #include "defs.h"
 #include "TaskInfo.h"
 #include "checker.h"  // header
-#include "validator.h"
+#include "detector/commutativity/CommutativityChecker.h"
 #include "duplicateManager.h"
 #include <atomic>
 
@@ -88,6 +88,9 @@ class INS {
       return taskID;
     }
 
+    static inline void initCommutativityChecker(char *fname) {
+       onlineChecker.initializeCommutativityChecker(fname);
+    }
     /**
      * registers the function if not registered yet.
      * Also prints the function to standard output. */

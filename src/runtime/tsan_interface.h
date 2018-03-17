@@ -29,6 +29,8 @@ extern "C" {
 // before any instrumented code is executed and before any call to malloc.
 void __tsan_init();
 
+void __tsan_register_iir_file(void *);
+
 void __tsan_flush_memory();
 
 void __tsan_read1(void *addr, int lineNo, address funcName);
