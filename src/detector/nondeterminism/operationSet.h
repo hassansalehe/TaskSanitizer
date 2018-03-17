@@ -30,22 +30,18 @@ class OperationSet {
     /**
      * Checks if operation "op" commutes with previous
      * operations which manipulate a shared memory location. */
-    bool isCommutative(OPERATION op) {
+    bool isCommutative(const OPERATION op) {
      // compare with other operation
-     for (auto i = operations.begin(); i != operations.end(); i++) {
+     for (auto i : operations) {
       switch( op )
       {
         case ADD:
         case SUB:
-          if (*i != ADD && *i != SUB) {
-            return false;
-          }
+          if (i != ADD && i != SUB)  return false;
           break;
         case MUL:
         case DIV:
-          if (*i != MUL && *i != DIV) {
-            return false;
-          }
+          if (i != MUL && i != DIV)  return false;
           break;
         default:
           return false;
@@ -56,8 +52,19 @@ class OperationSet {
       return true;
     }
 
+    bool isCommutative() {
+      for (auto op : operations) {
+         if ( !isCommutative(op) ) return false;
+      }
+      return true;
+    }
+
+    int size() {
+      return operations.size();
+    }
+
   private:
-  std::set<OPERATION> operations;
+    std::set<OPERATION> operations;
 };
 
 #endif // end operationSet.h
