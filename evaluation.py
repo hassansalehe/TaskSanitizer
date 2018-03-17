@@ -354,19 +354,19 @@ class Correctness( Experiment ):
         head = "Application, Input size, # tasks, # bugs"
         print head
         for app in self.apps:
-            print app
+            #print app
             name = app + "Corr.exe"
             options = BenchArgFactory.getInstance( app )
             commands = ["./tasksan", "-o", name]
             commands.extend( options.getFullCommand() )
-            print commands
+            #print commands
             output, err = self.execute( commands )
 
             if err is None:
                 bench    = BenchArgFactory.getInstance( app )
                 progArgs = bench.getFromattedInput( str(self.inputSizes[0]) )
                 commands = [name] + progArgs
-                print commands
+                #print commands
                 output, err = self.execute( commands )
                 self.formatResult( app, self.inputSizes[0], output )
 
