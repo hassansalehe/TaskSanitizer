@@ -28,19 +28,26 @@ void createNewTaskMetadata(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
   if (task_data == nullptr) return;
-  TaskInfo * taskInfo = (TaskInfo *)task_data->ptr;
-  if (taskInfo == nullptr) taskInfo = new TaskInfo;
+  TaskInfo *newTaskInfo =  new TaskInfo;
+  TaskInfo *oldTaskInfo = (TaskInfo *)task_data->ptr;
 
-  taskInfo->threadID = static_cast<uint>( pthread_self() );
-  taskInfo->taskID   = INS::GenTaskID();
-  taskInfo->active   = true;
-  task_data->ptr     = (void *)taskInfo;
+  newTaskInfo->threadID = static_cast<uint>( pthread_self() );
+  newTaskInfo->taskID   = INS::GenTaskID();
+  newTaskInfo->active   = true;
+  task_data->ptr     = (void *)newTaskInfo;
 
-  INS::TaskBeginLog(*taskInfo);
+  INS::TaskBeginLog(*newTaskInfo);
+
+  if (oldTaskInfo) {
+    INTEGER value = reinterpret_cast<INTEGER>(oldTaskInfo);
+    INS::TaskReceiveTokenLog(*newTaskInfo, oldTaskInfo, value);
+    delete oldTaskInfo;
+  }
+
 #ifdef DEBUG
   PRINT_DEBUG("Task_Began, (threadID: " +
-      std::to_string(taskInfo->threadID) + ", taskID: " +
-      std::to_string(taskInfo->taskID)   + ")"
+      std::to_string(newTaskInfo->threadID) + ", taskID: " +
+      std::to_string(newTaskInfo->taskID)   + ")"
   );
 #endif
 }
