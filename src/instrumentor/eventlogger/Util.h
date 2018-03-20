@@ -14,7 +14,7 @@
 #define _INSTRUMENTOR_EVENTLOGGER_UTIL_H_
 
 #include "instrumentor/eventlogger/TaskInfo.h"
-#include "instrumentor/eventlogger/Callbacks.h"
+#include "instrumentor/callbacks/Callbacks.h"
 #include <ompt.h>
 #include <cassert>
 

@@ -88,13 +88,13 @@ fi
 
 # Build TaskSanitizer
 
-cd src/instrumentor/eventlogger
+cd src/instrumentor/
 #./install.sh
 #reportIfSuccessful
 
 mkdir -p build
 cd -
-cd src/instrumentor/eventlogger/build
+cd src/instrumentor/build
 rm -rf libLogger.a
 CXX=clang++ cmake ..
 make

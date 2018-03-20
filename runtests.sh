@@ -50,7 +50,7 @@ reset
 rm -rf build
 mkdir -p build
 cd build
-CXX=clang++ cmake ../src/instrumentor/eventlogger/
+CXX=clang++ cmake ../src/instrumentor/
 make
 reportIfSuccessful
 

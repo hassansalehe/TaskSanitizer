@@ -17,7 +17,7 @@
 #include "instrumentor/eventlogger/Logger.h"
 #include "instrumentor/eventlogger/Util.h"
 #include "instrumentor/eventlogger/TaskInfo.h"
-#include "instrumentor/eventlogger/Callbacks.h"
+#include "instrumentor/callbacks/Callbacks.h"
 #include <omp.h>
 #include <ompt.h>
 
