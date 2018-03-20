@@ -316,7 +316,12 @@ VOID Checker::reportConflicts() {
                 << functions.at( aConflict.action1.funcId )
                 << ": "     << aConflict.action1.lineNo
                 << ", "     << functions.at( aConflict.action2.funcId )
-                << ": "     << aConflict.action2.lineNo << std::endl;
+                << ": "     << aConflict.action2.lineNo
+                << " task ids: (" << aConflict.action1.taskId
+                << "["      << (aConflict.action1.isWrite? "W]" : "R]")
+                << " "      << aConflict.action2.taskId
+                << "["      << (aConflict.action2.isWrite? "W])" : "R])")
+                << std::endl;
       addressCount++;
 
       if (addressCount == 10) break;

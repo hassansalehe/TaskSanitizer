@@ -11,8 +11,8 @@
 /////////////////////////////////////////////////////////////////
 //
 
-#ifndef _INSTRUMENTOR_EVENTLOGGER_OMPTCALLBACKS_H_
-#define _INSTRUMENTOR_EVENTLOGGER_OMPTCALLBACKS_H_
+#ifndef _INSTRUMENTOR_CALLBACKS_OMPTCALLBACKS_H_
+#define _INSTRUMENTOR_CALLBACKS_OMPTCALLBACKS_H_
 
 #include "instrumentor/eventlogger/Logger.h"
 #include "instrumentor/eventlogger/Util.h"
@@ -107,6 +107,10 @@ on_ompt_callback_task_create( // called in the context of the creator
         // store child ID
         int childID = ((TaskInfo*)new_task_data->ptr)->taskID;
         ((TaskInfo*)parent_task_data->ptr)->addChild(childID);
+        PRINT_DEBUG("Parent ID: "
+            + std::to_string(((TaskInfo*)parent_task_data->ptr)->taskID)
+            + ", Child ID: " + std::to_string(childID)
+        );
       }
       break;
     }

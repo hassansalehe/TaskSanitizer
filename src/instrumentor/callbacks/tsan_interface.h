@@ -23,8 +23,8 @@
 //
 //===-------------------------------------------------------------====//
 
-#ifndef _INSTRUMENTOR_EVENTLOGGER_TSAN_INTERFACE_H_
-#define _INSTRUMENTOR_EVENTLOGGER_TSAN_INTERFACE_H_
+#ifndef _INSTRUMENTOR_CALLBACKS_TSAN_INTERFACE_H_
+#define _INSTRUMENTOR_CALLBACKS_TSAN_INTERFACE_H_
 
 // This header should NOT include any other headers.
 // All functions in this header are extern "C" and start with __tsan_.

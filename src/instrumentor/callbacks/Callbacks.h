@@ -12,8 +12,8 @@
 
 // callbacks for instrumentation
 
-#ifndef _INSTRUMENTOR_EVENTLOGGER_CALLBACKS_H_
-#define _INSTRUMENTOR_EVENTLOGGER_CALLBACKS_H_
+#ifndef _INSTRUMENTOR_CALLBACKS_CALLBACKS_H_
+#define _INSTRUMENTOR_CALLBACKS_CALLBACKS_H_
 
 #include <iostream>
 #include <pthread.h>
