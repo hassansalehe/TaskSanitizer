@@ -40,7 +40,8 @@ void createNewTaskMetadata(ompt_data_t *task_data) {
 #ifdef DEBUG
   PRINT_DEBUG("Task_Began, (threadID: " +
       std::to_string(taskInfo->threadID) + ", taskID: " +
-      std::to_string(taskInfo->taskID)   + ")";
+      std::to_string(taskInfo->taskID)   + ")"
+  );
 #endif
 }
 
