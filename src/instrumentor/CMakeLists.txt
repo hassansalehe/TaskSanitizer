@@ -5,6 +5,7 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
                     ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../../bin/include
                     ${CMAKE_CURRENT_SOURCE_DIR}/../common
                     ${CMAKE_CURRENT_SOURCE_DIR}/../detector
                     ${CMAKE_CURRENT_SOURCE_DIR}/../detector/commutativity)
