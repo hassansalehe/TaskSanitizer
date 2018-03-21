@@ -96,6 +96,8 @@ static std::string OperRepresentation(OPERATION op) {
 
 /**
   * Definition below is for debugging printfs */
+// #define DEBUG
+
 static std::mutex printLock;
 void inline PRINT_DEBUG(const std::string msg) {
 #ifdef DEBUG

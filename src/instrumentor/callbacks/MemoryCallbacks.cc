@@ -19,8 +19,6 @@
 #include "OMPTCallbacks.h"
 #include "tsan_interface.h"
 
-// #define DEBUG
-
 lint getMemoryValue( address addr, ulong size ) {
   if ( size == sizeof(char)   ) return *(static_cast<char *>(addr));
   if ( size == sizeof(short)  ) return *(static_cast<short *>(addr));
@@ -261,7 +259,8 @@ void __tsan_func_exit(void * funcPtr) {
   if (funcPtr && std::string((char*) funcPtr) == "main") {
     INS::Finalize();
   }
-  PRINT_DEBUG("Flowsan: __tsan_func_exit");
+  PRINT_DEBUG("Flowsan: __tsan_func_exit: "
+      + std::string((char *)funcPtr));
 }
 
 void __tsan_ignore_thread_begin() {

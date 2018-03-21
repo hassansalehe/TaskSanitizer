@@ -31,10 +31,14 @@ void createNewTaskMetadata(ompt_data_t *task_data) {
   TaskInfo *newTaskInfo =  new TaskInfo;
   TaskInfo *oldTaskInfo = (TaskInfo *)task_data->ptr;
 
-  newTaskInfo->threadID = static_cast<uint>( pthread_self() );
-  newTaskInfo->taskID   = INS::GenTaskID();
-  newTaskInfo->active   = true;
-  task_data->ptr     = (void *)newTaskInfo;
+  newTaskInfo->threadID    = static_cast<uint>( pthread_self() );
+  newTaskInfo->taskID      = INS::GenTaskID();
+  newTaskInfo->active      = true;
+  task_data->ptr           = (void *)newTaskInfo;
+
+  if (oldTaskInfo) {
+    newTaskInfo->childrenIDs = oldTaskInfo->childrenIDs;
+  }
 
   INS::TaskBeginLog(*newTaskInfo);
 

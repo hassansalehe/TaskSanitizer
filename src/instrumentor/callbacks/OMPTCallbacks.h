@@ -214,16 +214,25 @@ static void on_ompt_callback_sync_region(
       switch (endpoint) {
         case ompt_scope_begin:
         {
-          PRINT_DEBUG("Taskwait begin scope " + std::to_string(taskInfo->taskID) );
+          PRINT_DEBUG("Taskwait begin scope, task id: "
+              + std::to_string(taskInfo->taskID)
+          //  + " parallel data: "
+          //  + (parallel_data)
+          );
           break;
         }
         case ompt_scope_end:
         {
+          PRINT_DEBUG("Taskwait end scope, task id: "
+              + std::to_string(taskInfo->taskID) );
+
           taskInfo->addChild(taskInfo->taskID);
           UTIL::endThisTask(task_data);
           UTIL::disguiseToTewTask(task_data);
+          taskInfo = (TaskInfo*)task_data->ptr;
           INS::saveChildHBs(*taskInfo);
-          PRINT_DEBUG("Taskwait end scope " + std::to_string(taskInfo->taskID) );
+          PRINT_DEBUG("Taskwait (after) end scope, task id: "
+              + std::to_string(taskInfo->taskID) );
           break;
         }
       }
