@@ -10,7 +10,15 @@
 //      and Printer.
 //
 //   *  The expected execution order of these tasks is
-//      Map -> Reduce -> Printer.
+//                --> Map --> Readuce ---
+//               /                       \
+//              /                         v
+//      Initial  ---> Map --> Reduce   ----> Printer.
+//              \                         ^
+//               ---> Map --> Readuce ---'
+//               \                       ^
+//                --> Map --> Readuce --'
+//
 //      This execution order is ensured by the data flow dependency
 //      specified using the depend clause of OpenMP task pragma.
 //
@@ -39,7 +47,7 @@ void prepareInputs(std::vector<std::string> &words, char *file) {
     std::istringstream splits( line );
     copy( std::istream_iterator< std::string >( splits ),
           std::istream_iterator< std::string >(),
-          back_inserter(words)
+          std::back_inserter( words )
         );
   }
 }
@@ -48,14 +56,9 @@ void updateHistogram(std::map<std::string, int> &histogram,
                      std::map<std::string, int> &word_hist) {
 
   for (auto elem = word_hist.begin(); elem != word_hist.end(); elem++) {
-    std::string word = elem->first;
-    int count = elem->second;
-
-    if ( histogram.find( word ) != histogram.end() ) {
-      histogram[word] = histogram[word] + count;
-    } else {
-      histogram[word] = count;
-    }
+    std::string word  =  elem->first;
+    int         count =  elem->second;
+    histogram[ word ] +=  elem->count;
   }
 }
 
@@ -63,18 +66,18 @@ void splitInput(std::vector<std::string> &words,
                 std::vector<std::string> &sub_words,
                 int pos) {
   int chunk_size = words.size() / NTHREADS;
-  int start      = chunk_size *pos;
+  int start      = chunk_size * pos;
   int end        = start + chunk_size;
 
   while (start < end) {
-    sub_words.push_back(words[start++]);
+    sub_words.push_back( words[ start++ ] );
   }
 }
 
 void mapWords(std::vector<std::string> &words,
               std::map<std::string, int> &hist) {
   for (auto word = words.begin(); word != words.end(); word++) {
-    hist[*word] = 1;
+    hist[ *word ] = 1;
   }
 }
 
