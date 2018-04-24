@@ -10,14 +10,14 @@
 //      and Printer.
 //
 //   *  The expected execution order of these tasks is
-//                --> Map --> Readuce ---
+//                --> Map -->  Reduce ---
 //               /                       \
 //              /                         v
-//      Initial  ---> Map --> Reduce   ----> Printer.
+//      Initial  ---> Map -->  Reduce  ----> Printer.
 //              \                         ^
-//               ---> Map --> Readuce ---'
+//               ---> Map -->  Reduce ---'
 //               \                       ^
-//                --> Map --> Readuce --'
+//                --> Map -->  Reduce --'
 //
 //      This execution order is ensured by the data flow dependency
 //      specified using the depend clause of OpenMP task pragma.
@@ -52,16 +52,6 @@ void prepareInputs(std::vector<std::string> &words, char *file) {
   }
 }
 
-void updateHistogram(std::map<std::string, int> &histogram,
-                     std::map<std::string, int> &word_hist) {
-
-  for (auto elem = word_hist.begin(); elem != word_hist.end(); elem++) {
-    std::string word  =  elem->first;
-    int         count =  elem->second;
-    histogram[ word ] +=  elem->count;
-  }
-}
-
 void splitInput(std::vector<std::string> &words,
                 std::vector<std::string> &sub_words,
                 int pos) {
@@ -81,6 +71,16 @@ void mapWords(std::vector<std::string> &words,
   }
 }
 
+void updateHistogram(std::map<std::string, int> &histogram,
+                     std::map<std::string, int> &word_hist) {
+
+  for (auto elem = word_hist.begin(); elem != word_hist.end(); elem++) {
+    std::string word  =  elem->first;
+    int         count =  elem->second;
+    histogram[ word ] +=  elem->count;
+  }
+}
+
 void printHistogram(const std::map<std::string, int> & histogram) {
   for (auto word = histogram.begin();
        word != histogram.end();
@@ -89,7 +89,7 @@ void printHistogram(const std::map<std::string, int> & histogram) {
   }
 }
 
-int main(int argc, char* argv[] ) {
+int main(int argc, char* argv[]) {
   std::map<std::string, int>  histogram;
   std::map<std::string, int>  sub_hist[NTHREADS];
   std::vector<std::string>    sub_words[NTHREADS];
@@ -104,7 +104,6 @@ int main(int argc, char* argv[] ) {
     {
       // split words into 4 buckets
       for (int i = 0; i < NTHREADS; i++) {
-        // split words into 4 buckets
         #pragma omp task depend(out: sub_words[i])  \
         firstprivate(i)  shared(sub_words)
         {
