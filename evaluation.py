@@ -64,7 +64,7 @@ class BenchArgs( object ):
     def getFullCommand( self ):
         return self.cppFiles + self.cppArgs
 
-    def getFromattedInput( self, size ):
+    def getFormattedInput( self, size ):
         rtSz = str (int( math.sqrt( float(size) ) ) )
         return ["-n", size, "-r", rtSz, "-i", rtSz, "-b", rtSz]
     # end class BenchArgs
@@ -79,7 +79,7 @@ class Banking( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "Banking.cc"]
 
-    def getFromattedInput( self, size ):
+    def getFormattedInput( self, size ):
         return [size]
 
 class Fibonacci( BenchArgs ):
@@ -87,7 +87,7 @@ class Fibonacci( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "Fibonacci.cc"]
 
-    def getFromattedInput( self, size ):
+    def getFormattedInput( self, size ):
         return [size]
 
 class MapReduce( BenchArgs ):
@@ -95,12 +95,15 @@ class MapReduce( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "MapReduce.cc"]
 
+    def getFormattedInput( self, size ):
+        return self.cppFiles
+
 class PointerChasing( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "PointerChasing.cc"]
 
-    def getFromattedInput( self, size ):
+    def getFormattedInput( self, size ):
         return [size]
 
 class Sectionslock1OrigNo( BenchArgs ):
@@ -158,8 +161,8 @@ class SparseLU( BenchArgs ):
             dir + "sparselu-seq.c"] )
         self.cppArgs.extend( ["-I./kastors/sparselu/include", "-DSMSIZE"] )
 
-    def getFromattedInput( self, size ):
-        result = BenchArgs.getFromattedInput(self, size)
+    def getFormattedInput( self, size ):
+        result = BenchArgs.getFormattedInput(self, size)
         result.extend( ["-m", result[-1]] )
         return result
     # end class SparseLU
@@ -209,8 +212,8 @@ class Dgeqrf( Plasma ):
         self.cppArgs.extend(["-DIBSIZE"]);
         self.cppFiles.extend([self.dir + "time_dgeqrf-task.c"])
 
-    def getFromattedInput( self, size ):
-        result = BenchArgs.getFromattedInput( self, size )
+    def getFormattedInput( self, size ):
+        result = BenchArgs.getFormattedInput( self, size )
         result.extend( ["-ib", result[-1]] )
         return result
 
@@ -364,7 +367,7 @@ class Correctness( Experiment ):
 
             if err is None:
                 bench    = BenchArgFactory.getInstance( app )
-                progArgs = bench.getFromattedInput( str(self.inputSizes[0]) )
+                progArgs = bench.getFormattedInput( str(self.inputSizes[0]) )
                 commands = [name] + progArgs
                 #print commands
                 output, err = self.execute( commands )
@@ -420,7 +423,7 @@ class Performance( Experiment ):
         name     = "./" + appName + "Orig.exe"
         command  = [name]
         bench    = BenchArgFactory.getInstance(appName)
-        progArgs = bench.getFromattedInput(inputSize)
+        progArgs = bench.getFormattedInput(inputSize)
         command.extend( progArgs )
         print command
         start = clock()
@@ -431,7 +434,7 @@ class Performance( Experiment ):
         name     = "./" + appName + "Instr.exe"
         command  = [name]
         bench    = BenchArgFactory.getInstance(appName)
-        progArgs = bench.getFromattedInput(inputSize)
+        progArgs = bench.getFormattedInput(inputSize)
         command.extend( progArgs )
         print command
         start = clock()
