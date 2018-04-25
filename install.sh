@@ -45,13 +45,148 @@ reportIfSuccessful() {
   fi
 }
 
-fsanHomeDir=`pwd`
+taskSanHomeDir=`pwd`
+version=6.0.0
 
-# Download the OpenMP runtime
-if [ ! -e "${fsanHomeDir}/openmp" ]; then
+# Checks if necessary packages are installed in the machine
+# Installs the packages if user approves.
+CheckPrerequisites() {
+  which wget > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mERROR! wget missing\033[m"
+    read -p "Do you want to install wget (root password is needed) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install wget; fi
+  fi
+
+  which tar > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mERROR! tar missing\033[m"
+    read -p "Do you want to install tar (root password is needed) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install tar; fi
+  fi
+
+  # check if cmake is installed
+  which cmake > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mERROR! cmake missing\033[m"
+    read -p "Do you want to install cmake (root password is needed)? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      cd /usr/src
+      sudo wget https://cmake.org/files/v3.10/cmake-3.10.3.tar.gz
+      sudo tar -xvzf cmake-3.10.3.tar.gz
+      cd cmake-3.10.3
+      sudo ./bootstrap
+      sudo make -j $procNo
+      sudo make install
+      cd $taskSanHomeDir
+    fi
+  fi
+
+  # check if Clang compiler is installed
+  which clang++ > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mERROR! Clang compiler missing\033[m"
+    read -p "Do you want to install LLVM/Clang (root password is needed)? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+
+      SrcDir=/tmp/LLVM
+      mkdir -p $SrcDir
+      cd $SrcDir
+      cd /usr/src/LLVM
+      wget -c http://releases.llvm.org/${version}/llvm-${version}.src.tar.xz
+      tar xf llvm-${version}.src.tar.xz --strip-components 1
+      rm llvm-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p tools/clang
+      cd tools/clang
+      wget -c http://releases.llvm.org/${version}/cfe-${version}.src.tar.xz
+      tar xf cfe-${version}.src.tar.xz --strip-components 1
+      rm cfe-${version}.src.tar.xz
+
+      mkdir -p tools/extra
+      cd tools/extra
+      wget -c http://releases.llvm.org/${version}/clang-tools-extra-${version}.src.tar.xz
+      tar xf clang-tools-extra-${version}.src.tar.xz --strip-components 1
+      rm clang-tools-extra-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p projects/compiler-rt
+      cd projects/compiler-rt
+      wget -c http://releases.llvm.org/${version}/compiler-rt-${version}.src.tar.xz
+      tar xf compiler-rt-${version}.src.tar.xz --strip-components 1
+      rm compiler-rt-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p projects/libcxx
+      cd  projects/libcxx
+      wget -c http://releases.llvm.org/${version}/libcxx-${version}.src.tar.xz
+      tar xf libcxx-${version}.src.tar.xz --strip-components 1
+      rm libcxx-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p projects/libcxxabi
+      cd projects/libcxxabi
+      wget -c http://releases.llvm.org/${version}/libcxxabi-${version}.src.tar.xz
+      tar xf libcxxabi-${version}.src.tar.xz --strip-components 1
+      rm libcxxabi-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p projects/libunwind
+      cd projects/libunwind
+      wget -c http://releases.llvm.org/${version}/libunwind-${version}.src.tar.xz
+      tar xf libunwind-${version}.src.tar.xz --strip-components 1
+      rm libunwind-${version}.src.tar.xz
+
+      cd $SrcDir
+      mkdir -p projects/test-suite
+      cd projects/test-suite
+      wget -c http://releases.llvm.org/${version}/test-suite-${version}.src.tar.xz
+      tar xf test-suite-${version}.src.tar.xz --strip-components 1
+      rm test-suite-${version}.src.tar.xz
+
+      echo "Building LLVM"
+      mkdir /tmp/llvm-build
+      cd /tmp/llvm-build
+      sudo cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $SrcDir
+      procNo=`cat /proc/cpuinfo | grep processor | wc -l`
+      sudo make -j $procNo
+      sudo make install
+      # Report if everything is OK so far
+      reportIfSuccessful
+    fi
+  fi
+
+  # check if Ninja build system is installed
+  which ninja > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mERROR! Ninja build system missing\033[m"
+    read -p "Do you want to install Ninja (root password is needed)? " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      cd /tmp
+      git clone git://github.com/ninja-build/ninja.git && cd ninja
+      git checkout release
+      ./configure.py --bootstrap
+      sudo mv ninja /usr/bin/
+      cd $taskSanHomeDir
+    fi
+  fi
+
+}
+
+# Step 0: Check for prerequisites and install necessary packages
+  CheckPrerequisites
+
+# Step 1: Download the OpenMP runtime
+if [ ! -e "${taskSanHomeDir}/openmp" ]; then
   git clone https://github.com/llvm-mirror/openmp.git openmp
 fi
-export OPENMP_INSTALL=${fsanHomeDir}/bin
+export OPENMP_INSTALL=${taskSanHomeDir}/bin
 mkdir -p $OPENMP_INSTALL
 
 cd openmp
@@ -64,12 +199,12 @@ ninja -j8 -l8
 ninja install
 reportIfSuccessful
 
-# Download Archer tool
-cd ${fsanHomeDir}
-if [ ! -e "${fsanHomeDir}/archer" ]; then
+# Step 2: Download Archer tool
+cd ${taskSanHomeDir}
+if [ ! -e "${taskSanHomeDir}/archer" ]; then
   git clone https://github.com/PRUNERS/archer.git archer
 fi
-export ARCHER_INSTALL=${fsanHomeDir}/bin
+export ARCHER_INSTALL=${taskSanHomeDir}/bin
 
 cd archer
 mkdir -p build && cd build
@@ -80,13 +215,13 @@ ninja -j8 -l8
 ninja install
 reportIfSuccessful
 
-# Download the KaSTORs benchmark applications
-cd ${fsanHomeDir}
-if [ ! -e "${fsanHomeDir}/kastors" ]; then
+# Step 3: Download the KaSTORs benchmark applications
+cd ${taskSanHomeDir}
+if [ ! -e "${taskSanHomeDir}/kastors" ]; then
   git clone https://scm.gforge.inria.fr/anonscm/git/kastors/kastors.git kastors
 fi
 
-# Build TaskSanitizer
+# Step 4: Build TaskSanitizer
 
 cd src/instrumentor/
 #./install.sh
