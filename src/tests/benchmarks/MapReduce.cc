@@ -67,7 +67,7 @@ void splitInput(std::vector<std::string> &words,
 void mapWords(std::vector<std::string> &words,
               std::map<std::string, int> &hist) {
   for (auto word = words.begin(); word != words.end(); word++) {
-    hist[ *word ] = 1;
+    hist[ *word ] += 1;
   }
 }
 
@@ -75,9 +75,9 @@ void updateHistogram(std::map<std::string, int> &histogram,
                      std::map<std::string, int> &word_hist) {
 
   for (auto elem = word_hist.begin(); elem != word_hist.end(); elem++) {
-    std::string word  =  elem->first;
-    int         count =  elem->second;
-    histogram[ word ] +=  elem->count;
+    std::string word   =  elem->first;
+    int     precount   =  elem->second;
+    histogram[ word ] +=  precount;
   }
 }
 
@@ -95,6 +95,11 @@ int main(int argc, char* argv[]) {
   std::vector<std::string>    sub_words[NTHREADS];
   std::vector<std::string>    words;
 
+  if (argc < 2 ) {
+    std::cout << "ERROR!! No input file given" << std::endl;
+    std::cout << "Exiting" << std::endl;
+    exit(1);
+  }
   prepareInputs(words, argv[1]);
 
   #pragma omp parallel num_threads(NTHREADS)  \
@@ -122,10 +127,8 @@ int main(int argc, char* argv[]) {
 
       for (int i = 0; i < NTHREADS; i++) {
         #pragma omp task depend(in: sub_hist[i]) depend(out: histogram)   \
-        shared(sub_hist)
-        //shared(histogram)
+        shared(sub_hist) shared(histogram)
         { // Reduce task
-
           updateHistogram(histogram, sub_hist[i]);
           std::cout << "reduce thread: " << omp_get_thread_num() << "\n";
           //delete sub_hist;
