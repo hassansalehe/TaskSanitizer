@@ -192,36 +192,36 @@ static llvm::RegisterStandardPasses regPass(
 
 void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
   llvm::IRBuilder<> IRB(M.getContext());
-  llvm::AttributeSet Attr;
+  llvm::AttributeList Attr;
   Attr = Attr.addAttribute(M.getContext(),
-      llvm::AttributeSet::FunctionIndex, llvm::Attribute::NoUnwind);
+      llvm::AttributeList::FunctionIndex, llvm::Attribute::NoUnwind);
   // Initialize the callbacks.
   RegisterIIRfile = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+      "__tsan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   TsanFuncEntry = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+      "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
   TsanFuncExit = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_func_exit", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+      "__tsan_func_exit", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   TsanIgnoreBegin = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_ignore_thread_begin", Attr, IRB.getVoidTy(), nullptr));
+      "__tsan_ignore_thread_begin", Attr, IRB.getVoidTy()));
 
   TsanIgnoreEnd = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_ignore_thread_end", Attr, IRB.getVoidTy(), nullptr));
+      "__tsan_ignore_thread_end", Attr, IRB.getVoidTy()));
 
   FlowSan_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "FlowSan_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+      "FlowSan_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   // functions to instrument floats and doubles
   llvm::LLVMContext &Ctx = M.getContext();
   FlowSan_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
-      llvm::Type::getVoidTy(Ctx), llvm::Type::getFloatPtrTy(Ctx), llvm::Type::getFloatTy(Ctx),
-      llvm::Type::getInt8Ty(Ctx), NULL);
+      llvm::Type::getVoidTy(Ctx), llvm::Type::getFloatPtrTy(Ctx),
+      llvm::Type::getFloatTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
   FlowSan_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
-      llvm::Type::getVoidTy(Ctx), llvm::Type::getDoublePtrTy(Ctx), llvm::Type::getDoubleTy(Ctx),
-      llvm::Type::getInt8Ty(Ctx), NULL);
+      llvm::Type::getVoidTy(Ctx), llvm::Type::getDoublePtrTy(Ctx),
+      llvm::Type::getDoubleTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
   OrdTy = IRB.getInt32Ty();
   for (size_t i = 0; i < kNumberOfAccessSizes; ++i) {
@@ -232,32 +232,32 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
     llvm::SmallString<32> ReadName("__tsan_read" + ByteSizeStr);
     TsanRead[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         ReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
-        IRB.getInt64Ty(), nullptr));
+        IRB.getInt64Ty()));
 
     llvm::SmallString<32> WriteName("__tsan_write" + ByteSizeStr);
     TsanWrite[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         WriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
-        IRB.getInt64Ty(), IRB.getInt8Ty(), nullptr));
+        IRB.getInt64Ty(), IRB.getInt8Ty()));
 
     llvm::SmallString<64> UnalignedReadName("__tsan_unaligned_read" + ByteSizeStr);
     TsanUnalignedRead[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-            UnalignedReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+            UnalignedReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
     llvm::SmallString<64> UnalignedWriteName("__tsan_unaligned_write" + ByteSizeStr);
     TsanUnalignedWrite[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-            UnalignedWriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+            UnalignedWriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
     llvm::Type *Ty = llvm::Type::getIntNTy(M.getContext(), BitSize);
     llvm::Type *PtrTy = Ty->getPointerTo();
     llvm::SmallString<32> AtomicLoadName("__tsan_atomic" + BitSizeStr + "_load");
     TsanAtomicLoad[i] = checkSanitizerInterfaceFunction(
-        M.getOrInsertFunction(AtomicLoadName, Attr, Ty, PtrTy, OrdTy, nullptr));
+        M.getOrInsertFunction(AtomicLoadName, Attr, Ty, PtrTy, OrdTy));
 
     llvm::SmallString<32> AtomicStoreName("__tsan_atomic" + BitSizeStr + "_store");
     TsanAtomicStore[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-        AtomicStoreName, Attr, IRB.getVoidTy(), PtrTy, Ty, OrdTy, nullptr));
+        AtomicStoreName, Attr, IRB.getVoidTy(), PtrTy, Ty, OrdTy));
 
     for (int op = llvm::AtomicRMWInst::FIRST_BINOP;
         op <= llvm::AtomicRMWInst::LAST_BINOP; ++op) {
@@ -281,33 +281,33 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
         continue;
       llvm::SmallString<32> RMWName("__tsan_atomic" + llvm::itostr(BitSize) + NamePart);
       TsanAtomicRMW[op][i] = checkSanitizerInterfaceFunction(
-          M.getOrInsertFunction(RMWName, Attr, Ty, PtrTy, Ty, OrdTy, nullptr));
+          M.getOrInsertFunction(RMWName, Attr, Ty, PtrTy, Ty, OrdTy));
     }
 
     llvm::SmallString<32> AtomicCASName("__tsan_atomic" + BitSizeStr +
                                   "_compare_exchange_val");
     TsanAtomicCAS[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-        AtomicCASName, Attr, Ty, PtrTy, Ty, Ty, OrdTy, OrdTy, nullptr));
+        AtomicCASName, Attr, Ty, PtrTy, Ty, Ty, OrdTy, OrdTy));
   }
   TsanVptrUpdate = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("__tsan_vptr_update", Attr, IRB.getVoidTy(),
-                            IRB.getInt8PtrTy(), IRB.getInt8PtrTy(), nullptr));
+                            IRB.getInt8PtrTy(), IRB.getInt8PtrTy()));
   TsanVptrLoad = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_vptr_read", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(), nullptr));
+      "__tsan_vptr_read", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
   TsanAtomicThreadFence = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_atomic_thread_fence", Attr, IRB.getVoidTy(), OrdTy, nullptr));
+      "__tsan_atomic_thread_fence", Attr, IRB.getVoidTy(), OrdTy));
   TsanAtomicSignalFence = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_atomic_signal_fence", Attr, IRB.getVoidTy(), OrdTy, nullptr));
+      "__tsan_atomic_signal_fence", Attr, IRB.getVoidTy(), OrdTy));
 
   MemmoveFn = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("memmove", Attr, IRB.getInt8PtrTy(), IRB.getInt8PtrTy(),
-                            IRB.getInt8PtrTy(), IntptrTy, nullptr));
+                            IRB.getInt8PtrTy(), IntptrTy));
   MemcpyFn = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("memcpy", Attr, IRB.getInt8PtrTy(), IRB.getInt8PtrTy(),
-                            IRB.getInt8PtrTy(), IntptrTy, nullptr));
+                            IRB.getInt8PtrTy(), IntptrTy));
   MemsetFn = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("memset", Attr, IRB.getInt8PtrTy(), IRB.getInt8PtrTy(),
-                            IRB.getInt32Ty(), IntptrTy, nullptr));
+                            IRB.getInt32Ty(), IntptrTy));
 }
 
 static bool isVtableAccess(llvm::Instruction *I) {
@@ -318,7 +318,8 @@ static bool isVtableAccess(llvm::Instruction *I) {
 
 // Do not instrument known races/"benign races" that come from compiler
 // instrumentatin. The user has no way of suppressing them.
-static bool shouldInstrumentReadWriteFromAddress(llvm::Value *Addr) {
+static bool shouldInstrumentReadWriteFromAddress(const llvm::Module *M,
+		                                 llvm::Value *Addr) {
   // Peel off GEPs and BitCasts.
   Addr = Addr->stripInBoundsOffsets();
 
@@ -326,8 +327,9 @@ static bool shouldInstrumentReadWriteFromAddress(llvm::Value *Addr) {
     if (GV->hasSection()) {
       llvm::StringRef SectionName = GV->getSection();
       // Check if the global is in the PGO counters section.
-      if (SectionName.endswith(llvm::getInstrProfCountersSectionName(
-            /*AddSegment=*/false)))
+      auto OF = llvm::Triple(M->getTargetTriple()).getObjectFormat();
+      if (SectionName.endswith(llvm::getInstrProfSectionName(
+            llvm::IPSK_cnts, OF, /*AddSegment=*/false)))
         return false;
     }
 
@@ -389,13 +391,13 @@ void TaskSanitizer::chooseInstructionsToInstrument(
   for (llvm::Instruction *I : reverse(Local)) {
     if (llvm::StoreInst *Store = llvm::dyn_cast<llvm::StoreInst>(I)) {
       llvm::Value *Addr = Store->getPointerOperand();
-      if (!shouldInstrumentReadWriteFromAddress(Addr))
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
         continue;
       WriteTargets.insert(Addr);
     } else {
       llvm::LoadInst *Load = llvm::cast<llvm::LoadInst>(I);
       llvm::Value *Addr = Load->getPointerOperand();
-      if (!shouldInstrumentReadWriteFromAddress(Addr))
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
         continue;
       if (WriteTargets.count(Addr)) {
         // We will write to this temp, so no reason to analyze the read.
@@ -424,10 +426,11 @@ void TaskSanitizer::chooseInstructionsToInstrument(
 }
 
 static bool isAtomic(llvm::Instruction *I) {
+  // TODO: Ask TTI whether synchronization scope is between threads.
   if (llvm::LoadInst *LI = llvm::dyn_cast<llvm::LoadInst>(I))
-    return LI->isAtomic() && LI->getSynchScope() == llvm::CrossThread;
+    return LI->isAtomic() && LI->getSyncScopeID() != llvm::SyncScope::SingleThread;
   if (llvm::StoreInst *SI = llvm::dyn_cast<llvm::StoreInst>(I))
-    return SI->isAtomic() && SI->getSynchScope() == llvm::CrossThread;
+    return SI->isAtomic() && SI->getSyncScopeID() != llvm::SyncScope::SingleThread;
   if (llvm::isa<llvm::AtomicRMWInst>(I))
     return true;
   if (llvm::isa<llvm::AtomicCmpXchgInst>(I))
@@ -761,7 +764,7 @@ bool TaskSanitizer::instrumentAtomic(llvm::Instruction *I, const llvm::DataLayou
     I->eraseFromParent();
   } else if (llvm::FenceInst *FI = llvm::dyn_cast<llvm::FenceInst>(I)) {
     llvm::Value *Args[] = {createOrdering(&IRB, FI->getOrdering())};
-    llvm::Function *F = FI->getSynchScope() == llvm::SingleThread ?
+    llvm::Function *F = FI->getSyncScopeID() == llvm::SyncScope::SingleThread ?
         TsanAtomicSignalFence : TsanAtomicThreadFence;
     llvm::CallInst *C = llvm::CallInst::Create(F, Args);
     ReplaceInstWithInst(I, C);
