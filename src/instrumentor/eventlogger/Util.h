@@ -47,13 +47,10 @@ void createNewTaskMetadata(ompt_data_t *task_data) {
     INS::TaskReceiveTokenLog(*newTaskInfo, oldTaskInfo, value);
     delete oldTaskInfo;
   }
-
-#ifdef DEBUG
   PRINT_DEBUG("Task_Began, (threadID: " +
       std::to_string(newTaskInfo->threadID) + ", taskID: " +
       std::to_string(newTaskInfo->taskID)   + ")"
   );
-#endif
 }
 
 /**
@@ -66,14 +63,12 @@ void markEndOfTask(ompt_data_t *task_data) {
 
   TaskInfo *taskInfo = (TaskInfo*)task_data->ptr;
   uint threadID      = (uint)pthread_self();
-  assert(taskInfo->threadID == threadID);
+  // assert(taskInfo->threadID == threadID);
   taskInfo->active   = false;
 
   INS::TaskEndLog(*taskInfo);
-#ifdef DEBUG
   PRINT_DEBUG("Task_Ended: (threadID: " + std::to_string(threadID) +
       ") taskID: " + std::to_string(taskInfo->taskID));
-#endif
 }
 
 
