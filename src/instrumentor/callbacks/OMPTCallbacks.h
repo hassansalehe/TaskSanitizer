@@ -65,6 +65,7 @@ on_ompt_callback_implicit_task(
       }
       break;
     case ompt_scope_end:
+      // this is called when the task has ended.
       INS_TaskFinishFunc(task_data);
       break;
   }
