@@ -358,7 +358,7 @@ class Correctness( Experiment ):
         print head
         for app in self.apps:
             #print app
-            name = app + "Corr.exe"
+            name = "./."+ app + "Corr.exe"
             options = BenchArgFactory.getInstance( app )
             commands = ["./tasksan", "-o", name]
             commands.extend( options.getFullCommand() )
