@@ -339,7 +339,7 @@ class Correctness( Experiment ):
             self.inputSizes = [16]
 
     def findBugs( self, report ):
-        regex = "lines:"
+        regex = " memory addresses"
         bugs = 0
         for line in report.splitlines():
             if regex in line:
