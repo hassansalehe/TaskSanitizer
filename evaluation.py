@@ -57,9 +57,7 @@ class BenchArgs( object ):
         self.benchDir = "./src/tests/benchmarks/"
         self.cppFiles = []
         self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-std=c++11",
-                         "-g", "-fpermissive", "-DMSIZE", "-DCUTOFF_SIZE",
-                         "-DCUTOFF_DEPTH", "-D_POSIX_C_SOURCE=199309L",
-                         "-DBSIZE", "-DTITER", "-I./kastors/common"]
+                         "-g", "-fpermissive"]
 
     def getFullCommand( self ):
         return self.cppFiles + self.cppArgs
@@ -131,102 +129,6 @@ class TaskdependmissingOrigYes( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "taskdependmissing-orig-yes.cc"]
 
-class Strassen( BenchArgs ):
-    def __init__( self ):
-        BenchArgs.__init__(self)
-        self.cppFiles.extend( ["kastors/common/main.c",
-            "kastors/strassen/src/strassen-task-dep.c",
-            "kastors/strassen/src/strassen.c"] )
-        self.cppArgs.extend( ["-I./kastors/strassen/include"] )
-    # end class Strassen
-
-class Jacobi( BenchArgs ):
-    def __init__( self ):
-        BenchArgs.__init__(self)
-        dir = "kastors/jacobi/src/"
-        self.cppFiles.extend( ["kastors/common/main.c",
-            dir + "jacobi-task-dep.c",
-            dir + "poisson.c",
-            dir + "jacobi-seq.c"] )
-        self.cppArgs.extend( ["-I./kastors/jacobi/include"] )
-    # end class Jacobi
-
-class SparseLU( BenchArgs ):
-    def __init__( self ):
-        BenchArgs.__init__(self)
-        dir = "kastors/sparselu/src/"
-        self.cppFiles.extend( ["kastors/common/main.c",
-            dir + "sparselu-task-dep.c",
-            dir + "sparselu.c",
-            dir + "sparselu-seq.c"] )
-        self.cppArgs.extend( ["-I./kastors/sparselu/include", "-DSMSIZE"] )
-
-    def getFormattedInput( self, size ):
-        result = BenchArgs.getFormattedInput(self, size)
-        result.extend( ["-m", result[-1]] )
-        return result
-    # end class SparseLU
-
-class Plasma( BenchArgs ):
-    def __init__( self ):
-        BenchArgs.__init__(self)
-        self.dir = "./kastors/plasma/src/"
-        self.cppFiles.extend( [
-            "./kastors/common/main.c",
-            self.dir + "auxiliary.c",
-            self.dir + "core_dgeqrt.c",
-            self.dir + "core_dgetrf_rectil.c",
-            self.dir + "pdgetrf_rectil.c",
-            self.dir + "core_dlaswp.c",
-            self.dir + "core_dormqr.c",
-            self.dir + "core_dparfb.c",
-            self.dir + "core_dpamm.c",
-            self.dir + "core_dplgsy.c",
-            self.dir + "core_dplrnt.c",
-            self.dir + "core_dtsmqr.c",
-            self.dir + "core_dtsqrt.c",
-            self.dir + "dauxiliary.c",
-            self.dir + "descriptor.c",
-            self.dir + "dgeqrs.c",
-            self.dir + "dgetrs.c",
-            self.dir + "dpotrs.c",
-            self.dir + "global.c",
-            self.dir + "pdgeqrf.c",
-            self.dir + "pdlaswp.c",
-            self.dir + "pdormqr.c",
-            self.dir + "pdplgsy.c",
-            self.dir + "pdpltmg.c",
-            self.dir + "pdpotrf.c",
-            self.dir + "pdtile.c",
-            self.dir + "pdtrsm.c",
-            self.dir + "workspace.c"
-            ] )
-
-        self.cppArgs.extend( ["-I./kastors/plasma/include", "-DADD_",
-            "-llapacke", "-lblas", "-llapack", "-I./kastors/plasma",
-            "-DMSIZE", "-DBSIZE", "-DGFLOPS"] )
-
-class Dgeqrf( Plasma ):
-    def __init__( self ):
-        Plasma.__init__(self)
-        self.cppArgs.extend(["-DIBSIZE"]);
-        self.cppFiles.extend([self.dir + "time_dgeqrf-task.c"])
-
-    def getFormattedInput( self, size ):
-        result = BenchArgs.getFormattedInput( self, size )
-        result.extend( ["-ib", result[-1]] )
-        return result
-
-class Dgetrf( Plasma ):
-    def __init__( self ):
-        Plasma.__init__(self)
-        self.cppFiles.extend([self.dir + "time_dgetrf-task.c"])
-
-class Dpotrf( Plasma ):
-    def __init__( self ):
-        Plasma.__init__(self)
-        self.cppFiles.extend([self.dir + "time_dpotrf-task.c"])
-
 class BenchArgFactory( object ):
     @staticmethod
     def getInstance( benchName ):
@@ -250,20 +152,6 @@ class BenchArgFactory( object ):
            return Taskdep3OrigNo()
         if "taskdependmissing-orig-yes" in benchName:
            return TaskdependmissingOrigYes()
-        ''' Ignoring KaSTORs benchmarks for now
-        if "Strassen" in benchName:
-            return Strassen()
-        if "jacobi" in benchName:
-            return Jacobi()
-        if "sparselu" in benchName:
-            return SparseLU()
-        if "dgeqrf" in benchName:
-            return Dgeqrf()
-        if "dgetrf" in benchName:
-            return Dgetrf()
-        if "dpotrf" in benchName:
-            return Dpotrf()
-        '''
         # else:
         # no such penchmark
         print "No such a benchmark", benchName
@@ -295,14 +183,6 @@ class Experiment( object ):
                      "taskdep2-orig-no",
                      "taskdep3-orig-no",
                      "taskdependmissing-orig-yes"];
-        ''' Ignoring KaSTORs benchmarks for now
-                     "jacobi",
-                     "sparselu",
-                     "strassen",
-                     "dgeqrf",
-                     "dgetrf",
-                     "dpotrf"
-        '''
 
         if len(sys.argv) > 1:
             self.experiment = sys.argv[1]
@@ -505,16 +385,6 @@ class Help( object ):
         print "         taskdep2-orig-no"
         print "         taskdep3-orig-no"
         print "         taskdependmissing-orig-yes"
-
-        ''' Ignoring KaSTORs benchmarks for now
-        print "         jacobi"
-        print "         sparselu"
-        print "         strassen"
-        print "         dgeqrf"
-        print "         dgetrf"
-        print "         dpotrf"
-        '''
-
         print ""
         print " NOTE:"
         print "   1. If you do not specify input size, your application"
