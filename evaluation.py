@@ -191,6 +191,14 @@ class Experiment( object ):
         if(len(sys.argv) > 3):
             self.inputSizes = [sys.argv[3]]
 
+    def getLibraryPath( self ):
+        taskSanHomeDir = os.path.dirname(os.path.abspath(__file__))
+        return taskSanHomeDir + "/bin/lib"
+
+    def getIncludePath( self ):
+        taskSanHomeDir = os.path.dirname(os.path.abspath(__file__))
+        return taskSanHomeDir + "/bin/include"
+
     def execute( self, commands ):
         p = subprocess.Popen(commands, stdout=subprocess.PIPE)
         return p.communicate()
@@ -279,10 +287,15 @@ class Performance( Experiment ):
 
     def compileOriginalApp( self, appName ):
         outName  = appName + "Orig.exe"
-        command = ["/usr/bin/clang++", "-I./bin/include", "-o", outName]
+        command = ["/usr/bin/clang++"]
+        command.append( "-L" + self.getLibraryPath() )
+        command.append( "-Wl,-rpath=" + self.getLibraryPath() )
+        command.append( "-I" + self.getIncludePath() )
+        command.append( "-o" )
+        command.append( outName )
         args = BenchArgFactory.getInstance( appName ).getFullCommand()
         command.extend( args )
-        print command
+        #print command
         out, err = self.execute( command )
 
         if err:
