@@ -13,7 +13,7 @@
 #define NTHREADS 4
 #endif
 
-int * memoizer;
+long * memoizer;
 long comp_fib_numbers(int n) {
   if ( n == 0 || n == 1 ) return n;
 
@@ -28,7 +28,7 @@ long comp_fib_numbers(int n) {
   }
 
   #pragma omp taskwait
-  int fn = memoizer[n - 1] + memoizer[n - 2];
+  long fn = memoizer[n - 1] + memoizer[n - 2];
 
   return fn;
 }
@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
   }
   n = atoi(argv[1]);
 
-  memoizer = new int[n+1]();
 
-#pragma omp parallel num_threads(NTHREADS)
+  memoizer = new long[n+1]();
+#pragma omp parallel num_threads(NUM_THREADS)
   {
 #pragma omp single
     {
