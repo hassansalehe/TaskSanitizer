@@ -35,7 +35,7 @@ lint getMemoryValue( address addr, ulong size ) {
 
 // to initialize the logger
 void __tsan_init() {
-  INS::InitFlowsanRuntime();
+  INS::InitTaskSanitizerRuntime();
   PRINT_DEBUG("TaskSanitizer: init");
 }
 
@@ -142,7 +142,7 @@ void __fsan_write_double(
 }
 
 void __tsan_flush_memory() {
-  PRINT_DEBUG("  Flowsan: flush memory");
+  PRINT_DEBUG("  TaskSanitizer: flush memory");
 }
 
 void __tsan_read1(void *addr, int lineNo, address funcName) {
@@ -185,360 +185,360 @@ void __tsan_write16(void *addr, lint value, int lineNo, address funcName) {
 }
 
 void __tsan_unaligned_read2(const void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned read2");
+  PRINT_DEBUG("  TaskSanitizer: unaligned read2");
 }
 void __tsan_unaligned_read4(const void *addr) {
   std::stringstream ss; ss << addr;
-  PRINT_DEBUG( "  Flowsan: unaligned read4 "+ ss.str() );
+  PRINT_DEBUG( "  TaskSanitizer: unaligned read4 "+ ss.str() );
 }
 void __tsan_unaligned_read8(const void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned read8");
+  PRINT_DEBUG("  TaskSanitizer: unaligned read8");
 }
 void __tsan_unaligned_read16(const void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned read16");
+  PRINT_DEBUG("  TaskSanitizer: unaligned read16");
 }
 
 void __tsan_unaligned_write2(void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned write2");
+  PRINT_DEBUG("  TaskSanitizer: unaligned write2");
 }
 void __tsan_unaligned_write4(void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned write4");
+  PRINT_DEBUG("  TaskSanitizer: unaligned write4");
 }
 void __tsan_unaligned_write8(void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned write8");
+  PRINT_DEBUG("  TaskSanitizer: unaligned write8");
 }
 void __tsan_unaligned_write16(void *addr) {
-  PRINT_DEBUG("  Flowsan: unaligned write16");
+  PRINT_DEBUG("  TaskSanitizer: unaligned write16");
 }
 
 void __tsan_read1_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: read1 pc");
+  PRINT_DEBUG("  TaskSanitizer: read1 pc");
 }
 void __tsan_read2_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: read2 pc");
+  PRINT_DEBUG("  TaskSanitizer: read2 pc");
 }
 void __tsan_read4_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: read4 pc");
+  PRINT_DEBUG("  TaskSanitizer: read4 pc");
 }
 void __tsan_read8_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: read8 pc");
+  PRINT_DEBUG("  TaskSanitizer: read8 pc");
 }
 void __tsan_read16_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: read16 pc");
+  PRINT_DEBUG("  TaskSanitizer: read16 pc");
 }
 
 void __tsan_write1_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: write1 pc");
+  PRINT_DEBUG("  TaskSanitizer: write1 pc");
 }
 void __tsan_write2_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: write2 pc");
+  PRINT_DEBUG("  TaskSanitizer: write2 pc");
 }
 void __tsan_write4_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: write4 pc");
+  PRINT_DEBUG("  TaskSanitizer: write4 pc");
 }
 void __tsan_write8_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: write8 pc");
+  PRINT_DEBUG("  TaskSanitizer: write8 pc");
 }
 void __tsan_write16_pc(void *addr, void *pc) {
-  PRINT_DEBUG("  Flowsan: write16 pc");
+  PRINT_DEBUG("  TaskSanitizer: write16 pc");
 }
 
 void __tsan_vptr_read(void **vptr_p) {
-  PRINT_DEBUG("  Flowsan: vptr read");
+  PRINT_DEBUG("  TaskSanitizer: vptr read");
 }
 
 void __tsan_vptr_update(void **vptr_p, void *new_val) {
-  PRINT_DEBUG("  Flowsan: vptr update");
+  PRINT_DEBUG("  TaskSanitizer: vptr update");
 }
 
 void __tsan_func_entry(void *call_pc) {
-//  PRINT_DEBUG("  Flowsan: __tsan_func_entry ");
+//  PRINT_DEBUG("  TaskSanitizer: __tsan_func_entry ");
 }
 
 void __tsan_func_exit(void * funcPtr) {
   if (funcPtr && std::string((char*) funcPtr) == "main") {
     INS::Finalize();
   }
-  PRINT_DEBUG("Flowsan: __tsan_func_exit: "
+  PRINT_DEBUG("TaskSanitizer: __tsan_func_exit: "
       + std::string((char *)funcPtr));
 }
 
 void __tsan_ignore_thread_begin() {
-  PRINT_DEBUG("  Flowsan: __tsan_ignore_thread_begin");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_ignore_thread_begin");
 }
 void __tsan_ignore_thread_end() {
-  PRINT_DEBUG("  Flowsan: __tsan_ignore_thread_end");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_ignore_thread_end");
 }
 
 void *__tsan_external_register_tag(const char *object_type) {
-  PRINT_DEBUG("  Flowsan: __tsan_external_register_tag");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_external_register_tag");
   return NULL;
 }
 
 void __tsan_external_assign_tag(void *addr, void *tag) {
-  PRINT_DEBUG("  Flowsan: __tsan_external_assign_tag");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_external_assign_tag");
 }
 
 void __tsan_external_read(void *addr, void *caller_pc, void *tag) {
-  PRINT_DEBUG("  Flowsan: __tsan_external_read");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_external_read");
 }
 
 void __tsan_external_write(void *addr, void *caller_pc, void *tag) {
-  PRINT_DEBUG("  Flowsan: __tsan_external_write");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_external_write");
 }
 
 
 void __tsan_read_range(void *addr, unsigned long size) {
-  PRINT_DEBUG("  Flowsan: __tsan_read_range");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_read_range");
 }  // NOLINT
 
 void __tsan_write_range(void *addr, unsigned long size) {
-  PRINT_DEBUG("  Flowsan: __tsan_write_range");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_write_range");
 }  // NOLINT
 
 a8 __tsan_atomic8_load(const volatile a8 *a, morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic8_load");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic8_load");
   return *a;
 }
 
 a16 __tsan_atomic16_load(const volatile a16 *a, morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic16_load");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic16_load");
   return *a;
 }
 
 a32 __tsan_atomic32_load(const volatile a32 *a, morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic32_load");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic32_load");
   return *a;
 }
 
 a64 __tsan_atomic64_load(const volatile a64 *a, morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic64_load");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic64_load");
   return *a;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_load(const volatile a128 *a, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return *a;
 }
 #endif
 
 
 void __tsan_atomic8_store(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
 }
 
 void __tsan_atomic16_store(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
 }
 
 void __tsan_atomic32_store(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
 }
 
 void __tsan_atomic64_store(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
 }
 #if __TSAN_HAS_INT128
 
 void __tsan_atomic128_store(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
 }
 #endif
 
 
 a8 __tsan_atomic8_exchange(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic8 echange");
+  PRINT_DEBUG("  TaskSanitizer: atomic8 echange");
   return v;
 }
 
 a16 __tsan_atomic16_exchange(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic exchange");
+  PRINT_DEBUG("  TaskSanitizer: atomic exchange");
   return v;
 }
 
 a32 __tsan_atomic32_exchange(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic exchange");
+  PRINT_DEBUG("  TaskSanitizer: atomic exchange");
   return v;
 }
 
 a64 __tsan_atomic64_exchange(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic exchange");
+  PRINT_DEBUG("  TaskSanitizer: atomic exchange");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_exchange(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic exchange");
+  PRINT_DEBUG("  TaskSanitizer: atomic exchange");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_add(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic8 fetch_add");
+  PRINT_DEBUG("  TaskSanitizer: atomic8 fetch_add");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_add(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic16 fetch_add");
+  PRINT_DEBUG("  TaskSanitizer: atomic16 fetch_add");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_add(volatile a32 *a, a32 v, morder mo) {
   // Fetch and add is commutative among tasks.
-  // Therefore. no need to check for nondeterminism.
+  // Therefore. no need to check for determinacy race.
   return __sync_fetch_and_add(a, v);
 }
 
 a64 __tsan_atomic64_fetch_add(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic64 fetch_add");
+  PRINT_DEBUG("  TaskSanitizer: atomic64 fetch_add");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_add(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: atomic 128 fetch_add");
+  PRINT_DEBUG("  TaskSanitizer: atomic 128 fetch_add");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_sub(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_sub(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_sub(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a64 __tsan_atomic64_fetch_sub(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_sub(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_and(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_and(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_and(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a64 __tsan_atomic64_fetch_and(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_and(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_or(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_or(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_or(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a64 __tsan_atomic64_fetch_or(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_or(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_xor(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_xor(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_xor(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a64 __tsan_atomic64_fetch_xor(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_xor(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
 
 
 a8 __tsan_atomic8_fetch_nand(volatile a8 *a, a8 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a16 __tsan_atomic16_fetch_nand(volatile a16 *a, a16 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a32 __tsan_atomic32_fetch_nand(volatile a32 *a, a32 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 a64 __tsan_atomic64_fetch_nand(volatile a64 *a, a64 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_fetch_nand(volatile a128 *a, a128 v, morder mo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
@@ -546,32 +546,32 @@ a128 __tsan_atomic128_fetch_nand(volatile a128 *a, a128 v, morder mo) {
 
 int __tsan_atomic8_compare_exchange_strong(volatile a8 *a, a8 *c, a8 v,
                                            morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 int __tsan_atomic16_compare_exchange_strong(volatile a16 *a, a16 *c, a16 v,
                                             morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 int __tsan_atomic32_compare_exchange_strong(volatile a32 *a, a32 *c, a32 v,
                                             morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 
 int __tsan_atomic64_compare_exchange_strong(volatile a64 *a, a64 *c, a64 v,
                                             morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 int __tsan_atomic128_compare_exchange_strong(volatile a128 *a, a128 *c, a128 v,
                                              morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: ");
+  PRINT_DEBUG("  TaskSanitizer: ");
   return v;
 }
 #endif
@@ -579,32 +579,32 @@ int __tsan_atomic128_compare_exchange_strong(volatile a128 *a, a128 *c, a128 v,
 
 int __tsan_atomic8_compare_exchange_weak(volatile a8 *a, a8 *c, a8 v, morder mo,
                                          morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic8 cpex weak");
+  PRINT_DEBUG("  TaskSanitizer: atomic8 cpex weak");
   return v;
 }
 
 int __tsan_atomic16_compare_exchange_weak(volatile a16 *a, a16 *c, a16 v,
                                           morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic16 cpex weak");
+  PRINT_DEBUG("  TaskSanitizer: atomic16 cpex weak");
   return v;
 }
 
 int __tsan_atomic32_compare_exchange_weak(volatile a32 *a, a32 *c, a32 v,
                                           morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic32 cpex weak");
+  PRINT_DEBUG("  TaskSanitizer: atomic32 cpex weak");
   return v;
 }
 
 int __tsan_atomic64_compare_exchange_weak(volatile a64 *a, a64 *c, a64 v,
                                           morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic64 cpex weak");
+  PRINT_DEBUG("  TaskSanitizer: atomic64 cpex weak");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 int __tsan_atomic128_compare_exchange_weak(volatile a128 *a, a128 *c, a128 v,
                                            morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic128 cpex weak");
+  PRINT_DEBUG("  TaskSanitizer: atomic128 cpex weak");
   return v;
 }
 #endif
@@ -612,41 +612,41 @@ int __tsan_atomic128_compare_exchange_weak(volatile a128 *a, a128 *c, a128 v,
 
 a8 __tsan_atomic8_compare_exchange_val(volatile a8 *a, a8 c, a8 v, morder mo,
                                        morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic8 cpex");
+  PRINT_DEBUG("  TaskSanitizer: atomic8 cpex");
   return v;
 }
 
 a16 __tsan_atomic16_compare_exchange_val(volatile a16 *a, a16 c, a16 v,
                                          morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic16 cpex");
+  PRINT_DEBUG("  TaskSanitizer: atomic16 cpex");
   return v;
 }
 
 a32 __tsan_atomic32_compare_exchange_val(volatile a32 *a, a32 c, a32 v,
                                          morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic32 cpex");
+  PRINT_DEBUG("  TaskSanitizer: atomic32 cpex");
   return v;
 }
 
 a64 __tsan_atomic64_compare_exchange_val(volatile a64 *a, a64 c, a64 v,
                                          morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic64 cpex");
+  PRINT_DEBUG("  TaskSanitizer: atomic64 cpex");
   return v;
 }
 #if __TSAN_HAS_INT128
 
 a128 __tsan_atomic128_compare_exchange_val(volatile a128 *a, a128 c, a128 v,
                                            morder mo, morder fmo) {
-  PRINT_DEBUG("  Flowsan: atomic128 cpex");
+  PRINT_DEBUG("  TaskSanitizer: atomic128 cpex");
   return v;
 }
 #endif
 
 
 void __tsan_atomic_thread_fence(morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic_thread_fence");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic_thread_fence");
 }
 
 void __tsan_atomic_signal_fence(morder mo) {
-  PRINT_DEBUG("  Flowsan: __tsan_atomic_signal_fence");
+  PRINT_DEBUG("  TaskSanitizer: __tsan_atomic_signal_fence");
 }

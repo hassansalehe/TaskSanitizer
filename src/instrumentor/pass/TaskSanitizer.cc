@@ -154,11 +154,11 @@ struct TaskSanitizer : public llvm::FunctionPass {
   llvm::Function *TsanIgnoreBegin;
   llvm::Function *TsanIgnoreEnd;
 
-  llvm::Function *FlowSan_TaskBeginFunc;
+  llvm::Function *TaskSanitizer_TaskBeginFunc;
 
   // callbacks for instrumenting doubles and floats
-  llvm::Constant *FlowSan_MemWriteFloat;
-  llvm::Constant *FlowSan_MemWriteDouble;
+  llvm::Constant *TaskSanitizer_MemWriteFloat;
+  llvm::Constant *TaskSanitizer_MemWriteDouble;
 
   // Accesses sizes are powers of two: 1, 2, 4, 8, 16.
   static const size_t kNumberOfAccessSizes = 5;
@@ -210,16 +210,16 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
   TsanIgnoreEnd = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "__tsan_ignore_thread_end", Attr, IRB.getVoidTy()));
 
-  FlowSan_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "FlowSan_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy()));
+  TaskSanitizer_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
+      "TaskSanitizer_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   // functions to instrument floats and doubles
   llvm::LLVMContext &Ctx = M.getContext();
-  FlowSan_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
+  TaskSanitizer_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
       llvm::Type::getVoidTy(Ctx), llvm::Type::getFloatPtrTy(Ctx),
       llvm::Type::getFloatTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
-  FlowSan_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
+  TaskSanitizer_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
       llvm::Type::getVoidTy(Ctx), llvm::Type::getDoublePtrTy(Ctx),
       llvm::Type::getDoubleTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
@@ -604,9 +604,9 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
   if (IsWrite) {
       llvm::Value *Val = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
       if ( Val->getType()->isFloatTy() )
-          OnAccessFunc = FlowSan_MemWriteFloat;
+          OnAccessFunc = TaskSanitizer_MemWriteFloat;
       else if ( Val->getType()->isDoubleTy() )
-          OnAccessFunc = FlowSan_MemWriteDouble;
+          OnAccessFunc = TaskSanitizer_MemWriteDouble;
 
       IRB.CreateCall(OnAccessFunc,
           {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()), Val,

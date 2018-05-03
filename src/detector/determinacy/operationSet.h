@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -13,8 +13,8 @@
 // Defines the OperationSet class which keeps a sequence of
 // operations on a variable to determine if the operations commute.
 
-#ifndef _DETECTOR_NONDETERMINISM_OPERATIONSET_H_
-#define _DETECTOR_NONDETERMINISM_OPERATIONSET_H_
+#ifndef _DETECTOR_DETERMINACY_OPERATIONSET_H_
+#define _DETECTOR_DETERMINACY_OPERATIONSET_H_
 
 // includes and definitions
 #include "common/defs.h"

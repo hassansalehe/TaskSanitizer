@@ -51,7 +51,7 @@
 //  1. http://www.openmp.org/wp-content/uploads/openmp-examples-4.5.0.pdf
 //  2. http://www.openmp.org/wp-content/uploads/openmp-4.5.pdf
 
-// Because of data race (and output nondeterminism) the end result for
+// Because of data race the end result for
 // balance can be different than 4.
 
 #include <stdio.h>

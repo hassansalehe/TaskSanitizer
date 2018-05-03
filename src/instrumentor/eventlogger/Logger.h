@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -18,7 +18,7 @@
 
 #include "common/defs.h"
 #include "instrumentor/eventlogger/TaskInfo.h"
-#include "detector/nondeterminism/checker.h"
+#include "detector/determinacy/checker.h"
 #include "detector/commutativity/CommutativityChecker.h"
 #include <atomic>
 
@@ -58,7 +58,7 @@ class INS {
     // keeping track of the last reader from a memory location
     static std::unordered_map<ADDRESS, INTEGER> lastReader;
 
-    // checker instance for detecting nondeterminism online
+    // checker instance for detecting determinacy race online
     static Checker onlineChecker;
 
   public:
@@ -70,7 +70,7 @@ class INS {
     static bool isOMPTinitialized;
 
     // open file for logging.
-    static inline VOID InitFlowsanRuntime() {
+    static inline VOID InitTaskSanitizerRuntime() {
 
       // reset attributes used
       idMap.clear(); HB.clear();
@@ -199,7 +199,7 @@ class INS {
           std::to_string(lineNo) + " " + std::to_string(funcID));
 
       guardLock.lock();
-      onlineChecker.detectNondeterminismOnMem(task.taskID, "R", ssin);
+      onlineChecker.detectRaceOnMem(task.taskID, "R", ssin);
       guardLock.unlock();
     }
 
@@ -221,7 +221,7 @@ class INS {
           " " + std::to_string(funcID));
 
       guardLock.lock();
-      onlineChecker.detectNondeterminismOnMem(task.taskID, "W", ssin);
+      onlineChecker.detectRaceOnMem(task.taskID, "W", ssin);
       guardLock.unlock();
     }
 

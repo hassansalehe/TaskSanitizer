@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////
 //// Helper functions
 //////////////////////////////////////////////////
-void FlowSan_TaskBeginFunc(ompt_data_t *task_data) {
+void TaskSanitizer_TaskBeginFunc(ompt_data_t *task_data) {
   UTIL::createNewTaskMetadata(task_data);
 }
 
@@ -61,7 +61,7 @@ on_ompt_callback_implicit_task(
   {
     case ompt_scope_begin:
       if (task_data->ptr == NULL) {
-        FlowSan_TaskBeginFunc(task_data);
+        TaskSanitizer_TaskBeginFunc(task_data);
       }
       break;
     case ompt_scope_end:
@@ -83,18 +83,18 @@ on_ompt_callback_task_create( // called in the context of the creator
   switch ((int)type)
   {
     case ompt_task_initial:
-      PRINT_DEBUG("FlowSan: initial task created");
+      PRINT_DEBUG("TaskSanitizer: initial task created");
       break;
     case ompt_task_implicit:
     {
-      PRINT_DEBUG("FlowSan: implicit task created");
+      PRINT_DEBUG("TaskSanitizer: implicit task created");
       break;
     }
     case ompt_task_explicit:
     {
-      PRINT_DEBUG("FlowSan: explicit task created");
+      PRINT_DEBUG("TaskSanitizer: explicit task created");
       if (new_task_data->ptr == NULL) {
-        FlowSan_TaskBeginFunc(new_task_data);
+        TaskSanitizer_TaskBeginFunc(new_task_data);
       }
       void * depAddr = parent_task_data->ptr;
       if (depAddr) { // valid parent task
@@ -116,14 +116,14 @@ on_ompt_callback_task_create( // called in the context of the creator
       break;
     }
     case ompt_task_target:
-      PRINT_DEBUG("FlowSan: target task created");
+      PRINT_DEBUG("TaskSanitizer: target task created");
       break;
     case 5: //ompt_task_included:
-      PRINT_DEBUG("FlowSan: included task created");
+      PRINT_DEBUG("TaskSanitizer: included task created");
       break;
     case ompt_task_untied:
     case 6:
-      PRINT_DEBUG("FlowSan: untied task created");
+      PRINT_DEBUG("TaskSanitizer: untied task created");
       break;
     default:
       ;
@@ -140,7 +140,7 @@ on_ompt_callback_task_schedule( // called in the context of the task
     ompt_data_t *next_task_data) {        /* data of next task     */
 
   if (next_task_data->ptr == NULL) {
-    FlowSan_TaskBeginFunc(next_task_data);
+    TaskSanitizer_TaskBeginFunc(next_task_data);
   }
   PRINT_DEBUG("Task is being scheduled (p:" +
       std::to_string(next_task_data->value) + " t:" +
@@ -269,14 +269,14 @@ static int dfinspec_initialize(
   register_callback(ompt_callback_task_dependence);
   register_callback(ompt_callback_sync_region);
 
-  INS::InitFlowsanRuntime();
-  PRINT_DEBUG("Flowsan: init");
+  INS::InitTaskSanitizerRuntime();
+  PRINT_DEBUG("TaskSanitizer: init");
 
   return 1;
 }
 
 static void dfinspec_finalize(ompt_data_t *tool_data) {
-  PRINT_DEBUG("FlowSan: Everything is finalizing");
+  PRINT_DEBUG("TaskSanitizer: Everything is finalizing");
 }
 
 ompt_start_tool_result_t* ompt_start_tool(

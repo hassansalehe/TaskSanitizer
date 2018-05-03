@@ -10,9 +10,8 @@
 //    - One more task withdraws 500 from "balance"
 //    - Another task adds 20% commission
 //
-//   Output nondeterminism:
-//    - There is output nondeterminism among the three concurrent
-//      tasks.
+//   Determinacy races:
+//    - There are determinacy races among the three concurrent tasks.
 //
 //////////////////////////////////////////////////////////////////////
 

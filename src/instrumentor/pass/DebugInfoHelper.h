@@ -21,7 +21,7 @@
 namespace tasan {
 
 /// Implements helper functions for manipulating debugging
-/// information that is sent to the runtime nondeterminism
+/// information that is sent to the runtime determinacy race
 /// reporting of TaskSanitizer.
 namespace debug {
 

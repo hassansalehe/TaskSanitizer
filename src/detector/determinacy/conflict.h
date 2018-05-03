@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -10,15 +10,15 @@
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef _DETECTOR_NONDETERMINISM_CONFLICT_H_
-#define _DETECTOR_NONDETERMINISM_CONFLICT_H_
+#ifndef _DETECTOR_DETERMINACY_CONFLICT_H_
+#define _DETECTOR_DETERMINACY_CONFLICT_H_
 
 // includes and definitions
 #include "common/defs.h"
 #include "common/action.h" // defines Action class
 
 // This struct keeps the line information of the
-// address with determinism conflict
+// address with determinacy race conflict
 class Conflict {
  public:
   ADDRESS addr;

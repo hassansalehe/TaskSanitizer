@@ -6,8 +6,8 @@
 //
 //   This app creates two concurrent tasks with critical sections each.
 //
-//   Output nondeterminism:
-//    - There is output nondeterminism among the two concurrent
+//   Determinacy races:
+//    - There is a determinacy race between the two concurrent
 //      tasks because they can execute in any order and thus final
 //      result of "i" can be 1 or 2
 //

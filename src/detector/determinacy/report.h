@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -10,8 +10,8 @@
 //
 /////////////////////////////////////////////////////////////////
 
-#ifndef _DETECTOR_NONDETERMINISM_REPORT_H_
-#define _DETECTOR_NONDETERMINISM_REPORT_H_
+#ifndef _DETECTOR_DETERMINACY_REPORT_H_
+#define _DETECTOR_DETERMINACY_REPORT_H_
 
 // For storing names of conflicting tasks
 // and the addresses they conflict at

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -20,9 +20,9 @@
 #include "common/defs.h"
 #include "common/instruction.h"
 #include "common/CriticalSignatures.h"
-#include "detector/nondeterminism/operationSet.h"
-#include "detector/nondeterminism/conflict.h"
-#include "detector/nondeterminism/report.h"
+#include "detector/determinacy/operationSet.h"
+#include "detector/determinacy/conflict.h"
+#include "detector/determinacy/report.h"
 #include "detector/commutativity/CriticalSections.h"
 
 class CommutativityChecker {

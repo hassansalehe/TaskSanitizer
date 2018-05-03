@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -27,7 +27,7 @@ namespace tasan {
 /// Then program statements, in the form of IIR representation,
 /// in these critical sections are logged into .iir file.
 /// The .iir file is later loaded into memory at runtime to check
-/// commutativity among critical sections if nondeterminism is
+/// commutativity among critical sections if determinacy race is
 /// detected among them.
 namespace IIRlog {
 
@@ -120,7 +120,7 @@ namespace IIRlog {
 
   /**
    * Logs all statements in critical sections for commutativity
-   * checking in verification of nondererminism bugs
+   * checking in verification of determinacy races
    */
   void logTaskBody(llvm::Function & F, llvm::StringRef name) {
 

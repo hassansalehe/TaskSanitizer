@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -13,14 +13,14 @@
 // this files redifines data types for redability and
 // WORE (Write-Once-Reuse-Everywhere). Defines the Checker class
 
-#ifndef _DETECTOR_NONDETERMINISM_CHECKER_H_
-#define _DETECTOR_NONDETERMINISM_CHECKER_H_
+#ifndef _DETECTOR_DETERMINACY_CHECKER_H_
+#define _DETECTOR_DETERMINACY_CHECKER_H_
 
 // includes and definitions
 #include "common/defs.h"
 #include "common/MemoryActions.h"
-#include "detector/nondeterminism/conflict.h"
-#include "detector/nondeterminism/report.h"
+#include "detector/determinacy/conflict.h"
+#include "detector/determinacy/report.h"
 #include "detector/commutativity/CommutativityChecker.h"
 #include <list>
 
@@ -52,7 +52,7 @@ class Checker {
   VOID registerFuncSignature(std::string funcName, int funcID);
   VOID onTaskCreate(int taskID);
   VOID saveHappensBeforeEdge(int parentId, int siblingId);
-  VOID detectNondeterminismOnMem(int taskID,
+  VOID detectRaceOnMem(int taskID,
                                  std::string operation,
                                  std::stringstream & ssin);
 
@@ -72,7 +72,7 @@ class Checker {
     VOID constructMemoryAction(std::stringstream & ssin,
                                std::string & opType,
                                Action & action);
-    VOID saveNondeterminismReport(const Action& curWrite,
+    VOID saveDeterminacyRaceReport(const Action& curWrite,
                                   const Action& write);
 
     // hold bags of tasks

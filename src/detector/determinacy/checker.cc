@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////
-//  TaskSanitizer: a lightweight non-determinism checking
+//  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
 //    Copyright (c) 2015 - 2018 Hassan Salehe Matar
@@ -11,14 +11,14 @@
 /////////////////////////////////////////////////////////////////
 
 // this file implements the checking tool functionalities.
-#include "detector/nondeterminism/checker.h"  // header
+#include "detector/determinacy/checker.h"  // header
 #include "common/MemoryActions.h"
 #include <cassert>
 
 #define VERBOSE
 #define CONC_THREASHOLD 5
 
-// Saves the function name/signature for reporting nondeterminism
+// Saves the function name/signature for reporting determinacy races
 void Checker::registerFuncSignature(std::string funcName, int funcID) {
   assert(functions.find(funcID) == functions.end());
   functions[funcID] = funcName;
@@ -106,8 +106,8 @@ void Checker::saveHappensBeforeEdge(int parentId, int siblingId) {
   Checker::onTaskCreate(siblingId);
 }
 
-// Detects output nondeterminism on a memory read or write
-void Checker::detectNondeterminismOnMem(
+// Detects determinacy race on a memory read or write
+void Checker::detectRaceOnMem(
     int taskID,
     std::string operation,
     std::stringstream & ssin) {
@@ -168,16 +168,16 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
     if ( (taskActions.action.isWrite && lastWrt->action.isWrite) &&
          (taskActions.action.value != lastWrt->action.value) ) {
       // write different values, code for recording errors
-      saveNondeterminismReport( taskActions.action, lastWrt->action );
+      saveDeterminacyRaceReport( taskActions.action, lastWrt->action );
     } else if ((!taskActions.action.isWrite) && lastWrt->action.isWrite) {
     // 4.2 read-after-write or write-after-read conflicts
     // (a) taskActions is read-only and lastWrt is a writer:
       // code for recording errors
-      saveNondeterminismReport(taskActions.action, lastWrt->action);
+      saveDeterminacyRaceReport(taskActions.action, lastWrt->action);
     } else if ((!lastWrt->action.isWrite) && taskActions.action.isWrite ) {
     // (b) lastWrt is read-only and taskActions is a writer:
       // code for recording errors
-      saveNondeterminismReport(taskActions.action, lastWrt->action);
+      saveDeterminacyRaceReport(taskActions.action, lastWrt->action);
     }
   } // end for
 
@@ -190,10 +190,10 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
 
 
 /**
- * Records the nondeterminism warning to the conflicts table.
+ * Records the determinacy race warning to the conflicts table.
  * This is per pair of concurrent tasks.
  */
-VOID Checker::saveNondeterminismReport(const Action& curMemAction,
+VOID Checker::saveDeterminacyRaceReport(const Action& curMemAction,
                                        const Action& prevMemAction) {
   Conflict aConflict(curMemAction, prevMemAction);
 
@@ -287,12 +287,12 @@ VOID Checker::reportConflicts() {
   std::cout << emptyLine                               << std::endl;
   std::cout << emptyLine                               << std::endl;
   std::cout << emptyLine                               << std::endl;
-  std::cout << "              Non-determinism checking report  " << std::endl;
+  std::cout << "              Determinacy race checking report  " << std::endl;
   std::cout << emptyLine                               << std::endl;
 
   // print appropriate message in case no errors found
   if (! conflictTable.size() ) {
-    std::cout << "                 No nondeterminism found! " << std::endl;
+    std::cout << "                 No determinacy races found! " << std::endl;
   } else {
     std::cout << " The following " << conflictTable.size()
               << " task pairs have conflicts: " << std::endl;

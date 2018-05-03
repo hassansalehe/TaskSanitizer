@@ -20,7 +20,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 add_library(Logger STATIC
             eventlogger/Logger.cc
             callbacks/InstrumentationCallbacks.cc
-            ../detector/nondeterminism/checker.cc
+            ../detector/determinacy/checker.cc
             ../detector/commutativity/CommutativityChecker.cc)
 
 # Use C++11 to compile our pass (i.e., supply -std=c++11).
