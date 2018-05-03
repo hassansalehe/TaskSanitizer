@@ -51,10 +51,15 @@ Data race pair: i@61:5 vs. i@63:5
 */
 #include <assert.h>
 #include <stdio.h>
+
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 int main()
 {
   int i=0;
-#pragma omp parallel
+#pragma omp parallel num_threads(NTHREADS)
 #pragma omp single
   {
 #pragma omp task shared(i)

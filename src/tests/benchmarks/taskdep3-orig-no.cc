@@ -47,15 +47,20 @@ THE POSSIBILITY OF SUCH DAMAGE.
 /*
 tasks with depend clauses to ensure execution order, no data races.
 */
-#include <stdio.h> 
+#include <stdio.h>
+
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 int main()
 {
   int i=0;
-#pragma omp parallel
+#pragma omp parallel num_threads(NTHREADS)
 #pragma omp single
   {
 #pragma omp task depend (out:i)
-    i = 1;    
+    i = 1;
 #pragma omp task depend (in:i)
     printf ("x=%d\n", i);
 #pragma omp task depend (in:i)
@@ -63,4 +68,4 @@ int main()
   }
 
   return 0;
-} 
+}

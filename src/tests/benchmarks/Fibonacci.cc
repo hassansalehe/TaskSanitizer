@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <omp.h>
 
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 int * memoizer;
 long comp_fib_numbers(int n) {
   if ( n == 0 || n == 1 ) return n;
@@ -39,8 +43,8 @@ int main(int argc, char **argv) {
   n = atoi(argv[1]);
 
   memoizer = new int[n+1]();
-//#pragma omp parallel num_threads(NUM_THREADS)
-#pragma omp parallel num_threads(2)
+
+#pragma omp parallel num_threads(NTHREADS)
   {
 #pragma omp single
     {

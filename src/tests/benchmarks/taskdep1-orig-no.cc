@@ -50,10 +50,14 @@ i is shared for two tasks based on implicit data-sharing attribute rules.
 */
 #include <assert.h>
 
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 int main()
 {
   int i=0;
-#pragma omp parallel
+#pragma omp parallel num_threads(NTHREADS)
 #pragma omp single
   {
 #pragma omp task depend (out:i)

@@ -15,9 +15,13 @@
 
 #include <stdio.h>
 
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 int main() {
  int i=0;
-#pragma omp parallel num_threads(2)
+#pragma omp parallel num_threads(NTHREADS)
 #pragma omp single
  {
    #pragma omp task shared(i)
@@ -32,4 +36,3 @@ int main() {
  printf ("i=%d\n",i);
  return 0;
 }
-

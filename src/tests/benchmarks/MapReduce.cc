@@ -39,7 +39,10 @@
 #include <string.h>
 #include <assert.h>
 
-#define NTHREADS 2
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 #define WORDS 2048
 #define WORDSIZE 50
 

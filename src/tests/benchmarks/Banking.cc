@@ -18,8 +18,11 @@
 
 #include <iostream>
 #include <cstring>
-
 #include <omp.h>
+
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
 
 // balance
 float balance;
@@ -32,7 +35,7 @@ int token3;
 
 int main() {
 
-  #pragma omp parallel num_threads(4)
+  #pragma omp parallel num_threads(NTHREADS)
   {
     #pragma omp single
     {

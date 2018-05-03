@@ -66,6 +66,10 @@
 #include <ctime>
 #include <set>
 
+#if !defined(NTHREADS)
+#define NTHREADS 4
+#endif
+
 typedef struct elem_t {
   int * data;
   elem_t * next;
@@ -78,7 +82,7 @@ void generateAndStoreRandomNumber(elem_t * elem) {
 }
 
 void process_list(elem_t *elem) {
-  #pragma omp parallel num_threads(12)
+  #pragma omp parallel num_threads(NTHREADS)
   {
     #pragma omp single
     {
