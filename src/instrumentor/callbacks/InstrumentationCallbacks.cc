@@ -1,4 +1,4 @@
-//===-- tsan_interface.cc -------------------------------------------------===//
+//===--------------------- -------------------------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -16,8 +16,8 @@
 #include <thread>
 #include <cassert>
 #include <stdlib.h>
-#include "OMPTCallbacks.h"
-#include "tsan_interface.h"
+#include "instrumentor/callbacks/OMPTCallbacks.h"
+#include "instrumentor/callbacks/InstrumentationCallbacks.h"
 
 lint getMemoryValue( address addr, ulong size ) {
   if ( size == sizeof(char)   ) return *(static_cast<char *>(addr));
@@ -36,7 +36,7 @@ lint getMemoryValue( address addr, ulong size ) {
 // to initialize the logger
 void __tsan_init() {
   INS::InitFlowsanRuntime();
-  PRINT_DEBUG("Flowsan: init");
+  PRINT_DEBUG("TaskSanitizer: init");
 }
 
 //////////////////////////////////////////////////

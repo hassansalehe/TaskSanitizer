@@ -19,7 +19,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../bin")
 # List source files for libraries.
 add_library(Logger STATIC
             eventlogger/Logger.cc
-            callbacks/MemoryCallbacks.cc
+            callbacks/InstrumentationCallbacks.cc
             ../detector/nondeterminism/checker.cc
             ../detector/commutativity/CommutativityChecker.cc)
 

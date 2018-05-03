@@ -14,10 +14,10 @@
 #ifndef _INSTRUMENTOR_CALLBACKS_OMPTCALLBACKS_H_
 #define _INSTRUMENTOR_CALLBACKS_OMPTCALLBACKS_H_
 
-#include "instrumentor/eventlogger/Logger.h"
 #include "instrumentor/eventlogger/Util.h"
+#include "instrumentor/eventlogger/Logger.h"
 #include "instrumentor/eventlogger/TaskInfo.h"
-#include "instrumentor/callbacks/Callbacks.h"
+#include "instrumentor/callbacks/InstrumentationCallbacks.h"
 #include <omp.h>
 #include <ompt.h>
 
