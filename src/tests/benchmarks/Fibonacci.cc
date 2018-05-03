@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
 
   memoizer = new long[n+1]();
-#pragma omp parallel num_threads(NUM_THREADS)
+#pragma omp parallel num_threads(NTHREADS)
   {
 #pragma omp single
     {
