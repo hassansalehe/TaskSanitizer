@@ -81,8 +81,8 @@ STATISTIC(NumOmittedReadsFromConstantGlobals,
 STATISTIC(NumOmittedReadsFromVtable, "Number of vtable reads");
 STATISTIC(NumOmittedNonCaptured, "Number of accesses ignored due to capturing");
 
-static const char *const kTsanModuleCtorName = "tsan.module_ctor";
-static const char *const kTsanInitName = "__tsan_init";
+static const char *const kTsanModuleCtorName = "tasksan.module_ctor";
+static const char *const kTsanInitName = "__tasksan_init";
 
 namespace {
 
@@ -103,11 +103,11 @@ struct TaskSanitizer : public llvm::FunctionPass {
   bool doInitialization(llvm::Module &M) override {
 
     // initialization of task IIR logger.
-    tasan::IIRlog::InitializeLogger( M.getName() );
+    tasksan::IIRlog::InitializeLogger( M.getName() );
 
-    if ( tasan::debug::hasMainFunction(M) ) {
+    if ( tasksan::debug::hasMainFunction(M) ) {
       IIRfileURL = std::string(
-          tasan::debug::getFullFilename(M) + ".iir");
+          tasksan::debug::getFullFilename(M) + ".iir");
     }
 
     const llvm::DataLayout &DL = M.getDataLayout();
@@ -197,29 +197,29 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
       llvm::AttributeList::FunctionIndex, llvm::Attribute::NoUnwind);
   // Initialize the callbacks.
   RegisterIIRfile = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
+      "__tasksan_register_iir_file", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   TsanFuncEntry = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
+      "__tasksan_func_entry", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
   TsanFuncExit = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_func_exit", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
+      "__tasksan_func_exit", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   TsanIgnoreBegin = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_ignore_thread_begin", Attr, IRB.getVoidTy()));
+      "__tasksan_ignore_thread_begin", Attr, IRB.getVoidTy()));
 
   TsanIgnoreEnd = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_ignore_thread_end", Attr, IRB.getVoidTy()));
+      "__tasksan_ignore_thread_end", Attr, IRB.getVoidTy()));
 
   TaskSanitizer_TaskBeginFunc = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
       "TaskSanitizer_TaskBeginFunc", IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
   // functions to instrument floats and doubles
   llvm::LLVMContext &Ctx = M.getContext();
-  TaskSanitizer_MemWriteFloat = M.getOrInsertFunction("__fsan_write_float",
+  TaskSanitizer_MemWriteFloat = M.getOrInsertFunction("__tasksan_write_float",
       llvm::Type::getVoidTy(Ctx), llvm::Type::getFloatPtrTy(Ctx),
       llvm::Type::getFloatTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
-  TaskSanitizer_MemWriteDouble = M.getOrInsertFunction("__fsan_write_double",
+  TaskSanitizer_MemWriteDouble = M.getOrInsertFunction("__tasksan_write_double",
       llvm::Type::getVoidTy(Ctx), llvm::Type::getDoublePtrTy(Ctx),
       llvm::Type::getDoubleTy(Ctx), llvm::Type::getInt8Ty(Ctx));
 
@@ -229,33 +229,33 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
     const unsigned BitSize = ByteSize * 8;
     std::string ByteSizeStr = llvm::utostr(ByteSize);
     std::string BitSizeStr = llvm::utostr(BitSize);
-    llvm::SmallString<32> ReadName("__tsan_read" + ByteSizeStr);
+    llvm::SmallString<32> ReadName("__tasksan_read" + ByteSizeStr);
     TsanRead[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         ReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
         IRB.getInt64Ty()));
 
-    llvm::SmallString<32> WriteName("__tsan_write" + ByteSizeStr);
+    llvm::SmallString<32> WriteName("__tasksan_write" + ByteSizeStr);
     TsanWrite[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         WriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy(),
         IRB.getInt64Ty(), IRB.getInt8Ty()));
 
-    llvm::SmallString<64> UnalignedReadName("__tsan_unaligned_read" + ByteSizeStr);
+    llvm::SmallString<64> UnalignedReadName("__tasksan_unaligned_read" + ByteSizeStr);
     TsanUnalignedRead[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
             UnalignedReadName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
-    llvm::SmallString<64> UnalignedWriteName("__tsan_unaligned_write" + ByteSizeStr);
+    llvm::SmallString<64> UnalignedWriteName("__tasksan_unaligned_write" + ByteSizeStr);
     TsanUnalignedWrite[i] =
         checkSanitizerInterfaceFunction(M.getOrInsertFunction(
             UnalignedWriteName, Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
 
     llvm::Type *Ty = llvm::Type::getIntNTy(M.getContext(), BitSize);
     llvm::Type *PtrTy = Ty->getPointerTo();
-    llvm::SmallString<32> AtomicLoadName("__tsan_atomic" + BitSizeStr + "_load");
+    llvm::SmallString<32> AtomicLoadName("__tasksan_atomic" + BitSizeStr + "_load");
     TsanAtomicLoad[i] = checkSanitizerInterfaceFunction(
         M.getOrInsertFunction(AtomicLoadName, Attr, Ty, PtrTy, OrdTy));
 
-    llvm::SmallString<32> AtomicStoreName("__tsan_atomic" + BitSizeStr + "_store");
+    llvm::SmallString<32> AtomicStoreName("__tasksan_atomic" + BitSizeStr + "_store");
     TsanAtomicStore[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         AtomicStoreName, Attr, IRB.getVoidTy(), PtrTy, Ty, OrdTy));
 
@@ -279,25 +279,25 @@ void TaskSanitizer::initializeCallbacks(llvm::Module &M) {
         NamePart = "_fetch_nand";
       else
         continue;
-      llvm::SmallString<32> RMWName("__tsan_atomic" + llvm::itostr(BitSize) + NamePart);
+      llvm::SmallString<32> RMWName("__tasksan_atomic" + llvm::itostr(BitSize) + NamePart);
       TsanAtomicRMW[op][i] = checkSanitizerInterfaceFunction(
           M.getOrInsertFunction(RMWName, Attr, Ty, PtrTy, Ty, OrdTy));
     }
 
-    llvm::SmallString<32> AtomicCASName("__tsan_atomic" + BitSizeStr +
+    llvm::SmallString<32> AtomicCASName("__tasksan_atomic" + BitSizeStr +
                                   "_compare_exchange_val");
     TsanAtomicCAS[i] = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
         AtomicCASName, Attr, Ty, PtrTy, Ty, Ty, OrdTy, OrdTy));
   }
   TsanVptrUpdate = checkSanitizerInterfaceFunction(
-      M.getOrInsertFunction("__tsan_vptr_update", Attr, IRB.getVoidTy(),
+      M.getOrInsertFunction("__tasksan_vptr_update", Attr, IRB.getVoidTy(),
                             IRB.getInt8PtrTy(), IRB.getInt8PtrTy()));
   TsanVptrLoad = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_vptr_read", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
+      "__tasksan_vptr_read", Attr, IRB.getVoidTy(), IRB.getInt8PtrTy()));
   TsanAtomicThreadFence = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_atomic_thread_fence", Attr, IRB.getVoidTy(), OrdTy));
+      "__tasksan_atomic_thread_fence", Attr, IRB.getVoidTy(), OrdTy));
   TsanAtomicSignalFence = checkSanitizerInterfaceFunction(M.getOrInsertFunction(
-      "__tsan_atomic_signal_fence", Attr, IRB.getVoidTy(), OrdTy));
+      "__tasksan_atomic_signal_fence", Attr, IRB.getVoidTy(), OrdTy));
 
   MemmoveFn = checkSanitizerInterfaceFunction(
       M.getOrInsertFunction("memmove", Attr, IRB.getInt8PtrTy(), IRB.getInt8PtrTy(),
@@ -443,7 +443,7 @@ static bool isAtomic(llvm::Instruction *I) {
 void TaskSanitizer::InsertRuntimeIgnores(llvm::Function &F) {
   llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   IRB.CreateCall(TsanIgnoreBegin);
-  llvm::EscapeEnumerator EE(F, "tsan_ignore_cleanup", ClHandleCxxExceptions);
+  llvm::EscapeEnumerator EE(F, "tasksan_ignore_cleanup", ClHandleCxxExceptions);
   while (llvm::IRBuilder<> *AtExit = EE.Next()) {
     AtExit->CreateCall(TsanIgnoreEnd);
   }
@@ -451,16 +451,16 @@ void TaskSanitizer::InsertRuntimeIgnores(llvm::Function &F) {
 
 bool TaskSanitizer::runOnFunction(llvm::Function &F) {
   // This is required to prevent instrumenting call to
-  // __tsan_init from within the module constructor.
+  // __tasksan_init from within the module constructor.
   if (&F == TsanCtorFunction)
     return false;
 
   bool Res = false;
 
-  tasan::IIRlog::logTaskBody(F, tasan::util::getPlainFuncName(F));
+  tasksan::IIRlog::logTaskBody(F, tasksan::util::getPlainFuncName(F));
 
   // Register function name
-  llvm::StringRef funcName = tasan::util::demangleName(F.getName());
+  llvm::StringRef funcName = tasksan::util::demangleName(F.getName());
   llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
   funcNamePtr = IRB.CreateGlobalStringPtr(funcName, "functionName");
 
@@ -525,7 +525,7 @@ bool TaskSanitizer::runOnFunction(llvm::Function &F) {
   }
 
   // save full path name of .iir log file
-  if ( tasan::util::isMainFunction(F) ) {
+  if ( tasksan::util::isMainFunction(F) ) {
     llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
     IIRfile = IRB.CreateGlobalStringPtr(IIRfileURL, "iirFileLoc");
     IRB.CreateCall(RegisterIIRfile,
@@ -540,7 +540,7 @@ bool TaskSanitizer::runOnFunction(llvm::Function &F) {
         IRB.getInt32(0));
     IRB.CreateCall(TsanFuncEntry, ReturnAddress);
 
-    llvm::EscapeEnumerator EE(F, "tsan_cleanup", ClHandleCxxExceptions);
+    llvm::EscapeEnumerator EE(F, "tasksan_cleanup", ClHandleCxxExceptions);
     while (llvm::IRBuilder<> *AtExit = EE.Next()) {
       AtExit->CreateCall(TsanFuncExit, {funcNamePtr});
     }
@@ -610,14 +610,14 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
 
       IRB.CreateCall(OnAccessFunc,
           {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()), Val,
-           IRB.CreateIntCast(tasan::debug::getLineNumber(I),
+           IRB.CreateIntCast(tasksan::debug::getLineNumber(I),
                              IRB.getInt8Ty(),
                              false),
            IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
   } else {
     IRB.CreateCall(OnAccessFunc,
         {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()),
-         IRB.CreateIntCast(tasan::debug::getLineNumber(I),
+         IRB.CreateIntCast(tasksan::debug::getLineNumber(I),
                            IRB.getInt8Ty(),
                            false),
          IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
@@ -650,9 +650,9 @@ static llvm::ConstantInt *createOrdering(llvm::IRBuilder<> *IRB, llvm::AtomicOrd
 // We do not instrument memset/memmove/memcpy intrinsics (too complicated),
 // instead we simply replace them with regular function calls, which are then
 // intercepted by the run-time.
-// Since tsan is running after everyone else, the calls should not be
+// Since tasksan is running after everyone else, the calls should not be
 // replaced back with intrinsics. If that becomes wrong at some point,
-// we will need to call e.g. __tsan_memset to avoid the intrinsics.
+// we will need to call e.g. __tasksan_memset to avoid the intrinsics.
 bool TaskSanitizer::instrumentMemIntrinsic(llvm::Instruction *I) {
   llvm::IRBuilder<> IRB(I);
   if (llvm::MemSetInst *M = llvm::dyn_cast<llvm::MemSetInst>(I)) {

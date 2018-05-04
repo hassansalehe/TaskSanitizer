@@ -6,7 +6,7 @@
 //#include <>
 
 int main() {
-  tasan::commute::CriticalSections cs;
+  tasksan::commute::CriticalSections cs;
 
   // first body
   Instruction instr1;
@@ -14,7 +14,7 @@ int main() {
   Instruction instr2;
   instr2.lineNo = 6;
   std::vector<Instruction> body = {instr1, instr2};
-  tasan::commute::CriticalSectionBody body1(body);
+  tasksan::commute::CriticalSectionBody body1(body);
   body1.setStartLineNo(3);
   body1.setEndLineNo(6);
   cs.insert(body1);

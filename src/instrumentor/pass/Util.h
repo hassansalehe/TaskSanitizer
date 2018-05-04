@@ -18,7 +18,7 @@
 #include "instrumentor/pass/LLVMLibs.h" // the LLVM includes put there
 
 /// general namespace for TaskSanitizer tool
-namespace tasan {
+namespace tasksan {
 
 /// This namespace contains general utility/helper functions
 /// used in various parts of the program.
@@ -77,7 +77,7 @@ std::string Demangle(llvm::StringRef name) {
 }
 
 llvm::StringRef getPlainFuncName(llvm::Function & F) {
-  llvm::StringRef name = tasan::util::demangleName(F.getName());
+  llvm::StringRef name = tasksan::util::demangleName(F.getName());
   auto idx = name.find('(');
 
   if (idx != llvm::StringRef::npos) {
@@ -91,7 +91,7 @@ llvm::StringRef getPlainFuncName(llvm::Function & F) {
  * under instrumentation.
  */
 bool isMainFunction(llvm::Function &F ) {
-   return tasan::util::getPlainFuncName(F) == "main";
+   return tasksan::util::getPlainFuncName(F) == "main";
 }
 
 bool isTaskBodyFunction(llvm::StringRef name) {
@@ -134,6 +134,6 @@ bool isRuntimeTerminator(llvm::StringRef name) {
   return name.find(schedTerminFunc) != llvm::StringRef::npos;
 }
   } // end namespace util
-} // end namespace tasan
+} // end namespace tasksan
 
-#endif // end tasan_util.h
+#endif // end tasksan_util.h

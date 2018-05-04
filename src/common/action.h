@@ -11,8 +11,8 @@
 /////////////////////////////////////////////////////////////////
 
 // This header defines the Action class. Action represetions a single
-// action of a dataflow program. Example actions are the write, read,
-// token receive, token send, task begin, and task end
+// action of an OpenMP task program. Example actions are the write,
+// read, token receive, token send, task begin, and task end
 
 #ifndef _COMMON_EVENTLOGGER_ACTION_H__
 #define _COMMON_EVENTLOGGER_ACTION_H__

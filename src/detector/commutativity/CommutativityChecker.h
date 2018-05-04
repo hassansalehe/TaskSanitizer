@@ -32,7 +32,7 @@ class CommutativityChecker {
     bool isCommutative(const Conflict & conflict);
 
   private:
-    tasan::commute::CriticalSections Tasks;
+    tasksan::commute::CriticalSections Tasks;
     bool involveSimpleOperations(/*std::string task1, */INTEGER line1);
     bool isSafe(const std::vector<Instruction> & trace, INTEGER loc,
                 std::string operand);
@@ -55,11 +55,11 @@ class CommutativityChecker {
     }
 
     inline bool isCriticalSectionStart(const std::string& sttmt) {
-      return tasan::getStartCriticalSignature() == sttmt;
+      return tasksan::getStartCriticalSignature() == sttmt;
     }
 
     inline bool isCriticalSectionEnd(const std::string& sttmt) {
-      return tasan::getEndCriticalSignature() == sttmt;
+      return tasksan::getEndCriticalSignature() == sttmt;
     }
     /**
      * Returns the line number from the IR statement std::string

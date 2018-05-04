@@ -18,7 +18,7 @@
 #include "instrumentor/pass/LLVMLibs.h"
 
 /// main namespace for TaskSanitizer
-namespace tasan {
+namespace tasksan {
 
 /// Implements helper functions for manipulating debugging
 /// information that is sent to the runtime determinacy race
@@ -181,6 +181,6 @@ bool hasMainFunction(llvm::Module & M) {
 
 } // namespace debug
 
-} // tasan
+} // tasksan
 
 #endif

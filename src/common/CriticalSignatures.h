@@ -1,20 +1,20 @@
 #ifndef _COMMON_CRITICALSIGNATURES_H_
 #define _COMMON_CRITICALSIGNATURES_H_
 
-namespace tasan {
+namespace tasksan {
 
 /**
  * Returns signature to mark beginning of a critical section
  */
 inline std::string getStartCriticalSignature() {
-  return "TASAN:BeginCriticalSection";
+  return "TASKSAN:BeginCriticalSection";
 }
 
 /*
  * Returns a string signature to mark end of a critical section
  */
 inline std::string getEndCriticalSignature() {
-  return "TASAN:EndCriticalSection";
+  return "TASKSAN:EndCriticalSection";
 }
 } // end namespace
 

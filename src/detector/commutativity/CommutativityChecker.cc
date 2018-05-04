@@ -84,7 +84,7 @@ BOOL CommutativityChecker::involveSimpleOperations(
     INTEGER lineNumber) {
 
   // get the instructions of a task
-  tasan::commute::CriticalSectionBody *taskBody = Tasks.find(lineNumber);
+  tasksan::commute::CriticalSectionBody *taskBody = Tasks.find(lineNumber);
   if (nullptr == taskBody) return false;
 
   Instruction instr;

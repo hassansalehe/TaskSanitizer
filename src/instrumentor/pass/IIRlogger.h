@@ -20,7 +20,7 @@
 #include "common/CriticalSignatures.h"
 
 /// general namespace for TaskSanitizer tool
-namespace tasan {
+namespace tasksan {
 
 /// This namespace contains utilities for parsing program
 /// function bodies for locating critical sections.
@@ -78,13 +78,13 @@ namespace IIRlog {
       llvm::CallInst *M = llvm::dyn_cast<llvm::CallInst>(&Inst);
       llvm::Function *calledF = M->getCalledFunction();
       if (calledF) {
-        return tasan::util::demangleName(calledF->getName());
+        return tasksan::util::demangleName(calledF->getName());
       }
     } else if ( llvm::isa<llvm::InvokeInst>(Inst) ) {
       llvm::InvokeInst *M = llvm::dyn_cast<llvm::InvokeInst>(&Inst);
       llvm::Function *calledF = M->getCalledFunction();
       if (calledF) {
-        return tasan::util::demangleName(calledF->getName());
+        return tasksan::util::demangleName(calledF->getName());
       }
     }
 
@@ -132,13 +132,13 @@ namespace IIRlog {
 
         if ( isLockInvocation(Inst) ) { // set critical section
           if (in_critical_section == 0) {
-            IIRlog::SaveToLogFile( tasan::getStartCriticalSignature() );
+            IIRlog::SaveToLogFile( tasksan::getStartCriticalSignature() );
           }
           in_critical_section++;
         } else if ( isUnlockInvocation(Inst) ) { // exit critical section
           if (in_critical_section > 0) in_critical_section--;
           if (in_critical_section == 0) {
-            IIRlog::SaveToLogFile( tasan::getEndCriticalSignature() );
+            IIRlog::SaveToLogFile( tasksan::getEndCriticalSignature() );
           }
         } else if (in_critical_section > 0) { // in critical section
           unsigned lineNo = 0;
@@ -152,6 +152,6 @@ namespace IIRlog {
   }
 } // end IIRlog namespace
 
-} // end tasan namespace
+} // end tasksan namespace
 
 #endif

@@ -18,7 +18,7 @@
 #include <string>
 #include <cassert>
 
-namespace tasan {
+namespace tasksan {
 
 namespace commute {
 
@@ -76,6 +76,6 @@ public:
 
 } // end commute
 
-} // end tasan
+} // end tasksan
 
 #endif
