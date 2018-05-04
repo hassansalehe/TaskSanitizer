@@ -221,24 +221,17 @@ if [ ! -e "${taskSanHomeDir}/kastors" ]; then
   git clone https://scm.gforge.inria.fr/anonscm/git/kastors/kastors.git kastors
 fi
 
-# Step 4: Build TaskSanitizer
-
-cd src/instrumentor/
-#./install.sh
-#reportIfSuccessful
-
-mkdir -p build
-cd -
-cd src/instrumentor/build
+# Step 4: Build TaskSanitizer instrumentation module
+mkdir -p ${taskSanHomeDir}/build/libLogger
+cd ${taskSanHomeDir}/build/libLogger
 rm -rf libLogger.a
-CXX=clang++ cmake ..
+CXX=clang++ cmake ${taskSanHomeDir}/src/instrumentor
 make
 reportIfSuccessful
 
-cd -
-mkdir -p build
-cd build
+mkdir -p ${taskSanHomeDir}/build/taskSanbuild
+cd ${taskSanHomeDir}/build/taskSanbuild
 rm -rf libTaskSanitizer.so
-CXX=clang++ cmake ../src/instrumentor/pass/
+CXX=clang++ cmake ${taskSanHomeDir}/src/instrumentor/pass/
 make
 reportIfSuccessful
