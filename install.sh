@@ -34,6 +34,14 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+taskSanHomeDir=`pwd`
+ThirdPartyDir=${taskSanHomeDir}/thirdparty
+mkdir -p ${ThirdPartyDir}
+
+buildsDir=${taskSanHomeDir}/.builds
+mkdir -p ${buildsDir}
+version=6.0.0
+
 # Check if previous command was successful, exit script otherwise.
 reportIfSuccessful() {
   if [ $? -eq 0 ]; then
@@ -45,16 +53,13 @@ reportIfSuccessful() {
   fi
 }
 
-taskSanHomeDir=`pwd`
-version=6.0.0
-
 # Checks if necessary packages are installed in the machine
 # Installs the packages if user approves.
 CheckPrerequisites() {
   which wget > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "\033[1;31mERROR! wget missing\033[m"
-    read -p "Do you want to install wget (root password is needed) " -n 1 -r
+    read -p "Do you want to install wget (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install wget; fi
   fi
@@ -62,7 +67,7 @@ CheckPrerequisites() {
   which tar > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "\033[1;31mERROR! tar missing\033[m"
-    read -p "Do you want to install tar (root password is needed) " -n 1 -r
+    read -p "Do you want to install tar (root password is needed)? [N/y]" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install tar; fi
   fi
@@ -71,10 +76,10 @@ CheckPrerequisites() {
   which cmake > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "\033[1;31mERROR! cmake missing\033[m"
-    read -p "Do you want to install cmake (root password is needed)? " -n 1 -r
+    read -p "Do you want to install cmake (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cd /usr/src
+      cd ${ThirdPartyDir}
       sudo wget https://cmake.org/files/v3.10/cmake-3.10.3.tar.gz
       sudo tar -xvzf cmake-3.10.3.tar.gz
       cd cmake-3.10.3
@@ -89,72 +94,56 @@ CheckPrerequisites() {
   which clang++ > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "\033[1;31mERROR! Clang compiler missing\033[m"
-    read -p "Do you want to install LLVM/Clang (root password is needed)? " -n 1 -r
+    read -p "Do you want to install LLVM/Clang (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
 
-      SrcDir=/tmp/LLVM
-      mkdir -p $SrcDir
-      cd $SrcDir
-      cd /usr/src/LLVM
+      llvmDir=${ThirdPartyDir}/llvm
+      mkdir -p ${llvmDir} && cd ${llvmDir}
       wget -c http://releases.llvm.org/${version}/llvm-${version}.src.tar.xz
       tar xf llvm-${version}.src.tar.xz --strip-components 1
       rm llvm-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p tools/clang
-      cd tools/clang
+      cd ${llvmDir}
+      mkdir -p tools/clang && cd tools/clang
       wget -c http://releases.llvm.org/${version}/cfe-${version}.src.tar.xz
       tar xf cfe-${version}.src.tar.xz --strip-components 1
       rm cfe-${version}.src.tar.xz
 
-      mkdir -p tools/extra
-      cd tools/extra
+      mkdir -p tools/extra && cd tools/extra
       wget -c http://releases.llvm.org/${version}/clang-tools-extra-${version}.src.tar.xz
       tar xf clang-tools-extra-${version}.src.tar.xz --strip-components 1
       rm clang-tools-extra-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p projects/compiler-rt
-      cd projects/compiler-rt
+      cd ${llvmDir}
+      mkdir -p projects/compiler-rt && cd projects/compiler-rt
       wget -c http://releases.llvm.org/${version}/compiler-rt-${version}.src.tar.xz
       tar xf compiler-rt-${version}.src.tar.xz --strip-components 1
       rm compiler-rt-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p projects/libcxx
-      cd  projects/libcxx
+      cd ${llvmDir}
+      mkdir -p projects/libcxx && cd projects/libcxx
       wget -c http://releases.llvm.org/${version}/libcxx-${version}.src.tar.xz
       tar xf libcxx-${version}.src.tar.xz --strip-components 1
       rm libcxx-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p projects/libcxxabi
-      cd projects/libcxxabi
+      cd ${llvmDir}
+      mkdir -p projects/libcxxabi && cd projects/libcxxabi
       wget -c http://releases.llvm.org/${version}/libcxxabi-${version}.src.tar.xz
       tar xf libcxxabi-${version}.src.tar.xz --strip-components 1
       rm libcxxabi-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p projects/libunwind
-      cd projects/libunwind
+      cd ${llvmDir}
+      mkdir -p projects/libunwind && cd projects/libunwind
       wget -c http://releases.llvm.org/${version}/libunwind-${version}.src.tar.xz
       tar xf libunwind-${version}.src.tar.xz --strip-components 1
       rm libunwind-${version}.src.tar.xz
 
-      cd $SrcDir
-      mkdir -p projects/test-suite
-      cd projects/test-suite
-      wget -c http://releases.llvm.org/${version}/test-suite-${version}.src.tar.xz
-      tar xf test-suite-${version}.src.tar.xz --strip-components 1
-      rm test-suite-${version}.src.tar.xz
-
       echo "Building LLVM"
-      mkdir /tmp/llvm-build
-      cd /tmp/llvm-build
-      sudo cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr $SrcDir
+      mkdir -p ${llvmDir}/build && cd ${llvmDir}/build
+      sudo cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ${llvmDir}
       procNo=`cat /proc/cpuinfo | grep processor | wc -l`
-      sudo make -j $procNo
+      sudo make -j ${procNo}
       sudo make install
       # Report if everything is OK so far
       reportIfSuccessful
@@ -168,7 +157,7 @@ CheckPrerequisites() {
     read -p "Do you want to install Ninja (root password is needed)? " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cd /tmp
+      cd ${ThirdPartyDir}
       git clone git://github.com/ninja-build/ninja.git && cd ninja
       git checkout release
       ./configure.py --bootstrap
@@ -183,55 +172,48 @@ CheckPrerequisites() {
   CheckPrerequisites
 
 # Step 1: Download the OpenMP runtime
-if [ ! -e "${taskSanHomeDir}/openmp" ]; then
+if [ ! -e "${ThirdPartyDir}/openmp" ]; then
+  cd ${ThirdPartyDir}
   git clone https://github.com/llvm-mirror/openmp.git openmp
 fi
 export OPENMP_INSTALL=${taskSanHomeDir}/bin
 mkdir -p $OPENMP_INSTALL
 
-cd openmp
-mkdir -p build && cd build
+openmpsrc=${ThirdPartyDir}/openmp
+mkdir -p ${buildsDir}/openmp-build && cd ${buildsDir}/openmp-build
 cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
  -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX:PATH=$OPENMP_INSTALL	\
- -D LIBOMP_OMPT_SUPPORT=on -D LIBOMP_OMPT_BLAME=on -D LIBOMP_OMPT_TRACE=on ..
+ -D LIBOMP_OMPT_SUPPORT=on -D LIBOMP_OMPT_BLAME=on -D LIBOMP_OMPT_TRACE=on ${openmpsrc}
 
 ninja -j8 -l8
 ninja install
 reportIfSuccessful
 
 # Step 2: Download Archer tool
-cd ${taskSanHomeDir}
-if [ ! -e "${taskSanHomeDir}/archer" ]; then
+if [ ! -e "${ThirdPartyDir}/archer" ]; then
+  cd ${ThirdPartyDir}
   git clone https://github.com/PRUNERS/archer.git archer
 fi
 export ARCHER_INSTALL=${taskSanHomeDir}/bin
 
-cd archer
-mkdir -p build && cd build
+archersrc=${ThirdPartyDir}/archer
+mkdir -p ${buildsDir}/archer-build && cd ${buildsDir}/archer-build
 cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
- -D OMP_PREFIX:PATH=$OPENMP_INSTALL -D CMAKE_INSTALL_PREFIX:PATH=${ARCHER_INSTALL} ..
+ -D OMP_PREFIX:PATH=$OPENMP_INSTALL -D CMAKE_INSTALL_PREFIX:PATH=${ARCHER_INSTALL} ${archersrc}
 
 ninja -j8 -l8
 ninja install
 reportIfSuccessful
 
-# Step 3: Download the KaSTORs benchmark applications
-cd ${taskSanHomeDir}
-if [ ! -e "${taskSanHomeDir}/kastors" ]; then
-  git clone https://scm.gforge.inria.fr/anonscm/git/kastors/kastors.git kastors
-fi
-
 # Step 4: Build TaskSanitizer instrumentation module
-mkdir -p ${taskSanHomeDir}/build/libLogger
-cd ${taskSanHomeDir}/build/libLogger
+mkdir -p ${buildsDir}/libLogger-build && cd ${buildsDir}/libLogger-build
 rm -rf libLogger.a
-CXX=clang++ cmake ${taskSanHomeDir}/src/instrumentor
-make
+CXX=clang++ cmake -G Ninja ${taskSanHomeDir}/src/instrumentor
+ninja
 reportIfSuccessful
 
-mkdir -p ${taskSanHomeDir}/build/taskSanbuild
-cd ${taskSanHomeDir}/build/taskSanbuild
+mkdir -p ${buildsDir}/tasksan-build && cd ${buildsDir}/tasksan-build
 rm -rf libTaskSanitizer.so
-CXX=clang++ cmake ${taskSanHomeDir}/src/instrumentor/pass/
-make
+CXX=clang++ cmake -G Ninja ${taskSanHomeDir}/src/instrumentor/pass/
+ninja
 reportIfSuccessful
