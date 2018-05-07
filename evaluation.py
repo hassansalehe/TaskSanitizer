@@ -54,7 +54,7 @@ class BenchArgs( object ):
          (b) The list of compiler options may be long
     """
     def __init__( self ):
-        self.benchDir = "./src/tests/benchmarks/"
+        self.benchDir = "./src/benchmarks/"
         self.cppFiles = []
         self.cppArgs  = ["-fopenmp", "-lrt", "-lm", "-O2", "-std=c++11",
                          "-g", "-fpermissive"]
@@ -169,7 +169,7 @@ class Experiment( object ):
     correctness and performance experiments.
     """
     def __init__( self ):
-        self.benchDir = "./src/tests/benchmarks/"
+        self.benchDir = "./src/benchmarks/"
         self.apps = os.listdir( self.benchDir )
         self.results = []
         self.inputSizes = []
