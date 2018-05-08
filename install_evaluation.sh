@@ -17,19 +17,6 @@ reportIfSuccessful() {
   fi
 }
 
-
-sudo apt update
-sudo apt upgrade
-
-sudo apt-get install -y clang-${version}
-sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-${version} 100
-sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${version} 100
-sudo update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-${version} 100
-
-sudo apt-get install -y cmake
-sudo apt-get install -y ninja-build
-sudo apt-get install -y python-minimal
-
 export OPENMP_INSTALL=${taskSanHomeDir}/bin
 mkdir -p $OPENMP_INSTALL
 openmpsrc=${ThirdPartyDir}/openmp
