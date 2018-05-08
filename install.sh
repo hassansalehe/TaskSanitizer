@@ -53,6 +53,117 @@ reportIfSuccessful() {
   fi
 }
 
+## This function checks version of installed CMake.
+## It succeeds if Cmake version is >= 3.8.1
+checkCmakeVersion() {
+  version=`cmake --version | grep -i -m 1 version | egrep -o "[0-9]+\.[0-9]+\.[0-9]+" `
+  first=`echo ${version}  | sed 's/\./ /g' | awk '{print $1}' `
+  second=`echo ${version} | sed 's/\./ /g' | awk '{print $2}' `
+
+  if [ "${first}" -gt "3" ]; then
+    echo -e "\033[1;32m SUCCESS: CMake (version ${version}) found.\033[m"
+    return 0
+  elif [ "${first}" -eq "3" ] && [ "${second}" -gt "7" ]; then
+    echo -e "\033[1;32m SUCCESS: CMake (version ${version}) found.\033[m"
+    return 0
+  fi
+
+  echo -e "\033[1;31m FAILURE: No CMake version >= 3.8.0 found.\033[m"
+  exit 1
+}
+
+BuildInstallCMake() {
+  cd ${ThirdPartyDir}
+  wget https://cmake.org/files/v3.10/cmake-3.10.3.tar.gz
+  tar -xvzf cmake-3.10.3.tar.gz
+  cd cmake-3.10.3
+  ./bootstrap
+  make -j $procNo
+  sudo make install
+  cd $taskSanHomeDir
+}
+
+
+## This function checks version of installed Ninja-build system.
+## It succeeds if Ninja-build version is >= 1.8.0
+checkNinjaVersion() {
+  version=`ninja --version | egrep -o "[0-9]+\.[0-9]+\.[0-9]+" `
+  first=`echo ${version}  | sed 's/\./ /g' | awk '{print $1}' `
+  second=`echo ${version} | sed 's/\./ /g' | awk '{print $2}' `
+
+  if [ "${first}" -gt "1" ]; then
+    echo -e "\033[1;32m SUCCESS: Ninja build (version ${version}) found.\033[m"
+    return 0
+  elif [ "${first}" -eq "1" ] && [ "${second}" -gt "7" ]; then
+    echo -e "\033[1;32m SUCCESS: Ninja build (version ${version}) found.\033[m"
+    return 0
+  fi
+
+  echo -e "\033[1;31m FAILURE: No Ninja build version >= 3.8.0 found.\033[m"
+  exit 1
+}
+
+BuildInstallNinjaBuildSystem() {
+  cd ${ThirdPartyDir}
+  git clone git://github.com/ninja-build/ninja.git && cd ninja
+  git checkout release
+  ./configure.py --bootstrap
+  sudo mv ninja /usr/bin/
+  cd $taskSanHomeDir
+}
+
+BuildInstallLLVMClang() {
+  llvmDir=${ThirdPartyDir}/llvm
+  mkdir -p ${llvmDir} && cd ${llvmDir}
+  wget -c http://releases.llvm.org/${version}/llvm-${version}.src.tar.xz
+  tar xf llvm-${version}.src.tar.xz --strip-components 1
+  rm llvm-${version}.src.tar.xz
+
+  cd ${llvmDir}
+  mkdir -p tools/clang && cd tools/clang
+  wget -c http://releases.llvm.org/${version}/cfe-${version}.src.tar.xz
+  tar xf cfe-${version}.src.tar.xz --strip-components 1
+  rm cfe-${version}.src.tar.xz
+
+  mkdir -p tools/extra && cd tools/extra
+  wget -c http://releases.llvm.org/${version}/clang-tools-extra-${version}.src.tar.xz
+  tar xf clang-tools-extra-${version}.src.tar.xz --strip-components 1
+  rm clang-tools-extra-${version}.src.tar.xz
+
+#      cd ${llvmDir}
+#      mkdir -p projects/compiler-rt && cd projects/compiler-rt
+#      wget -c http://releases.llvm.org/${version}/compiler-rt-${version}.src.tar.xz
+#      tar xf compiler-rt-${version}.src.tar.xz --strip-components 1
+#      rm compiler-rt-${version}.src.tar.xz
+
+  cd ${llvmDir}
+  mkdir -p projects/libcxx && cd projects/libcxx
+  wget -c http://releases.llvm.org/${version}/libcxx-${version}.src.tar.xz
+  tar xf libcxx-${version}.src.tar.xz --strip-components 1
+  rm libcxx-${version}.src.tar.xz
+
+#      cd ${llvmDir}
+#      mkdir -p projects/libcxxabi && cd projects/libcxxabi
+#      wget -c http://releases.llvm.org/${version}/libcxxabi-${version}.src.tar.xz
+#      tar xf libcxxabi-${version}.src.tar.xz --strip-components 1
+#      rm libcxxabi-${version}.src.tar.xz
+
+#      cd ${llvmDir}
+#      mkdir -p projects/libunwind && cd projects/libunwind
+#      wget -c http://releases.llvm.org/${version}/libunwind-${version}.src.tar.xz
+#      tar xf libunwind-${version}.src.tar.xz --strip-components 1
+#      rm libunwind-${version}.src.tar.xz
+
+  echo "Building LLVM"
+  mkdir -p ${llvmDir}/build && cd ${llvmDir}/build
+  sudo cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ${llvmDir}
+  procNo=`cat /proc/cpuinfo | grep processor | wc -l`
+  sudo make -j ${procNo}
+  sudo make install
+  # Report if everything is OK so far
+  reportIfSuccessful
+}
+
 # Checks if necessary packages are installed in the machine
 # Installs the packages if user approves.
 CheckPrerequisites() {
@@ -79,16 +190,17 @@ CheckPrerequisites() {
     read -p "Do you want to install cmake (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cd ${ThirdPartyDir}
-      sudo wget https://cmake.org/files/v3.10/cmake-3.10.3.tar.gz
-      sudo tar -xvzf cmake-3.10.3.tar.gz
-      cd cmake-3.10.3
-      sudo ./bootstrap
-      sudo make -j $procNo
-      sudo make install
-      cd $taskSanHomeDir
+      sudo apt-get install cmake
+      which cmake > /dev/null
+      if [ $? -eq 0 ]; then
+        checkCmakeVersion
+        if [ $? -ne 0 ]; then
+          BuildInstallCMake
+        fi
+      fi
     fi
   fi
+  checkCmakeVersion
 
   # check if Clang compiler is installed
   which clang++ > /dev/null
@@ -97,56 +209,7 @@ CheckPrerequisites() {
     read -p "Do you want to install LLVM/Clang (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-
-      llvmDir=${ThirdPartyDir}/llvm
-      mkdir -p ${llvmDir} && cd ${llvmDir}
-      wget -c http://releases.llvm.org/${version}/llvm-${version}.src.tar.xz
-      tar xf llvm-${version}.src.tar.xz --strip-components 1
-      rm llvm-${version}.src.tar.xz
-
-      cd ${llvmDir}
-      mkdir -p tools/clang && cd tools/clang
-      wget -c http://releases.llvm.org/${version}/cfe-${version}.src.tar.xz
-      tar xf cfe-${version}.src.tar.xz --strip-components 1
-      rm cfe-${version}.src.tar.xz
-
-      mkdir -p tools/extra && cd tools/extra
-      wget -c http://releases.llvm.org/${version}/clang-tools-extra-${version}.src.tar.xz
-      tar xf clang-tools-extra-${version}.src.tar.xz --strip-components 1
-      rm clang-tools-extra-${version}.src.tar.xz
-
-      cd ${llvmDir}
-      mkdir -p projects/compiler-rt && cd projects/compiler-rt
-      wget -c http://releases.llvm.org/${version}/compiler-rt-${version}.src.tar.xz
-      tar xf compiler-rt-${version}.src.tar.xz --strip-components 1
-      rm compiler-rt-${version}.src.tar.xz
-
-      cd ${llvmDir}
-      mkdir -p projects/libcxx && cd projects/libcxx
-      wget -c http://releases.llvm.org/${version}/libcxx-${version}.src.tar.xz
-      tar xf libcxx-${version}.src.tar.xz --strip-components 1
-      rm libcxx-${version}.src.tar.xz
-
-      cd ${llvmDir}
-      mkdir -p projects/libcxxabi && cd projects/libcxxabi
-      wget -c http://releases.llvm.org/${version}/libcxxabi-${version}.src.tar.xz
-      tar xf libcxxabi-${version}.src.tar.xz --strip-components 1
-      rm libcxxabi-${version}.src.tar.xz
-
-      cd ${llvmDir}
-      mkdir -p projects/libunwind && cd projects/libunwind
-      wget -c http://releases.llvm.org/${version}/libunwind-${version}.src.tar.xz
-      tar xf libunwind-${version}.src.tar.xz --strip-components 1
-      rm libunwind-${version}.src.tar.xz
-
-      echo "Building LLVM"
-      mkdir -p ${llvmDir}/build && cd ${llvmDir}/build
-      sudo cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ${llvmDir}
-      procNo=`cat /proc/cpuinfo | grep processor | wc -l`
-      sudo make -j ${procNo}
-      sudo make install
-      # Report if everything is OK so far
-      reportIfSuccessful
+      BuildInstallLLVMClang
     fi
   fi
 
@@ -157,15 +220,10 @@ CheckPrerequisites() {
     read -p "Do you want to install Ninja (root password is needed)? " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cd ${ThirdPartyDir}
-      git clone git://github.com/ninja-build/ninja.git && cd ninja
-      git checkout release
-      ./configure.py --bootstrap
-      sudo mv ninja /usr/bin/
-      cd $taskSanHomeDir
+      BuildInstallNinjaBuildSystem
     fi
   fi
-
+  checkNinjaVersion
 }
 
 # Step 0: Check for prerequisites and install necessary packages
