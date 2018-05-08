@@ -172,7 +172,7 @@ CheckPrerequisites() {
     echo -e "\033[1;31mERROR! wget missing\033[m"
     read -p "Do you want to install wget (root password is needed)? [N/y] " -n 1 -r
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install wget; fi
+    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install -y wget; fi
   fi
 
   which tar > /dev/null
@@ -180,7 +180,7 @@ CheckPrerequisites() {
     echo -e "\033[1;31mERROR! tar missing\033[m"
     read -p "Do you want to install tar (root password is needed)? [N/y]" -n 1 -r
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install tar; fi
+    if [[ $REPLY =~ ^[Yy]$ ]]; then sudo apt-get install -y tar; fi
   fi
 
   # check if cmake is installed
@@ -190,7 +190,7 @@ CheckPrerequisites() {
     read -p "Do you want to install cmake (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-      sudo apt-get install cmake
+      sudo apt-get install -y cmake
       which cmake > /dev/null
       if [ $? -eq 0 ]; then
         checkCmakeVersion
