@@ -40,7 +40,7 @@ mkdir -p ${ThirdPartyDir}
 
 buildsDir=${taskSanHomeDir}/.builds
 mkdir -p ${buildsDir}
-version=6.0.0
+LLVMversion=6.0.0
 
 # Check if previous command was successful, exit script otherwise.
 reportIfSuccessful() {
@@ -115,44 +115,44 @@ BuildInstallNinjaBuildSystem() {
 BuildInstallLLVMClang() {
   llvmDir=${ThirdPartyDir}/llvm
   mkdir -p ${llvmDir} && cd ${llvmDir}
-  wget -c http://releases.llvm.org/${version}/llvm-${version}.src.tar.xz
-  tar xf llvm-${version}.src.tar.xz --strip-components 1
-  rm llvm-${version}.src.tar.xz
+  wget -c http://releases.llvm.org/${LLVMversion}/llvm-${LLVMversion}.src.tar.xz
+  tar xf llvm-${LLVMversion}.src.tar.xz --strip-components 1
+  rm llvm-${LLVMversion}.src.tar.xz
 
   cd ${llvmDir}
   mkdir -p tools/clang && cd tools/clang
-  wget -c http://releases.llvm.org/${version}/cfe-${version}.src.tar.xz
-  tar xf cfe-${version}.src.tar.xz --strip-components 1
-  rm cfe-${version}.src.tar.xz
+  wget -c http://releases.llvm.org/${LLVMversion}/cfe-${LLVMversion}.src.tar.xz
+  tar xf cfe-${LLVMversion}.src.tar.xz --strip-components 1
+  rm cfe-${LLVMversion}.src.tar.xz
 
   mkdir -p tools/extra && cd tools/extra
-  wget -c http://releases.llvm.org/${version}/clang-tools-extra-${version}.src.tar.xz
-  tar xf clang-tools-extra-${version}.src.tar.xz --strip-components 1
-  rm clang-tools-extra-${version}.src.tar.xz
+  wget -c http://releases.llvm.org/${LLVMversion}/clang-tools-extra-${LLVMversion}.src.tar.xz
+  tar xf clang-tools-extra-${LLVMversion}.src.tar.xz --strip-components 1
+  rm clang-tools-extra-${LLVMversion}.src.tar.xz
 
 #      cd ${llvmDir}
 #      mkdir -p projects/compiler-rt && cd projects/compiler-rt
-#      wget -c http://releases.llvm.org/${version}/compiler-rt-${version}.src.tar.xz
-#      tar xf compiler-rt-${version}.src.tar.xz --strip-components 1
-#      rm compiler-rt-${version}.src.tar.xz
+#      wget -c http://releases.llvm.org/${LLVMversion}/compiler-rt-${LLVMversion}.src.tar.xz
+#      tar xf compiler-rt-${LLVMversion}.src.tar.xz --strip-components 1
+#      rm compiler-rt-${LLVMversion}.src.tar.xz
 
   cd ${llvmDir}
   mkdir -p projects/libcxx && cd projects/libcxx
-  wget -c http://releases.llvm.org/${version}/libcxx-${version}.src.tar.xz
-  tar xf libcxx-${version}.src.tar.xz --strip-components 1
-  rm libcxx-${version}.src.tar.xz
+  wget -c http://releases.llvm.org/${LLVMversion}/libcxx-${LLVMversion}.src.tar.xz
+  tar xf libcxx-${LLVMversion}.src.tar.xz --strip-components 1
+  rm libcxx-${LLVMversion}.src.tar.xz
 
 #      cd ${llvmDir}
 #      mkdir -p projects/libcxxabi && cd projects/libcxxabi
-#      wget -c http://releases.llvm.org/${version}/libcxxabi-${version}.src.tar.xz
-#      tar xf libcxxabi-${version}.src.tar.xz --strip-components 1
-#      rm libcxxabi-${version}.src.tar.xz
+#      wget -c http://releases.llvm.org/${LLVMversion}/libcxxabi-${LLVMversion}.src.tar.xz
+#      tar xf libcxxabi-${LLVMversion}.src.tar.xz --strip-components 1
+#      rm libcxxabi-${LLVMversion}.src.tar.xz
 
 #      cd ${llvmDir}
 #      mkdir -p projects/libunwind && cd projects/libunwind
-#      wget -c http://releases.llvm.org/${version}/libunwind-${version}.src.tar.xz
-#      tar xf libunwind-${version}.src.tar.xz --strip-components 1
-#      rm libunwind-${version}.src.tar.xz
+#      wget -c http://releases.llvm.org/${LLVMversion}/libunwind-${LLVMversion}.src.tar.xz
+#      tar xf libunwind-${LLVMversion}.src.tar.xz --strip-components 1
+#      rm libunwind-${LLVMversion}.src.tar.xz
 
   echo "Building LLVM"
   mkdir -p ${llvmDir}/build && cd ${llvmDir}/build
