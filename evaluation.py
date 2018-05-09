@@ -35,11 +35,13 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import sys
-import subprocess
 import re
+import sys
 import math
+import subprocess
+import numpy as np
 from time import clock
+import matplotlib.pyplot as plt
 
 ###############################################################
 ### Classes below manage benchmark specific arguments
@@ -371,11 +373,25 @@ class Performance( Experiment ):
 
 
     def formatResult( self ):
+        plt.figure("Slowdown of determinacy race detection in programs as input size increases")
+        inputx    = []
+        slowdowny = []
+        number = len(self.finalResults) * 10 + 101
         for appName in self.finalResults:
+            figure = plt.subplot(number)
+            number = number + 1
+            figure.set_title(appName)
+            figure.set_xlabel("Input size (n)")
+            figure.set_ylabel("Slowdown")
             print appName
             for iSize, sDown in self.finalResults[appName]:
+                inputx.append(iSize)
+                slowdowny.append(sDown)
                 print "("+str(iSize)+", "+ str(sDown)+")",
             print
+            figure.plot(inputx, slowdowny, 'bo', inputx, slowdowny, 'k')
+        plt.show()
+
     # end class performance
 
 class Help( object ):
