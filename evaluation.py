@@ -244,8 +244,9 @@ class Correctness( Experiment ):
                 return re.findall('\d+', line)[0]
 
     def runExperiments( self ):
-        head = "Application, Input size, # tasks, # bugs"
-        print head
+        head = ["Application", "Input size", "# tasks", "# bugs"]
+        row_format ="{:<27}" * (len(head))
+        print row_format.format(*head)
         for app in self.apps:
             #print app
             name = "./."+ app + "Corr.exe"
@@ -267,7 +268,9 @@ class Correctness( Experiment ):
         num_bugs  = self.findBugs( output )
         num_tasks = self.getNumTasks( output )
         appName  = appName.replace(".cc", "")
-        print appName,",", inputSize,",", num_tasks,",", num_bugs
+        row = [appName, inputSize, num_tasks, num_bugs]
+        row_format ="{:<27}" * (len(row))
+        print row_format.format(*row)
 
 
 class Performance( Experiment ):
