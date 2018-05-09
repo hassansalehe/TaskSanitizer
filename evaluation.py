@@ -374,12 +374,12 @@ class Performance( Experiment ):
 
     def formatResult( self ):
         plt.figure("Slowdown of determinacy race detection in programs as input size increases")
-        inputx    = []
-        slowdowny = []
         number = len(self.finalResults) * 10 + 101
         for appName in self.finalResults:
-            figure = plt.subplot(number)
-            number = number + 1
+            inputx    = []
+            slowdowny = []
+            figure    = plt.subplot(number)
+            number    = number + 1
             figure.set_title(appName)
             figure.set_xlabel("Input size (n)")
             figure.set_ylabel("Slowdown")
