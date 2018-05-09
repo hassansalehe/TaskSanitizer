@@ -40,7 +40,7 @@ mkdir -p ${ThirdPartyDir}
 
 buildsDir=${taskSanHomeDir}/.builds
 mkdir -p ${buildsDir}
-LLVMversion=6.0.0
+LLVMversion=5.0.0
 
 # Check if previous command was successful, exit script otherwise.
 reportIfSuccessful() {
@@ -53,6 +53,27 @@ reportIfSuccessful() {
   fi
 }
 
+CheckAndInstallPython() {
+  which python > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mFAILURE: No Python found.\033[m"
+      sudo apt-get install -y python python-matplotlib
+    return 1
+  else
+    echo -e "\033[1;32mSUCCESS: Python found.\033[m"
+    dpkg -l python-matplotlib | grep "python-matplotlib" > /dev/null
+    if [ $? -ne 0 ]; then
+      echo -e "\033[1;31mFAILURE: No Python found.\033[m"
+      sudo apt-get install -y python-matplotlib
+      return 1
+    else
+      echo -e "\033[1;32mSUCCESS: Python matplotlib found.\033[m"
+      return 0
+    fi
+  fi
+  return 0
+}
+
 ## This function checks version of installed CMake.
 ## It succeeds if Cmake version is >= 3.8.1
 checkCmakeVersion() {
@@ -61,14 +82,14 @@ checkCmakeVersion() {
   second=`echo ${version} | sed 's/\./ /g' | awk '{print $2}' `
 
   if [ "${first}" -gt "3" ]; then
-    echo -e "\033[1;32m SUCCESS: CMake (version ${version}) found.\033[m"
+    echo -e "\033[1;32mSUCCESS: CMake (version ${version}) found.\033[m"
     return 0
   elif [ "${first}" -eq "3" ] && [ "${second}" -gt "7" ]; then
-    echo -e "\033[1;32m SUCCESS: CMake (version ${version}) found.\033[m"
+    echo -e "\033[1;32mSUCCESS: CMake (version ${version}) found.\033[m"
     return 0
   fi
 
-  echo -e "\033[1;31m FAILURE: No CMake version >= 3.8.0 found.\033[m"
+  echo -e "\033[1;31mFAILURE: No CMake version >= 3.8.0 found.\033[m"
   exit 1
 }
 
@@ -92,14 +113,14 @@ checkNinjaVersion() {
   second=`echo ${version} | sed 's/\./ /g' | awk '{print $2}' `
 
   if [ "${first}" -gt "1" ]; then
-    echo -e "\033[1;32m SUCCESS: Ninja build (version ${version}) found.\033[m"
+    echo -e "\033[1;32mSUCCESS: Ninja build (version ${version}) found.\033[m"
     return 0
   elif [ "${first}" -eq "1" ] && [ "${second}" -gt "7" ]; then
-    echo -e "\033[1;32m SUCCESS: Ninja build (version ${version}) found.\033[m"
+    echo -e "\033[1;32mSUCCESS: Ninja build (version ${version}) found.\033[m"
     return 0
   fi
 
-  echo -e "\033[1;31m FAILURE: No Ninja build version >= 3.8.0 found.\033[m"
+  echo -e "\033[1;31mFAILURE: No Ninja build version >= 3.8.0 found.\033[m"
   exit 1
 }
 
@@ -110,6 +131,22 @@ BuildInstallNinjaBuildSystem() {
   ./configure.py --bootstrap
   sudo mv ninja /usr/bin/
   cd $taskSanHomeDir
+}
+
+CheckLLVMClang() {
+  which clang++ > /dev/null
+  if [ $? -ne 0 ]; then
+    echo -e "\033[1;31mFAILURE: LLVM/Clang compiler missing\033[m"
+    return 1
+  else
+    find /usr/include/ -name "Instrumentation.h" > /dev/null
+    if [ $? -ne 0 ]; then
+      echo -e "\033[1;31mFAILURE: LLVM/Clang compiler missing\033[m"
+      return 1
+    fi
+  fi
+  echo -e "\033[1;32mSUCCESS: LLVM/Clang compiler found\033[m"
+  return 0
 }
 
 BuildInstallLLVMClang() {
@@ -130,11 +167,11 @@ BuildInstallLLVMClang() {
   tar xf clang-tools-extra-${LLVMversion}.src.tar.xz --strip-components 1
   rm clang-tools-extra-${LLVMversion}.src.tar.xz
 
-#      cd ${llvmDir}
-#      mkdir -p projects/compiler-rt && cd projects/compiler-rt
-#      wget -c http://releases.llvm.org/${LLVMversion}/compiler-rt-${LLVMversion}.src.tar.xz
-#      tar xf compiler-rt-${LLVMversion}.src.tar.xz --strip-components 1
-#      rm compiler-rt-${LLVMversion}.src.tar.xz
+  cd ${llvmDir}
+  mkdir -p projects/compiler-rt && cd projects/compiler-rt
+  wget -c http://releases.llvm.org/${LLVMversion}/compiler-rt-${LLVMversion}.src.tar.xz
+  tar xf compiler-rt-${LLVMversion}.src.tar.xz --strip-components 1
+  rm compiler-rt-${LLVMversion}.src.tar.xz
 
   cd ${llvmDir}
   mkdir -p projects/libcxx && cd projects/libcxx
@@ -142,17 +179,17 @@ BuildInstallLLVMClang() {
   tar xf libcxx-${LLVMversion}.src.tar.xz --strip-components 1
   rm libcxx-${LLVMversion}.src.tar.xz
 
-#      cd ${llvmDir}
-#      mkdir -p projects/libcxxabi && cd projects/libcxxabi
-#      wget -c http://releases.llvm.org/${LLVMversion}/libcxxabi-${LLVMversion}.src.tar.xz
-#      tar xf libcxxabi-${LLVMversion}.src.tar.xz --strip-components 1
-#      rm libcxxabi-${LLVMversion}.src.tar.xz
+  cd ${llvmDir}
+  mkdir -p projects/libcxxabi && cd projects/libcxxabi
+  wget -c http://releases.llvm.org/${LLVMversion}/libcxxabi-${LLVMversion}.src.tar.xz
+  tar xf libcxxabi-${LLVMversion}.src.tar.xz --strip-components 1
+  rm libcxxabi-${LLVMversion}.src.tar.xz
 
-#      cd ${llvmDir}
-#      mkdir -p projects/libunwind && cd projects/libunwind
-#      wget -c http://releases.llvm.org/${LLVMversion}/libunwind-${LLVMversion}.src.tar.xz
-#      tar xf libunwind-${LLVMversion}.src.tar.xz --strip-components 1
-#      rm libunwind-${LLVMversion}.src.tar.xz
+  cd ${llvmDir}
+  mkdir -p projects/libunwind && cd projects/libunwind
+  wget -c http://releases.llvm.org/${LLVMversion}/libunwind-${LLVMversion}.src.tar.xz
+  tar xf libunwind-${LLVMversion}.src.tar.xz --strip-components 1
+  rm libunwind-${LLVMversion}.src.tar.xz
 
   echo "Building LLVM"
   mkdir -p ${llvmDir}/build && cd ${llvmDir}/build
@@ -203,9 +240,8 @@ CheckPrerequisites() {
   checkCmakeVersion
 
   # check if Clang compiler is installed
-  which clang++ > /dev/null
+  CheckLLVMClang
   if [ $? -ne 0 ]; then
-    echo -e "\033[1;31mERROR! Clang compiler missing\033[m"
     read -p "Do you want to install LLVM/Clang (root password is needed)? [N/y] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -224,6 +260,8 @@ CheckPrerequisites() {
     fi
   fi
   checkNinjaVersion
+
+  CheckAndInstallPython
 }
 
 # Step 0: Check for prerequisites and install necessary packages
