@@ -248,8 +248,11 @@ class Correctness( Experiment ):
                 return re.findall('\d+', line)[0]
 
     def runExperiments( self ):
-        head = ["Application", "Input size", "# tasks", "# bugs"]
-        row_format ="{:<27}" * (len(head))
+        print ""
+        print "Showing number of bugs detected from a set of micro-benchmark applications"
+        print ""
+        head = ["Application", "Input size", "# tasks", "# bugs found"]
+        row_format ="| {:<27}| {:<11}| {:<8}| {:<13}|"
         print row_format.format(*head)
         for app in self.apps:
             #print app
@@ -276,8 +279,119 @@ class Correctness( Experiment ):
         num_tasks = self.getNumTasks( output )
         appName  = appName.replace(".cc", "")
         row = [appName, inputSize, num_tasks, num_bugs]
-        row_format ="{:<27}" * (len(row))
+        row_format ="| {:<27}| {:<11}| {:<8}| {:<13}|"
         print row_format.format(*row)
+
+class ArcherCorrectness( Correctness ):
+    """
+    This class implements the functions for running instrumented version
+    of the benchmark applications for reporting of bugs from them.
+
+    It is launced if you provide "correctness" as the first argument
+    if the evaluation Python script.
+
+    It works in three modes:
+       (1) It runs all the benchmark programs if no specific benchmark
+           is specified. Example command: ./evaluation.py archer
+       (2) It runs specified benchmark application.
+           Example: ./evaluation.py archer fibonacci
+       (3) It runs a specified benchmark application with a speficied
+           input size. E.g; ./evaluation.py archer fibonacci 400
+    """
+
+    def __init__( self ):
+        Correctness.__init__(self)
+
+    def archerExecute( self, commands ):
+        p = subprocess.Popen(commands, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return p.communicate()
+
+    def archerFindBugs( self, report ):
+        regex = "ThreadSanitizer: reported "
+        bugs = 0
+        for line in report.splitlines():
+            if regex in line and "warnings" in line:
+                for word in line.split():
+                    if word.isdigit():
+                        bugs = int(word)
+                        break
+                break
+        return bugs
+
+    def archerCompile( self, app ):
+        #print app
+        name = "./."+ app + "archerCorr.exe"
+        if os.path.isfile(name):
+            os.remove(name)
+        options = BenchArgFactory.getInstance( app )
+        commands = ["./bin/bin/clang-archer++", "-o", name]
+        commands.extend( options.getFullCommand() )
+        commands.extend(["-L./bin/lib", "-larcher"])
+        #print commands
+        return self.execute( commands )
+
+    def archerFormatResult( self, appName, inputSize, output ):
+        num_bugs  = self.archerFindBugs( output )
+        appName  = appName.replace(".cc", "")
+        row = [num_bugs]
+        row_format ="{:<13}|" * (len(row))
+        return row_format.format(*row)
+
+    def runArcher(self, app):
+        name = "./."+ app + "archerCorr.exe"
+        output, err = self.archerCompile( app )
+
+        if err is None and os.path.isfile(name):
+            bench    = BenchArgFactory.getInstance( app )
+            progArgs = bench.getFormattedInput( str(self.inputSizes[0]) )
+            commands = [name] + progArgs
+            #print commands
+            output, err = self.archerExecute( commands )
+            if err is not None:
+                return self.archerFormatResult( app, self.inputSizes[0], err )
+        return []
+
+    def runTaskSanitizer( self, app ):
+        #print app
+        name = "./."+ app + "Corr.exe"
+        if os.path.isfile(name):
+            os.remove(name)
+        options = BenchArgFactory.getInstance( app )
+        commands = ["./tasksan", "-o", name]
+        commands.extend( options.getFullCommand() )
+        #print commands
+        output, err = self.execute( commands )
+
+        if err is None and os.path.isfile(name):
+            bench    = BenchArgFactory.getInstance( app )
+            progArgs = bench.getFormattedInput( str(self.inputSizes[0]) )
+            commands = [name] + progArgs
+            #print commands
+            output, err = self.execute( commands )
+            if err is None:
+                return self.formatTasanResult( app, self.inputSizes[0], output )
+        return []
+
+    def formatTasanResult( self, appName, inputSize, output ):
+        num_bugs  = self.findBugs( output )
+        num_tasks = self.getNumTasks( output )
+        appName  = appName.replace(".cc", "")
+        row = [appName, inputSize, num_tasks, num_bugs]
+        row_format ="| {:<27}| {:<11}| {:<8}| {:<21}|"
+        return row_format.format(*row)
+
+    def runExperiments( self ):
+        print ""
+        print "Comparing detection results with that of Archer on same micro-benchmarks"
+        print ""
+        head = ["Application", "Input size", "# tasks", "# bugs TaskSanitizer", "# bugs Archer"]
+        row_format ="| {:<27}| {:<11}| {:<8}| {:<21}| {:<13}|" #* (len(head))
+        print row_format.format(*head)
+        for app in self.apps:
+            #print app
+            tasanResult = self.runTaskSanitizer(app)
+            archerResult = self.runArcher(app)
+            print tasanResult, archerResult
 
 
 class Performance( Experiment ):
@@ -446,6 +560,9 @@ if __name__ == "__main__":
             performance = Performance()
             performance.runExperiments()
             print "Performance"
+        elif option == "archer":
+            correctness = ArcherCorrectness()
+            correctness.runExperiments()
         else:
             print "Wrong commands:", sys.argv
             Help()
