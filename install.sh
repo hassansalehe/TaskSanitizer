@@ -45,10 +45,10 @@ LLVMversion=5.0.0
 # Check if previous command was successful, exit script otherwise.
 reportIfSuccessful() {
   if [ $? -eq 0 ]; then
-    echo -e "\033[1;32m Done.\033[m"
+    echo -e "\033[1;32mSUCCESS: $1.\033[m"
     return 0
   else
-    echo -e "\033[1;31m Fail.\033[m"
+    echo -e "\033[1;31mFAILURE: $1.\033[m"
     exit 1
   fi
 }
@@ -198,7 +198,7 @@ BuildInstallLLVMClang() {
   sudo make -j ${procNo}
   sudo make install
   # Report if everything is OK so far
-  reportIfSuccessful
+  reportIfSuccessful "Building LLVM/Clang"
 }
 
 # Checks if necessary packages are installed in the machine
@@ -283,7 +283,7 @@ cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
 
 ninja -j8 -l8
 ninja install
-reportIfSuccessful
+reportIfSuccessful "Compiling OpenMP runtime"
 
 # Step 2: Download Archer tool
 if [ ! -e "${ThirdPartyDir}/archer" ]; then
@@ -299,17 +299,17 @@ cmake -G Ninja -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++	\
 
 ninja -j8 -l8
 ninja install
-reportIfSuccessful
+reportIfSuccessful "Compiling Archer race detection tool"
 
 # Step 4: Build TaskSanitizer instrumentation module
 mkdir -p ${buildsDir}/libLogger-build && cd ${buildsDir}/libLogger-build
 rm -rf libLogger.a
 CXX=clang++ cmake -G Ninja ${taskSanHomeDir}/src/instrumentor
 ninja
-reportIfSuccessful
+reportIfSuccessful "Compiling TaskSanitizer runtime"
 
 mkdir -p ${buildsDir}/tasksan-build && cd ${buildsDir}/tasksan-build
 rm -rf libTaskSanitizer.so
 CXX=clang++ cmake -G Ninja ${taskSanHomeDir}/src/instrumentor/pass/
 ninja
-reportIfSuccessful
+reportIfSuccessful "Compiling TaskSanitizer instrumentation"
