@@ -229,11 +229,15 @@ class Correctness( Experiment ):
             self.inputSizes = [16]
 
     def findBugs( self, report ):
-        regex = " memory addresses"
+        regex = " task pairs have conflicts:"
         bugs = 0
         for line in report.splitlines():
             if regex in line:
-                bugs += 1
+                for word in line.split():
+                    if word.isdigit():
+                        bugs = int(word)
+                        break
+                break
         return bugs
 
     def getNumTasks( self, report ):
@@ -250,19 +254,22 @@ class Correctness( Experiment ):
         for app in self.apps:
             #print app
             name = "./."+ app + "Corr.exe"
+            if os.path.isfile(name):
+                os.remove(name)
             options = BenchArgFactory.getInstance( app )
             commands = ["./tasksan", "-o", name]
             commands.extend( options.getFullCommand() )
             #print commands
             output, err = self.execute( commands )
 
-            if err is None:
+            if err is None and os.path.isfile(name):
                 bench    = BenchArgFactory.getInstance( app )
                 progArgs = bench.getFormattedInput( str(self.inputSizes[0]) )
                 commands = [name] + progArgs
                 #print commands
                 output, err = self.execute( commands )
-                self.formatResult( app, self.inputSizes[0], output )
+                if err is None:
+                    self.formatResult( app, self.inputSizes[0], output )
 
     def formatResult( self, appName, inputSize, output ):
         num_bugs  = self.findBugs( output )
