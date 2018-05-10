@@ -10,7 +10,7 @@
 #include <omp.h>
 
 #if !defined(NTHREADS)
-#define NTHREADS 4
+#define NTHREADS 2
 #endif
 
 long * memoizer;

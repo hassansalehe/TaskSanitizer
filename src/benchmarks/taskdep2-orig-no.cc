@@ -51,7 +51,7 @@ i is shared for two tasks based on implicit data-sharing attribute rules.
 #include <assert.h>
 
 #if !defined(NTHREADS)
-#define NTHREADS 4
+#define NTHREADS 2
 #endif
 
 int main()

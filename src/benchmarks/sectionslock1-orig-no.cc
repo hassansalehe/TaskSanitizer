@@ -52,7 +52,7 @@ Two tasks with a lock synchronization to ensure execution order.
 #include <assert.h>
 
 #if !defined(NTHREADS)
-#define NTHREADS 4
+#define NTHREADS 2
 #endif
 
 int main()

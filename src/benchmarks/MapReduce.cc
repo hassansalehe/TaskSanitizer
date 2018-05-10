@@ -40,7 +40,7 @@
 #include <assert.h>
 
 #if !defined(NTHREADS)
-#define NTHREADS 4
+#define NTHREADS 2
 #endif
 
 #define WORDS 2048
