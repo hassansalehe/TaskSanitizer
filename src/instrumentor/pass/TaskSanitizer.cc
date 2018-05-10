@@ -68,19 +68,6 @@ static llvm::cl::opt<bool>  ClInstrumentMemIntrinsics(
     "tasksan-instrument-memintrinsics", llvm::cl::init(true),
     llvm::cl::desc("Instrument memintrinsics (memset/memcpy/memmove)"), llvm::cl::Hidden);
 
-STATISTIC(NumInstrumentedReads, "Number of instrumented reads");
-STATISTIC(NumInstrumentedWrites, "Number of instrumented writes");
-STATISTIC(NumOmittedReadsBeforeWrite,
-          "Number of reads ignored due to following writes");
-STATISTIC(NumAccessesWithBadSize, "Number of accesses with bad size");
-STATISTIC(NumInstrumentedVtableWrites, "Number of vtable ptr writes");
-STATISTIC(NumInstrumentedVtableReads, "Number of vtable ptr reads");
-
-STATISTIC(NumOmittedReadsFromConstantGlobals,
-          "Number of reads from constant globals");
-STATISTIC(NumOmittedReadsFromVtable, "Number of vtable reads");
-STATISTIC(NumOmittedNonCaptured, "Number of accesses ignored due to capturing");
-
 static const char *const kTsanModuleCtorName = "tasksan.module_ctor";
 static const char *const kTsanInitName = "__tasksan_init";
 
@@ -350,13 +337,11 @@ bool TaskSanitizer::addrPointsToConstantData(llvm::Value *Addr) {
   if (llvm::GlobalVariable *GV = llvm::dyn_cast<llvm::GlobalVariable>(Addr)) {
     if (GV->isConstant()) {
       // Reads from constant globals can not race with any writes.
-      NumOmittedReadsFromConstantGlobals++;
       return true;
     }
   } else if (llvm::LoadInst *L = llvm::dyn_cast<llvm::LoadInst>(Addr)) {
     if (isVtableAccess(L)) {
       // Reads from a vtable pointer can not race with any writes.
-      NumOmittedReadsFromVtable++;
       return true;
     }
   }
@@ -393,7 +378,6 @@ void TaskSanitizer::chooseInstructionsToInstrument(
         continue;
       if (WriteTargets.count(Addr)) {
         // We will write to this temp, so no reason to analyze the read.
-        NumOmittedReadsBeforeWrite++;
         continue;
       }
       if (addrPointsToConstantData(Addr)) {
@@ -409,7 +393,6 @@ void TaskSanitizer::chooseInstructionsToInstrument(
       // The variable is addressable but not captured, so it cannot be
       // referenced from a different thread and participate in a data race
       // (see llvm/Analysis/CaptureTracking.h for details).
-      NumOmittedNonCaptured++;
       continue;
     }
     All.push_back(I);
@@ -576,13 +559,11 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
     IRB.CreateCall(TsanVptrUpdate,
                    {IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()),
                     IRB.CreatePointerCast(StoredValue, IRB.getInt8PtrTy())});
-    NumInstrumentedVtableWrites++;
     return true;
   }
   if (!IsWrite && isVtableAccess(I)) {
     IRB.CreateCall(TsanVptrLoad,
                    IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()));
-    NumInstrumentedVtableReads++;
     return true;
   }
   const unsigned Alignment = IsWrite
@@ -618,8 +599,6 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
          IRB.CreatePointerCast(funcNamePtr, IRB.getInt8PtrTy())});
   }
 
-  if (IsWrite) NumInstrumentedWrites++;
-  else         NumInstrumentedReads++;
   return true;
 }
 
@@ -775,7 +754,6 @@ int TaskSanitizer::getMemoryAccessFuncIndex(llvm::Value *Addr,
   uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
   if (TypeSize != 8  && TypeSize != 16 &&
       TypeSize != 32 && TypeSize != 64 && TypeSize != 128) {
-    NumAccessesWithBadSize++;
     // Ignore all unusual sizes.
     return -1;
   }
