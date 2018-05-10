@@ -102,14 +102,6 @@ struct TaskSanitizer : public llvm::FunctionPass {
 
   bool doInitialization(llvm::Module &M) override {
 
-    // initialization of task IIR logger.
-    tasksan::IIRlog::InitializeLogger( M.getName() );
-
-    if ( tasksan::debug::hasMainFunction(M) ) {
-      IIRfileURL = std::string(
-          tasksan::debug::getFullFilename(M) + ".iir");
-    }
-
     const llvm::DataLayout &DL = M.getDataLayout();
     IntptrTy = DL.getIntPtrType(M.getContext());
 // HASSAN:
@@ -526,6 +518,9 @@ bool TaskSanitizer::runOnFunction(llvm::Function &F) {
 
   // save full path name of .iir log file
   if ( tasksan::util::isMainFunction(F) ) {
+    std::string fileName = tasksan::debug::getFilename(F);
+    IIRfileURL = std::string(fileName + ".iir");
+
     llvm::IRBuilder<> IRB(F.getEntryBlock().getFirstNonPHI());
     IIRfile = IRB.CreateGlobalStringPtr(IIRfileURL, "iirFileLoc");
     IRB.CreateCall(RegisterIIRfile,

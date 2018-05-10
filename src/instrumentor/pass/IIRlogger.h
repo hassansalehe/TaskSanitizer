@@ -38,10 +38,12 @@ namespace IIRlog {
    * Opens an output log file which is later used for
    * logging all instructions in program's critical sections.
    */
-  void InitializeLogger( llvm::StringRef cppName ) {
-    std::string full_file_name = "" + cppName.str() + ".iir";
+  void InitializeLogger( std::string cppName ) {
+    std::string full_file_name = "" + cppName + ".iir";
 
-    logFile.open(full_file_name, std::ofstream::out | std::ofstream::trunc);
+    if ( logFile.is_open() ) logFile.close();
+
+    logFile.open(full_file_name, std::ofstream::out | std::ofstream::app);
     if ( !logFile.is_open() ) {
       llvm::errs() << "FILE NO OPEN \n";
     }
@@ -124,6 +126,11 @@ namespace IIRlog {
    */
   void logTaskBody(llvm::Function & F, llvm::StringRef name) {
 
+    std::string fullFileName = tasksan::debug::getFilename(F);
+    if (fullFileName == "Unknown") {
+      return;
+    }
+
     int in_critical_section = 0;
 
     // search for critical sections in the whole function body
@@ -131,6 +138,7 @@ namespace IIRlog {
       for (auto &Inst : BB) {
 
         if ( isLockInvocation(Inst) ) { // set critical section
+          InitializeLogger(fullFileName);
           if (in_critical_section == 0) {
             IIRlog::SaveToLogFile( tasksan::getStartCriticalSignature() );
           }

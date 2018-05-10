@@ -93,6 +93,33 @@ std::string getFullFilename(llvm::Module & M) {
 }
 
 /**
+ * Returns absolute file name of which the function belongs to.
+ */
+std::string getFilename(const llvm::Function &F) {
+  std::string name = "Unknown";
+  std::string dirName = "";
+
+  for (auto &BB : F) {
+    for (auto &Inst : BB) {
+
+      // get debug information to retrieve file name
+      const llvm::DebugLoc &location = Inst.getDebugLoc();
+      if ( location ) {
+        auto *aScope = llvm::cast<llvm::DIScope>( location->getScope() );
+        if (aScope) {
+           name    = aScope->getFilename().str();
+           dirName = aScope->getDirectory().str();
+           name    = createAbsoluteFileName(dirName, name);
+	   if (name != "Unknown" ) break;
+        }
+      }
+    }
+  }
+  return name;
+}
+
+
+/**
  * Returns name of the function under instrumentation
  * as a value. The name is retrieved later at runtime.
  */

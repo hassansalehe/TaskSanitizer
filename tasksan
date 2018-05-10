@@ -37,5 +37,11 @@
 tasanHome="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 link_flags="-L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib"
 
+# Command below deletes files with intermediate representations (IIR)
+# so that instrumentation creates new IIR file.
+find ${tasanHome} -type f -name "*.iir" -delete
+
+# This command instruments C/CPP program to produce binary executable with
+# determinacy races runtime injected.
 /usr/bin/clang++ -Xclang -load -Xclang ${tasanHome}/bin/libTaskSanitizer.so  \
    -I${tasanHome}/bin/include -fopenmp  $link_flags -g "$@" -L${tasanHome}/bin -lLogger
