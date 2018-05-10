@@ -35,9 +35,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 tasanHome="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-link_flags="-L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib -L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib -larcher"
+link_flags="-L${tasanHome}/bin/lib -Wl,-rpath=${tasanHome}/bin/lib"
 
-/usr/bin/clang++ -Xclang -load -Xclang ${tasanHome}/bin/lib/LLVMArcher.so   \
-   -Xclang -load -Xclang ${tasanHome}/bin/libTaskSanitizer.so  \
-   -I${tasanHome}/bin/include -fopenmp  \
-   $link_flags -g "$@" -L${tasanHome}/bin -lLogger
+/usr/bin/clang++ -Xclang -load -Xclang ${tasanHome}/bin/libTaskSanitizer.so  \
+   -I${tasanHome}/bin/include -fopenmp  $link_flags -g "$@" -L${tasanHome}/bin -lLogger
