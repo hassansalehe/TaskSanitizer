@@ -116,11 +116,6 @@ class Taskdep1OrigNo( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "taskdep1-orig-no.cc"]
 
-class Taskdep2OrigNo( BenchArgs ):
-    def __init__( self ):
-        BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "taskdep2-orig-no.cc"]
-
 class Taskdep3OrigNo( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
@@ -148,8 +143,6 @@ class BenchArgFactory( object ):
            return Sectionslock1OrigNo()
         if "taskdep1-orig-no" in benchName:
            return Taskdep1OrigNo()
-        if "taskdep2-orig-no" in benchName:
-           return Taskdep2OrigNo()
         if "taskdep3-orig-no" in benchName:
            return Taskdep3OrigNo()
         if "taskdependmissing-orig-yes" in benchName:
@@ -182,7 +175,6 @@ class Experiment( object ):
                      "PointerChasing",
                      "sectionslock1-orig-no",
                      "taskdep1-orig-no",
-                     "taskdep2-orig-no",
                      "taskdep3-orig-no",
                      "taskdependmissing-orig-yes"];
 
@@ -535,7 +527,6 @@ class Help( object ):
         print "         PointerChasing"
         print "         sectionslock1-orig-no"
         print "         taskdep1-orig-no"
-        print "         taskdep2-orig-no"
         print "         taskdep3-orig-no"
         print "         taskdependmissing-orig-yes"
         print ""
