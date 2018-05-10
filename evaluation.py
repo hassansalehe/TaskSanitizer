@@ -298,7 +298,7 @@ class Performance( Experiment ):
             self.inputSizes = [2, 4, 8, 16, 32, 64, 128]
 
     def compileOriginalApp( self, appName ):
-        outName  = appName + "Orig.exe"
+        outName  = "./." + appName + "Orig.exe"
         command = ["/usr/bin/clang++"]
         command.append( "-L" + self.getLibraryPath() )
         command.append( "-Wl,-rpath=" + self.getLibraryPath() )
@@ -314,7 +314,7 @@ class Performance( Experiment ):
             sys.exit()
 
     def compileInstrumentedApp( self, appName ):
-        outName  = appName + "Instr.exe"
+        outName  = "./." + appName + "Instr.exe"
         command = ["./tasksan", "-o", outName]
         args = BenchArgFactory.getInstance( appName ).getFullCommand()
         command.extend( args )
@@ -325,23 +325,23 @@ class Performance( Experiment ):
             sys.exit()
 
     def runOriginalApp( self, appName, inputSize ):
-        name     = "./" + appName + "Orig.exe"
+        name     = "./." + appName + "Orig.exe"
         command  = [name]
         bench    = BenchArgFactory.getInstance(appName)
         progArgs = bench.getFormattedInput(inputSize)
         command.extend( progArgs )
-        print command
+        #print command
         start = clock()
         out, err = self.execute( command )
         return (clock() - start)
 
     def runInstrumentedApp( self, appName, inputSize ):
-        name     = "./" + appName + "Instr.exe"
+        name     = "./." + appName + "Instr.exe"
         command  = [name]
         bench    = BenchArgFactory.getInstance(appName)
         progArgs = bench.getFormattedInput(inputSize)
         command.extend( progArgs )
-        print command
+        #print command
         start = clock()
         out, err = self.execute( command )
         return (clock() - start)
@@ -383,7 +383,7 @@ class Performance( Experiment ):
 
 
     def formatResult( self ):
-        plt.figure("Slowdown of determinacy race detection in programs as input size increases")
+        plt.figure("Slowdown of determinacy race detection in programs as input size increases", figsize=(12, 10))
         number = len(self.finalResults) * 10 + 101
         for appName in self.finalResults:
             inputx    = []
