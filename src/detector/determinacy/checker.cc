@@ -281,7 +281,7 @@ VOID Checker::reportConflicts() {
       "============================================================");
   std::cout << borderLine                              << std::endl;
   std::cout << emptyLine                               << std::endl;
-  std::cout << "                    Summary  "         << std::endl;
+  std::cout << "                    TaskSanitizer Summary  "      << std::endl;
   std::cout << emptyLine                               << std::endl;
   std::cout << " Total number of tasks: " <<  graph.size() << std::endl;
   std::cout << emptyLine                               << std::endl;
