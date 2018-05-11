@@ -42,6 +42,8 @@ buildsDir=${taskSanHomeDir}/.builds
 mkdir -p ${buildsDir}
 LLVMversion=5.0.0
 
+procNo=`cat /proc/cpuinfo | grep processor | wc -l`
+
 # Check if previous command was successful, exit script otherwise.
 reportIfSuccessful() {
   if [ $? -eq 0 ]; then
