@@ -396,12 +396,15 @@ class Performance( Experiment ):
     """
     def __init__( self ):
         Experiment.__init__(self)
-        self.repetitions = 10
+        self.repetitions = 20
         if len(self.apps) > 3:
             self.apps = ["Fibonacci", "MapReduce", "PointerChasing"]
 
         if len(self.inputSizes) < 1:
             self.inputSizes = [2, 4, 8, 16, 32, 64, 128]
+        print ""
+        print "Running performance evaluation. Be patient as it takes time!"
+        print ""
 
     def compileOriginalApp( self, appName ):
         outName  = "./." + appName + "Orig.exe"
@@ -518,7 +521,7 @@ class Help( object ):
     def __init__( self ):
         print "./evaluation.py <experiment> <application> <input size>"
         print ""
-        print "    <experiment> is \"correctness\" or \"performance\" "
+        print "    <experiment> is \"correctness\" or \"performance\" or \"archer\""
         print "    <application> can be one of:"
         print "         BackgroundExample"
         print "         Banking"
@@ -535,6 +538,8 @@ class Help( object ):
         print "      will run with default input."
         print "   2. If you do not specify application, all benchmark"
         print "      applications will be executed."
+        print "   3. If you do not specify <experiment>, all evaluation"
+        print "      experiments will be executed."
     # end class Help
 
 ###############################################################
@@ -542,6 +547,7 @@ class Help( object ):
 ###############################################################
 if __name__ == "__main__":
     # parse arguments
+    print "TaskSanitizer Evaluation Script"
     if len(sys.argv) > 1:
         option = sys.argv[1]
         if option == "correctness":
@@ -554,12 +560,16 @@ if __name__ == "__main__":
         elif option == "archer":
             correctness = ArcherCorrectness()
             correctness.runExperiments()
+        elif option == "help":
+            Help()
         else:
             print "Wrong commands:", sys.argv
             Help()
     else: # no arguments means run both correctness and peformance
-        print "Wrong commands:", sys.argv
+        print "Running all experiments:", sys.argv
         correctness = Correctness()
         correctness.runExperiments()
+        archerCorrect = ArcherCorrectness()
+        archerCorrect.runExperiments()
         performance = Performance()
         performance.runExperiments()
