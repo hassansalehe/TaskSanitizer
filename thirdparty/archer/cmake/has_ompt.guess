@@ -1,6 +1,0 @@
-#! /bin/sh
-
-nm $1 | grep -w "$2" > /dev/null
-rc=$?
-
-echo $rc

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2017 - 2018, Hassan Salehe Matar
+# Copyright (c) 2015 - 2018 Hassan Salehe Matar
 # All rights reserved.
 #
 # This file is part of TaskSanitizer. For details, see
-# https://github.com/hassansalehe/TaskSanitizer. Please also see the LICENSE file
-# for additional BSD notice
+# https://github.com/hassansalehe/TaskSanitizer. Please also see the
+# LICENSE file for additional BSD notice
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -272,7 +272,7 @@ CheckPrerequisites() {
 # Step 1: Download the OpenMP runtime
 if [ ! -e "${ThirdPartyDir}/openmp" ]; then
   cd ${ThirdPartyDir}
-  git clone https://github.com/llvm-mirror/openmp.git openmp
+  git clone https://github.com/hassansalehe/openmp.git openmp
 fi
 export OPENMP_INSTALL=${taskSanHomeDir}/bin
 mkdir -p $OPENMP_INSTALL
@@ -290,7 +290,9 @@ reportIfSuccessful "Compiling OpenMP runtime"
 # Step 2: Download Archer tool
 if [ ! -e "${ThirdPartyDir}/archer" ]; then
   cd ${ThirdPartyDir}
-  git clone https://github.com/PRUNERS/archer.git archer
+  git clone https://github.com/hassansalehe/archer.git archer
+  cd archer
+  git checkout update_to_60
 fi
 export ARCHER_INSTALL=${taskSanHomeDir}/bin
 
