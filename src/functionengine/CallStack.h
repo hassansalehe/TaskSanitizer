@@ -2,12 +2,12 @@
 //
 // CallStack.h
 //
-// Copyright (c) 2017 - 2018, Hassan Salehe Matar
+// Copyright (c) 2015 - 2018 Hassan Salehe Matar
 // All rights reserved.
 //
 // This file is part of TaskSanitizer. For details, see
-// https://github.com/hassansalehe/TaskSanitizer. This code is 
-// distributed under BSD license. Please see the LICENSE file for 
+// https://github.com/hassansalehe/TaskSanitizer. This code is
+// distributed under BSD license. Please see the LICENSE file for
 // additional BSD notice
 //
 //////////////////////////////////////////////////////////////

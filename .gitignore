@@ -19,3 +19,5 @@ flowGraph.js
 flowGraph.sif
 openmp/
 test.cpp
+.builds
+thirdparty

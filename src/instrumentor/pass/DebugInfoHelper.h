@@ -1,16 +1,16 @@
-//===-- Extension to ThreadSanitizer.cpp - detecting races, Embeded ARM --===//
+/////////////////////////////////////////////////////////////////
+//  TaskSanitizer: a lightweight determinacy race checking
+//          tool for OpenMP task applications
 //
-//                     The LLVM Compiler Infrastructure
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
+//      Copying or using this code by any means whatsoever
+//      without consent of the owner is strictly prohibited.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+//   Contact: hassansalehe-at-gmail-dot-com
 //
-//===----------------------------------------------------------------------===//
-//
-// (c) 2017 - 2018 Hassan Salehe Matar
-//            Contact: hassansalehe-at-gmail-dot-com
-//
-//===----------------------------------------------------------------------===//
+/////////////////////////////////////////////////////////////////
+
+// Extension to TaskSanitizer.cc
 
 #ifndef _INSTRUMENTOR_PASS_DEBUGINFOHELPER_H_
 #define _INSTRUMENTOR_PASS_DEBUGINFOHELPER_H_

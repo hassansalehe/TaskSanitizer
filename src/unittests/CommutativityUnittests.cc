@@ -1,3 +1,14 @@
+/////////////////////////////////////////////////////////////////
+//  TaskSanitizer: a lightweight determinacy race checking
+//          tool for OpenMP task applications
+//
+//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
+//      Copying or using this code by any means whatsoever
+//      without consent of the owner is strictly prohibited.
+//
+//   Contact: hassansalehe-at-gmail-dot-com
+//
+/////////////////////////////////////////////////////////////////
 #include <CriticalSections.h>
 #include <CriticalSectionBody.h>
 #include <cassert>

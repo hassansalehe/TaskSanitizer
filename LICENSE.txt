@@ -1,4 +1,4 @@
-Copyright (c) 2015 - 2018, Hassan Salehe Matar
+Copyright (c) 2015 - 2018 Hassan Salehe Matar
 All rights reserved.
 
 This is BSD License file TaskSanitizer. For details about 
