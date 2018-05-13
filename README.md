@@ -1,5 +1,4 @@
 ### TaskSanitizer: Runtime Determinacy Race Detection Tool for OpenMP Tasks
-Please consult "OverviewDocument.pdf" for more information about this tool.
 
 #### Overview
 TaskSanitizer implements a method to detect determinacy races in OpenMP tasks.
