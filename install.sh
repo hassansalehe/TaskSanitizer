@@ -122,7 +122,7 @@ checkNinjaVersion() {
     return 0
   fi
 
-  echo -e "\033[1;31mFAILURE: No Ninja build version >= 3.8.0 found.\033[m"
+  echo -e "\033[1;31mFAILURE: No Ninja build version >= 1.8.0 found.\033[m"
   exit 1
 }
 
