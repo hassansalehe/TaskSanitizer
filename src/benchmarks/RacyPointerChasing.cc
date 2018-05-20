@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////
 //
-// PointerChasing.cc
+// RacyPointerChasing.cc
 //
 // Copyright (c) 2015 - 2018 Hassan Salehe Matar
 // All rights reserved.

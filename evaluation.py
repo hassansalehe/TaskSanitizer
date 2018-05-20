@@ -69,39 +69,39 @@ class BenchArgs( object ):
         return ["-n", size, "-r", rtSz, "-i", rtSz, "-b", rtSz]
     # end class BenchArgs
 
-class BackgroundExample( BenchArgs ):
+class RacyBackgroundExample( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "BackgroundExample.cc"]
+        self.cppFiles = [self.benchDir + "RacyBackgroundExample.cc"]
 
-class Banking( BenchArgs ):
+class RacyBanking( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "Banking.cc"]
+        self.cppFiles = [self.benchDir + "RacyBanking.cc"]
 
     def getFormattedInput( self, size ):
         return [size]
 
-class Fibonacci( BenchArgs ):
+class RacyFibonacci( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "Fibonacci.cc"]
+        self.cppFiles = [self.benchDir + "RacyFibonacci.cc"]
 
     def getFormattedInput( self, size ):
         return [size]
 
-class MapReduce( BenchArgs ):
+class RacyMapReduce( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "MapReduce.cc"]
+        self.cppFiles = [self.benchDir + "RacyMapReduce.cc"]
 
     def getFormattedInput( self, size ):
         return self.cppFiles
 
-class PointerChasing( BenchArgs ):
+class RacyPointerChasing( BenchArgs ):
     def __init__( self ):
         BenchArgs.__init__(self)
-        self.cppFiles = [self.benchDir + "PointerChasing.cc"]
+        self.cppFiles = [self.benchDir + "RacyPointerChasing.cc"]
 
     def getFormattedInput( self, size ):
         return [size]
@@ -129,16 +129,16 @@ class TaskdependmissingOrigYes( BenchArgs ):
 class BenchArgFactory( object ):
     @staticmethod
     def getInstance( benchName ):
-        if "BackgroundExample" in benchName:
-            return BackgroundExample()
-        if "Banking" in benchName:
-            return Banking()
-        if "Fibonacci" in benchName:
-            return Fibonacci()
-        if "MapReduce" in benchName:
-            return MapReduce()
-        if "PointerChasing" in benchName:
-           return PointerChasing()
+        if "RacyBackgroundExample" in benchName:
+            return RacyBackgroundExample()
+        if "RacyBanking" in benchName:
+            return RacyBanking()
+        if "RacyFibonacci" in benchName:
+            return RacyFibonacci()
+        if "RacyMapReduce" in benchName:
+            return RacyMapReduce()
+        if "RacyPointerChasing" in benchName:
+           return RacyPointerChasing()
         if "sectionslock1-orig-no" in benchName:
            return Sectionslock1OrigNo()
         if "taskdep1-orig-no" in benchName:
@@ -168,11 +168,11 @@ class Experiment( object ):
         self.apps = os.listdir( self.benchDir )
         self.results = []
         self.inputSizes = []
-        self.apps = ["BackgroundExample",
-                     "Banking",
-                     "Fibonacci",
-                     "MapReduce",
-                     "PointerChasing",
+        self.apps = ["RacyBackgroundExample",
+                     "RacyBanking",
+                     "RacyFibonacci",
+                     "RacyMapReduce",
+                     "RacyPointerChasing",
                      "sectionslock1-orig-no",
                      "taskdep1-orig-no",
                      "taskdep3-orig-no",
@@ -398,7 +398,7 @@ class Performance( Experiment ):
         Experiment.__init__(self)
         self.repetitions = 20
         if len(self.apps) > 3:
-            self.apps = ["Fibonacci", "MapReduce", "PointerChasing"]
+            self.apps = ["RacyFibonacci", "RacyMapReduce", "RacyPointerChasing"]
 
         if len(self.inputSizes) < 1:
             self.inputSizes = [2, 4, 8, 16, 32, 64, 128]
@@ -523,11 +523,11 @@ class Help( object ):
         print ""
         print "    <experiment> is \"correctness\" or \"performance\" or \"archer\""
         print "    <application> can be one of:"
-        print "         BackgroundExample"
-        print "         Banking"
-        print "         Fibonacci"
-        print "         MapReduce"
-        print "         PointerChasing"
+        print "         RacyBackgroundExample"
+        print "         RacyBanking"
+        print "         RacyFibonacci"
+        print "         RacyMapReduce"
+        print "         RacyPointerChasing"
         print "         sectionslock1-orig-no"
         print "         taskdep1-orig-no"
         print "         taskdep3-orig-no"
