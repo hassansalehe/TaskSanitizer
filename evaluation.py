@@ -67,6 +67,9 @@ class BenchArgs( object ):
     def getFormattedInput( self, size ):
         rtSz = str (int( math.sqrt( float(size) ) ) )
         return ["-n", size, "-r", rtSz, "-i", rtSz, "-b", rtSz]
+
+    def getPerformanceInputs( self ):
+        return []
     # end class BenchArgs
 
 class RacyBackgroundExample( BenchArgs ):
@@ -87,6 +90,10 @@ class RacyFibonacci( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "RacyFibonacci.cc"]
 
+    def getPerformanceInputs( self ):
+        input = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140]
+        return input
+
     def getFormattedInput( self, size ):
         return [size]
 
@@ -105,6 +112,10 @@ class RacyPointerChasing( BenchArgs ):
 
     def getFormattedInput( self, size ):
         return [size]
+
+    def getPerformanceInputs( self ):
+        input = [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340]
+        return input
 
 class Sectionslock1OrigNo( BenchArgs ):
     def __init__( self ):
@@ -198,7 +209,7 @@ class Experiment( object ):
         return p.communicate()
     # end class Experiment
 
-class Correctness( Experiment ):
+class ArcherCorrectness( Experiment ):
     """
     This class implements the functions for running instrumented version
     of the benchmark applications for reporting of bugs from them.
@@ -210,11 +221,10 @@ class Correctness( Experiment ):
        (1) It runs all the benchmark programs if no specific benchmark
            is specified. Example command: ./evaluation.py correctness
        (2) It runs specified benchmark application.
-           Example: ./evaluation.py correctness fibonacci
+           Example: ./evaluation.py correctness RacyFibonacci
        (3) It runs a specified benchmark application with a speficied
-           input size. E.g; ./evaluation.py correctness fibonacci 400
+           input size. E.g; ./evaluation.py correctness RacyFibonacci 400
     """
-
     def __init__( self ):
         Experiment.__init__(self)
         if len (self.inputSizes) < 1:
@@ -239,33 +249,6 @@ class Correctness( Experiment ):
             if regex in line:
                 return re.findall('\d+', line)[0]
 
-    def runExperiments( self ):
-        print ""
-        print "Showing number of bugs detected from a set of micro-benchmark applications"
-        print ""
-        head = ["Application", "Input size", "# tasks", "# bugs found"]
-        row_format ="| {:<27}| {:<11}| {:<8}| {:<13}|"
-        print row_format.format(*head)
-        for app in self.apps:
-            #print app
-            name = "./."+ app + "Corr.exe"
-            if os.path.isfile(name):
-                os.remove(name)
-            options = BenchArgFactory.getInstance( app )
-            commands = ["./tasksan", "-o", name]
-            commands.extend( options.getFullCommand() )
-            #print commands
-            output, err = self.execute( commands )
-
-            if err is None and os.path.isfile(name):
-                bench    = BenchArgFactory.getInstance( app )
-                progArgs = bench.getFormattedInput( str(self.inputSizes[0]) )
-                commands = [name] + progArgs
-                #print commands
-                output, err = self.execute( commands )
-                if err is None:
-                    self.formatResult( app, self.inputSizes[0], output )
-
     def formatResult( self, appName, inputSize, output ):
         num_bugs  = self.findBugs( output )
         num_tasks = self.getNumTasks( output )
@@ -273,26 +256,6 @@ class Correctness( Experiment ):
         row = [appName, inputSize, num_tasks, num_bugs]
         row_format ="| {:<27}| {:<11}| {:<8}| {:<13}|"
         print row_format.format(*row)
-
-class ArcherCorrectness( Correctness ):
-    """
-    This class implements the functions for running instrumented version
-    of the benchmark applications for reporting of bugs from them.
-
-    It is launced if you provide "correctness" as the first argument
-    if the evaluation Python script.
-
-    It works in three modes:
-       (1) It runs all the benchmark programs if no specific benchmark
-           is specified. Example command: ./evaluation.py archer
-       (2) It runs specified benchmark application.
-           Example: ./evaluation.py archer fibonacci
-       (3) It runs a specified benchmark application with a speficied
-           input size. E.g; ./evaluation.py archer fibonacci 400
-    """
-
-    def __init__( self ):
-        Correctness.__init__(self)
 
     def archerExecute( self, commands ):
         p = subprocess.Popen(commands, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -396,7 +359,7 @@ class Performance( Experiment ):
     """
     def __init__( self ):
         Experiment.__init__(self)
-        self.repetitions = 20
+        self.repetitions = 1000
         if len(self.apps) > 3:
             self.apps = ["RacyFibonacci", "RacyMapReduce", "RacyPointerChasing"]
 
@@ -460,6 +423,7 @@ class Performance( Experiment ):
         for app in self.apps:
             self.compileOriginalApp( app )
             self.compileInstrumentedApp( app )
+            self.inputSizes = BenchArgFactory.getInstance(app).getPerformanceInputs()
 
             result = []
             for inputSz in self.inputSizes:
@@ -468,24 +432,32 @@ class Performance( Experiment ):
 
                 # run the original application
                 for iter in range( self.repetitions ):
-                    execTime     = self.runOriginalApp( app, str(inputSz) )
-                    origExecTime = origExecTime + execTime
+                    execTime2     = self.runInstrumentedApp( app, str(inputSz) )
+                    execTime1     = self.runOriginalApp( app, str(inputSz) )
+                    if iter > 100:
+                        origExecTime = origExecTime + execTime1
+                        instrExecTime = instrExecTime + execTime2
                 if origExecTime > 0 :
-                    origExecTime = origExecTime / self.repetitions
+                    origExecTime = origExecTime / (self.repetitions - 100)
+                else:
+                    print "ERROR: execution time zero!"
 
                 # run the instrumented application
-                for iter in range( self.repetitions ):
-                    execTime      = self.runInstrumentedApp( app, str(inputSz) )
-                    instrExecTime = instrExecTime + execTime
+                #for iter in range( self.repetitions ):
+                #    execTime      = self.runInstrumentedApp( app, str(inputSz) )
+                #    if iter > 100:
+                #        instrExecTime = instrExecTime + execTime
                 if origExecTime > 0:
-                    instrExecTime = instrExecTime / self.repetitions
+                    instrExecTime = instrExecTime / (self.repetitions - 100)
+                else:
+                    print "ERROR: execution time zero!"
 
                 # calculate slowdown
                 if origExecTime > 0:
                     slowdown = round( instrExecTime / origExecTime, 2)
                     result.append( (inputSz, slowdown) )
                 else:
-                    print "Execution time zero"
+                    print "ERROR: execution time zero"
             self.finalResults[app] = result
 
         self.formatResult()
@@ -551,15 +523,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         option = sys.argv[1]
         if option == "correctness":
-            correctness = Correctness()
+            correctness = ArcherCorrectness()
             correctness.runExperiments()
         elif option == "performance":
             performance = Performance()
             performance.runExperiments()
             print "Performance"
-        elif option == "archer":
-            correctness = ArcherCorrectness()
-            correctness.runExperiments()
         elif option == "help":
             Help()
         else:
@@ -567,8 +536,6 @@ if __name__ == "__main__":
             Help()
     else: # no arguments means run both correctness and peformance
         print "Running all experiments:", sys.argv
-        correctness = Correctness()
-        correctness.runExperiments()
         archerCorrect = ArcherCorrectness()
         archerCorrect.runExperiments()
         performance = Performance()
