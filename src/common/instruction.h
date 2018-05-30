@@ -166,8 +166,8 @@ class Instruction {
 
     std::vector<std::string> segments2;
     // make individual words
-    for (auto stmt : segments) {
-      std::stringstream sg2(trim(stmt));
+    for (auto statement : segments) {
+      std::stringstream sg2( trim(statement) );
       while ( getline(sg2, tok, ' ') ) {
         segments2.push_back(tok);
       }
