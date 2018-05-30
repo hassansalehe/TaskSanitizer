@@ -564,8 +564,6 @@ if __name__ == "__main__":
             Help()
     else: # no arguments means run both correctness and peformance
         print "Running all experiments:", sys.argv
-        correctness = Correctness()
-        correctness.runExperiments()
         archerCorrect = ArcherCorrectness()
         archerCorrect.runExperiments()
         performance = Performance()
