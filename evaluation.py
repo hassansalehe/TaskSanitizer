@@ -551,15 +551,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         option = sys.argv[1]
         if option == "correctness":
-            correctness = Correctness()
+            correctness = ArcherCorrectness()
             correctness.runExperiments()
         elif option == "performance":
             performance = Performance()
             performance.runExperiments()
             print "Performance"
-        elif option == "archer":
-            correctness = ArcherCorrectness()
-            correctness.runExperiments()
         elif option == "help":
             Help()
         else:
