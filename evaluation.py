@@ -102,6 +102,27 @@ class RacyMapReduce( BenchArgs ):
         BenchArgs.__init__(self)
         self.cppFiles = [self.benchDir + "RacyMapReduce.cc"]
 
+    def getPerformanceInputs( self ):
+        input = ["./src/benchmarks/mapreduceinputs/_100k.txt",
+                 "./src/benchmarks/mapreduceinputs/_150k.txt",
+                 "./src/benchmarks/mapreduceinputs/_200k.txt",
+                 "./src/benchmarks/mapreduceinputs/_250k.txt",
+                 "./src/benchmarks/mapreduceinputs/_300k.txt",
+                 "./src/benchmarks/mapreduceinputs/_350k.txt",
+                 "./src/benchmarks/mapreduceinputs/_400k.txt",
+                 "./src/benchmarks/mapreduceinputs/_450k.txt",
+                 "./src/benchmarks/mapreduceinputs/_500k.txt",
+                 "./src/benchmarks/mapreduceinputs/_550k.txt",
+                 "./src/benchmarks/mapreduceinputs/_600k.txt",
+                 "./src/benchmarks/mapreduceinputs/_650k.txt",
+                 "./src/benchmarks/mapreduceinputs/_700k.txt",
+                 "./src/benchmarks/mapreduceinputs/_750k.txt",
+                 "./src/benchmarks/mapreduceinputs/_800k.txt",
+                 "./src/benchmarks/mapreduceinputs/_850k.txt",
+                 "./src/benchmarks/mapreduceinputs/_900k.txt",
+                 "./src/benchmarks/mapreduceinputs/_950k.txt"]
+        return input
+
     def getFormattedInput( self, size ):
         return self.cppFiles
 
@@ -359,7 +380,7 @@ class Performance( Experiment ):
     """
     def __init__( self ):
         Experiment.__init__(self)
-        self.repetitions = 1000
+        self.repetitions = 100
         if len(self.apps) > 3:
             self.apps = ["RacyFibonacci", "RacyMapReduce", "RacyPointerChasing"]
 
@@ -434,11 +455,11 @@ class Performance( Experiment ):
                 for iter in range( self.repetitions ):
                     execTime2     = self.runInstrumentedApp( app, str(inputSz) )
                     execTime1     = self.runOriginalApp( app, str(inputSz) )
-                    if iter > 100:
+                    if iter > 10:
                         origExecTime = origExecTime + execTime1
                         instrExecTime = instrExecTime + execTime2
                 if origExecTime > 0 :
-                    origExecTime = origExecTime / (self.repetitions - 100)
+                    origExecTime = origExecTime / (self.repetitions - 10)
                 else:
                     print "ERROR: execution time zero!"
 
@@ -448,7 +469,7 @@ class Performance( Experiment ):
                 #    if iter > 100:
                 #        instrExecTime = instrExecTime + execTime
                 if origExecTime > 0:
-                    instrExecTime = instrExecTime / (self.repetitions - 100)
+                    instrExecTime = instrExecTime / (self.repetitions - 10)
                 else:
                     print "ERROR: execution time zero!"
 
@@ -476,6 +497,9 @@ class Performance( Experiment ):
             figure.set_ylabel("Slowdown")
             print appName
             for iSize, sDown in self.finalResults[appName]:
+                if type(iSize) is str:
+                    iSize = result = re.sub('[^0-9]','', iSize)
+                    print iSize
                 inputx.append(iSize)
                 slowdowny.append(sDown)
                 print "("+str(iSize)+", "+ str(sDown)+")",
