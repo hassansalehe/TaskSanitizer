@@ -20,7 +20,7 @@ TaskSanitizer has been developed entirely on Linux Ubuntu on versions 16.04.4
 LTS and 18.04 LTS. However, it does not use any unique features of Ubuntu and
 thus it can be tested on any Linux/Unix system which has access to a terminal
 and Bash program. It also requires LLVM/Clang with version >= 5.0.0, CMake
-version >= 3.8, Ninja build system version >= 2.8, and Python version >= 2.7.12.
+version >= 3.8, Ninja build system version >= 1.8, and Python version >= 2.7.12.
 We recommend Ubuntu 18.04 LTS since has it these tools in its standard repository
 and therefore the process for installing them is simplified. In Section 2 we
 will provide step-by-step instructions on how to install these tools on Ubuntu
@@ -165,7 +165,7 @@ The produced binaries are stored in bin folder under the main folder of
 TaskSanitizer. Messages output from install.sh tells status of each compilation.
 
 #### Using TaskSanitizer to instrument OpenMP C/C++ programs
-This section depends on successful completion of Section 2.8. To facilitate
+This section depends on successful building TaskSanitizer. To facilitate
 evaluation, we developed a simple Python script *__evaluation.py__* under the
 main directory of the project to facilitate evaluation of different aspects of
 our method. This section describes how to detect determinacy races on any C/C++.
@@ -180,21 +180,21 @@ directory of TaskSanitizer.
 ./tasksan <your_c_cpp_program_file_name> <custom_compiler flags>
 ```
 
-For example, `./src/banchmarks/BackgroundExample.cc` can be compiled as below.
+For example, `./src/banchmarks/RacyBackgroundExample.cc` can be compiled as below.
 
 ```bash
-./tasksan ./src/banchmarks/BackgroundExample.cc -O ./BackgroundExample.exe
+./tasksan ./src/banchmarks/RacyBackgroundExample.cc -O ./RacyBackgroundExample.exe
 ```
 
 The second stage is execution of the produced binary after instrumentation.
 The races are detected while the program executes and are reported to standard
 output when it terminates. The screenshot below shows how the produced binary
-for `./src/banchmarks/BackgroundExample.cc` is executed and a sample output with
+for `./src/banchmarks/RacyBackgroundExample.cc` is executed and a sample output with
 detected race which shows there is a race between line numbers 29 and 33 as a
 result of Write-Write conflicts between two concurrent tasks.
 
 ```bash
-./BackgroundExample.exe
+./RacyBackgroundExample.exe
 No. of critical sections in IIR: 2
 i=1
 ============================================================
