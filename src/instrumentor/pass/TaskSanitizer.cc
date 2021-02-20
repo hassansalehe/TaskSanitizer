@@ -91,14 +91,6 @@ struct TaskSanitizer : public llvm::FunctionPass {
 
     const llvm::DataLayout &DL = M.getDataLayout();
     IntptrTy = DL.getIntPtrType(M.getContext());
-// HASSAN:
-//    std::tie(TsanCtorFunction, std::ignore)
-//        = createSanitizerCtorAndInitFunctions(
-//      M, kTsanModuleCtorName, kTsanInitName, /*InitArgTypes=*/{},
-//      /*InitArgs=*/{});
-//
-//    appendToGlobalCtors(M, TsanCtorFunction, 0);
-
     return true;
   }
 
