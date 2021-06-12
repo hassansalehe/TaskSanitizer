@@ -1,4 +1,7 @@
 ### TaskSanitizer: Runtime Determinacy Race Detection Tool for OpenMP Tasks
+[![codecov](https://codecov.io/gh/hassansalehe/TaskSanitizer/branch/master/graph/badge.svg?token=5YCIUJZ6U9)](https://codecov.io/gh/hassansalehe/TaskSanitizer)
+[![Build Status](https://github.com/hassansalehe/TaskSanitizer/actions/workflows/C_Integration.yml/badge.svg)](https://github.com/hassansalehe/TaskSanitizer/actions/workflows/C_Integration.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fhassansalehe%2FTaskSanitizer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fhassansalehe%2FTaskSanitizer?ref=badge_shield)
 
 #### Overview
 TaskSanitizer implements a method to detect determinacy races in OpenMP tasks.
