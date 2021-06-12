@@ -17,12 +17,10 @@ enable_testing()
 # Locate GTest package
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src
                     ${CMAKE_CURRENT_SOURCE_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../../bin/include
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../common
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../detector
-                    ${CMAKE_CURRENT_SOURCE_DIR}/../detector/commutativity)
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../bin/include
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../src/detector/commutativity)
 
 add_compile_options(-g -O0 -Wall -fprofile-arcs -ftest-coverage -fpermissive)
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
