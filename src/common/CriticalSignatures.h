@@ -13,6 +13,8 @@
 #ifndef _COMMON_CRITICALSIGNATURES_H_
 #define _COMMON_CRITICALSIGNATURES_H_
 
+#include <string>
+
 namespace tasksan {
 
 /**
