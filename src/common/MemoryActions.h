@@ -59,7 +59,10 @@ class MemoryActions {
         action.value   = val;
         action.lineNo  = linNo;
         action.isWrite = isWrite_;
-        isEmpty        = false;
+
+        isEmpty = false;
+        taskId  = action.taskId;
+        addr    = action.addr;
       }
     }
 
