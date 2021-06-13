@@ -30,7 +30,9 @@ link_libraries(${GTEST_LIBRARIES} pthread gtest_main gcov --coverage)
 # the GTest and pthread library
 add_executable(commonTests Common_Defs_gtest.cc)
 add_executable(critalSigTests CriticalSignatures_gtest.cc)
+add_executable(memoryActionsTests MemoryActions_gtest.cc)
 
 # Add tests for Ctest
 add_test(common_tests, commonTests)
-add_test(critica_signatures_tests, critalSigTests)
+add_test(critical_signatures_tests, critalSigTests)
+add_test(memory_actions_tests, memoryActionsTests)
