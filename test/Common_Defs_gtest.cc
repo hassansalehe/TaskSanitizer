@@ -16,5 +16,6 @@ TEST(OperRepresentation, TestConversion) {
   ASSERT_EQ("ALLOCA", OperRepresentation(OPERATION::ALLOCA));
   ASSERT_EQ("BITCAST", OperRepresentation(OPERATION::BITCAST));
   ASSERT_EQ("GETELEMENTPTR", OperRepresentation(OPERATION::GETELEMENTPTR));
+  ASSERT_EQ("UNKNOWN", OperRepresentation(OPERATION(OPERATION::SHL + OPERATION::MUL)));
 }
 
