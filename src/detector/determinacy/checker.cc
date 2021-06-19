@@ -188,11 +188,8 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
   writes[taskActions.addr].push_back( taskActions ); // save
 }
 
-
-/**
- * Records the determinacy race warning to the conflicts table.
- * This is per pair of concurrent tasks.
- */
+// Records the determinacy race warning to the conflicts table.
+// This is per pair of concurrent tasks.
 VOID Checker::saveDeterminacyRaceReport(const Action& curMemAction,
                                        const Action& prevMemAction) {
   Conflict aConflict(curMemAction, prevMemAction);
@@ -224,7 +221,7 @@ void Checker::addTaskNode(std::string & logLine) {
     Checker::saveHappensBeforeEdge(parId, sibId);
 }
 
-/** Constructs action object from the log file */
+// Constructs action object from the log file
 void Checker::constructMemoryAction(std::stringstream & ssin,
                                     std::string & operation,
                                     Action & action) {
@@ -245,7 +242,7 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
     } else {
       action.isWrite = false;
     }
-#ifdef DEBUG // check if data correctly set.
+#ifdef DEBUG // check if data correctly set
     std::cout << "Action constructed: ";
     std::ostringstream buff;
     action.printAction(buff);
@@ -272,7 +269,6 @@ void Checker::checkCommutativeOperations(CommutativityChecker & validator) {
     }
   }
 }
-
 
 VOID Checker::reportConflicts() {
   const std::string emptyLine(
@@ -351,10 +347,8 @@ VOID Checker::testing() {
   }
 }
 
-
-/**
- * implementation of the checker destructor frees
- * the memory dynamically generated for S-bags */
+// Implementation of the checker destructor frees
+// the memory dynamically generated for S-bags
 Checker::~Checker() {
   for (auto it = serial_bags.begin(); it != serial_bags.end(); it++) {
     delete it->second;

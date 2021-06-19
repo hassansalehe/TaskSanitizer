@@ -27,9 +27,8 @@ class OperationSet {
       operations.insert( op );
     }
 
-    /**
-     * Checks if operation "op" commutes with previous
-     * operations which manipulate a shared memory location. */
+    // Checks if operation "op" commutes with previous
+    // operations which manipulate a shared memory location
     bool isCommutative(const OPERATION op) {
      // compare with other operation
      for (auto i : operations) {

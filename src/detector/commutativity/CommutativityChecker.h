@@ -61,9 +61,8 @@ class CommutativityChecker {
     inline bool isCriticalSectionEnd(const std::string& sttmt) {
       return tasksan::getEndCriticalSignature() == sttmt;
     }
-    /**
-     * Returns the line number from the IR statement std::string
-     */
+
+    // Returns the line number from the IR statement std::string
     INTEGER getLineNumber(const std::string & sttmt) {
       std::smatch result; // get line number
       regex_search(sttmt, result, std::regex("^[0-9]+") );

@@ -15,25 +15,22 @@
 #ifndef _COMMON_DEFS_H_
 #define _COMMON_DEFS_H_
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <unordered_set>
-#include <unordered_map>
 #include <algorithm>
 #include <cctype>
-#include <vector>
-#include <set>
-#include <map>
-#include <ctime>
 #include <chrono>
+#include <ctime>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <mutex>
 #include <regex>
+#include <set>
 #include <sstream>
-
-#include <mutex>          // std::mutex
-//#include<//pthread.h>
-//#include <thread>       // std::thread
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 typedef   bool                      BOOL;
 typedef   void                      VOID;
@@ -94,8 +91,9 @@ static std::string OperRepresentation(OPERATION op) {
   }
 };
 
-/**
-  * Definition below is for debugging printfs */
+//////////////////////////////////////////////////
+/// Definition below is for debugging printfs   //
+//////////////////////////////////////////////////
 // #define DEBUG
 
 static std::mutex printLock;
@@ -107,4 +105,4 @@ void inline PRINT_DEBUG(const std::string msg) {
 #endif // debug
 }
 
-#endif
+#endif // guard

@@ -19,6 +19,9 @@
 #ifndef _FUNCTIONENGINE_CALLSTACK_H_
 #define _FUNCTIONENGINE_CALLSTACK_H_
 
+#include <stack>
+#include <string>
+
 class CallStack {
   private:
     std::stack funcStack;

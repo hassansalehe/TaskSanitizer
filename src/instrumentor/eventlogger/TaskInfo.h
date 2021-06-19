@@ -36,15 +36,13 @@ typedef struct TaskInfo {
   // stores the IDs of child tasks created by this task
   std::vector<int> childrenIDs;
 
-  /**
-   * Appends child ID to a list of children IDs */
+  // Appends child ID to a list of children IDs
   inline void addChild(int childID) {
     childrenIDs.push_back(childID);
   }
 
-  /**
-   * Stores the action info as performed by task. The rules for
-   * storing this information are explained in MemoryActions.h */
+  // Stores the action info as performed by task. The rules for
+  // storing this information are explained in MemoryActions.h
   inline void saveMemoryAction(Action & action) {
     MemoryActions &loc = memoryLocations[action.addr];
     loc.storeAction( action );
@@ -73,8 +71,7 @@ typedef struct TaskInfo {
      loc.storeAction(taskID, addr, value, lineNo, funcID, isWrite);
   }
 
-  /**
-   * Prints to ostringstream all memory access actions recorded. */
+  // Prints to ostringstream all memory access actions recorded.
   void printMemoryActions() {
     for (auto it = memoryLocations.begin();
          it != memoryLocations.end(); ++it) {
@@ -82,10 +79,11 @@ typedef struct TaskInfo {
     }
   }
 
-  /** HELPER FUNCTIONS */
+  //////////////////////////////////////////////////////
+  /// HELPER FUNCTIONS                                //
+  //////////////////////////////////////////////////////
 
-  /**
-   * returns ID if function registered before, otherwise 0. */
+  // returns ID if function registered before, otherwise 0.
    inline INTEGER getFunctionId( const STRING funcName ) {
      auto fd = functions.find( funcName );
      if ( fd == functions.end() ) {
@@ -95,15 +93,13 @@ typedef struct TaskInfo {
      }
    }
 
-   /**
-    * Registers function for faster access. */
+   // Registers function for faster access.
    void registerFunction(STRING funcName, INTEGER funcId ) {
      functions[funcName] = funcId;
    }
 
-   /**
-    * Clears all stored memory actions.
-    * Can executed once the actions are written to log file. */
+   // Clears all stored memory actions.
+   // Can executed once the actions are written to log file.
    void flushLogs() {
      memoryLocations.clear();
      actionBuffer.str(""); // clear buffer

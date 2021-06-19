@@ -68,7 +68,7 @@ class Checker {
   ~Checker();
 
   private:
-    /** Constructs action object from the log file */
+    // Constructs action object from the log file
     VOID constructMemoryAction(std::stringstream & ssin,
                                std::string & opType,
                                Action & action);

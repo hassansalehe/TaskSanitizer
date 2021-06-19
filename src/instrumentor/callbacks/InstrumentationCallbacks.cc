@@ -64,7 +64,7 @@ static TaskInfo * getTaskInfo(int * _type = NULL) {
   }
 }
 
-/** Callbacks for store operations  */
+// Callbacks for store operations
 inline void INS_MemRead(
   address addr,
     ulong size,
@@ -89,8 +89,7 @@ inline void INS_MemRead(
   }
 }
 
-/*
- * Callbacks for store operations  */
+// Callbacks for store operations
 inline void INS_MemWrite(
     address addr,
     lint value,
@@ -116,9 +115,7 @@ inline void INS_MemWrite(
   }
 }
 
-
-/**
- * A callback for memory writes of floats */
+// A callback for memory writes of floats
 void __tasksan_write_float(
     address addr,
     float value,
@@ -131,8 +128,7 @@ void __tasksan_register_iir_file(void * fileName) {
   INS::initCommutativityChecker( (char *)fileName );
 }
 
-/**
- * A callback for memory writes of doubles */
+// A callback for memory writes of doubles
 void __tasksan_write_double(
     address addr,
     double value,

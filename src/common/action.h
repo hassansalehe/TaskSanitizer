@@ -41,17 +41,15 @@ class Action {
 
   Action() { }
 
-  /**
-   * Generates std::string representation of the action and stores
-   * in "buff". It appends '\n' at the end of the std::string */
+  // Generates std::string representation of the action and stores
+  // in "buff". It appends '\n' at the end of the std::string
   void printAction(std::ostringstream & buff) {
     printActionNN( buff );
     buff << std::endl;
   }
 
-  /**
-   * Generates std::string representation of the action and stores in "buff".
-   * It does not append '\n' at the end of. the std::string */
+  // Generates std::string representation of the action and stores in "buff".
+  // It does not append '\n' at the end of. the std::string
   void printActionNN(std::ostringstream & buff) {
     std::string type = " R ";
     if ( isWrite ) type = " W ";

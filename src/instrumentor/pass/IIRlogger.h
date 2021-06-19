@@ -34,10 +34,8 @@ namespace IIRlog {
   // the log out stream
   std::ofstream logFile;
 
-  /**
-   * Opens an output log file which is later used for
-   * logging all instructions in program's critical sections.
-   */
+  // Opens an output log file which is later used for
+  // logging all instructions in program's critical sections.
   void InitializeLogger( std::string cppName ) {
     std::string full_file_name = "" + cppName + ".iir";
 
@@ -50,20 +48,16 @@ namespace IIRlog {
   }
 
 
-  /**
-   * Saves a string to a log file
-   */
+  // Saves a string to a log file
   void SaveToLogFile( llvm::StringRef taskName ) {
      logFile << taskName.str() << std::endl << std::flush;
   }
 
-  /**
-   * Saves IIR represenation of instruction and its
-   * corresponding line number to a file.
-   *
-   * This function is used in logging instructions which
-   * are in critical sections of a program.
-   */
+  // Saves IIR represenation of instruction and its
+  // corresponding line number to a file.
+  //
+  // This function is used in logging instructions which
+  // are in critical sections of a program.
   void LogNewIIRcode(int lineNo, llvm::Instruction& IIRcode ) {
     //errs() << lineNo << ": " << IIRcode.str() << "\n";
     std::string tempBuf;
@@ -72,9 +66,7 @@ namespace IIRlog {
     logFile << lineNo << ": " << tempBuf << std::endl;
   }
 
-  /**
-   * Returns signature (function name) of call being made
-   */
+  // Returns signature (function name) of call being made
   llvm::StringRef getCalledFunction(llvm::Instruction & Inst) {
     if ( llvm::isa<llvm::CallInst>(Inst) ) {
       llvm::CallInst *M = llvm::dyn_cast<llvm::CallInst>(&Inst);
@@ -94,9 +86,7 @@ namespace IIRlog {
     return llvm::StringRef("");
   }
 
-  /**
-   * Checks if the function call is for acquiring a lock
-   */
+  // Checks if the function call is for acquiring a lock
   bool isLockInvocation(llvm::Instruction & Instr) {
     llvm::StringRef funcName = getCalledFunction(Instr);
     if (funcName.find("omp_set_lock") != llvm::StringRef::npos ||
@@ -107,9 +97,7 @@ namespace IIRlog {
     }
   }
 
-  /**
-   * Checks if function call is related to lock release
-   */
+  // Checks if function call is related to lock release
   bool isUnlockInvocation(llvm::Instruction & Instr) {
     llvm::StringRef funcName = getCalledFunction(Instr);
     if (funcName.find("omp_unset_lock") != llvm::StringRef::npos ||
@@ -120,10 +108,8 @@ namespace IIRlog {
     }
   }
 
-  /**
-   * Logs all statements in critical sections for commutativity
-   * checking in verification of determinacy races
-   */
+  // Logs all statements in critical sections for commutativity
+  // checking in verification of determinacy races
   void logTaskBody(llvm::Function & F, llvm::StringRef name) {
 
     std::string fullFileName = tasksan::debug::getFilename(F);

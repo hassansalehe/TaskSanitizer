@@ -1,5 +1,6 @@
-#include "common/defs.h"
 #include <gtest/gtest.h>
+
+#include "common/defs.h"
 
 //! \brief Test that OperRepresentation converts operations
 //!        to approriate string representations.

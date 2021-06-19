@@ -80,8 +80,7 @@ class INS {
       isOMPTinitialized = true;
     }
 
-    /*
-     * Generates a unique ID for each new task. */
+    // Generates a unique ID for each new task
     static inline INTEGER GenTaskID() {
       INTEGER taskID = taskIDSeed.fetch_add(1);
       return taskID;
@@ -90,9 +89,9 @@ class INS {
     static inline void initCommutativityChecker(char *fname) {
        onlineChecker.initializeCommutativityChecker(fname);
     }
-    /**
-     * registers the function if not registered yet.
-     * Also prints the function to standard output. */
+
+    // registers the function if not registered yet.
+    // Also prints the function to standard output.
     static inline INTEGER RegisterFunction(const STRING funcName) {
 
       guardLock.lock();
@@ -111,7 +110,7 @@ class INS {
       return funcID;
     }
 
-    /** close file used in logging */
+    // close file used in logging
     static inline VOID Finalize() {
       guardLock.lock();
 
@@ -123,14 +122,14 @@ class INS {
       guardLock.unlock();
     }
 
-    /** called when a task begins execution and retrieves parent task id */
+    // called when a task begins execution and retrieves parent task id
     static inline VOID TaskBeginLog(TaskInfo& task) {
       guardLock.lock();
       onlineChecker.onTaskCreate(task.taskID);
       guardLock.unlock();
     }
 
-    /** called when a task begins execution. retrieves parent task id */
+    // called when a task begins execution. retrieves parent task id
     static inline VOID TaskReceiveTokenLog( TaskInfo & task,
         ADDRESS bufLocAddr, INTEGER value ) {
       INTEGER parentID = -1;
@@ -163,17 +162,15 @@ class INS {
       guardLock.unlock();
     }
 
-    /** called before the task terminates. */
+    // called before the task terminates.
     static inline VOID TaskEndLog( TaskInfo& task ) {
       //guardLock.lock(); // protect file descriptor
       // do something
       //guardLock.unlock();
     }
 
-    /**
-     * stores the buffer address of the token and the
-     * value stored in the buffer for the succeeding task.
-     */
+    // stores the buffer address of the token and the
+    // value stored in the buffer for the succeeding task.
     static inline VOID TaskSendTokenLog(TaskInfo & task,
         ADDRESS bufLocAddr, INTEGER value) {
 
@@ -183,7 +180,7 @@ class INS {
       guardLock.unlock();
     }
 
-    /** provides the address of memory a task reads from */
+    // provides the address of memory a task reads from
     static inline VOID Read( TaskInfo & task,
         ADDRESS addr, INTEGER lineNo, STRING funcName ) {
       INTEGER funcID = task.getFunctionId( funcName );
@@ -203,7 +200,7 @@ class INS {
       guardLock.unlock();
     }
 
-    /** stores a write action */
+    // stores a write action
     static inline VOID Write(TaskInfo & task, ADDRESS addr,
         INTEGER value, INTEGER lineNo, STRING funcName) {
 
@@ -225,7 +222,7 @@ class INS {
       guardLock.unlock();
     }
 
-    /** Saves IDs of child tasks at a barrier */
+    // Saves IDs of child tasks at a barrier
     static inline VOID saveChildHBs(TaskInfo & task) {
       guardLock.lock();
       for (int uncleID : task.childrenIDs) {

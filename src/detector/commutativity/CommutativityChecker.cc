@@ -17,9 +17,7 @@
 #include "detector/determinacy/conflict.h"
 #include "detector/determinacy/report.h"
 
-/**
- * Parses IIR representation file for critical sections
- */
+// Parses IIR representation file for critical sections
 VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
   std::vector<Instruction>  currentTask;
   std::string               sttmt;             // program statement
@@ -56,10 +54,8 @@ VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
             << Tasks.getSize() << std::endl;
 }
 
-/**
- * Checks for commutative critical sections operations which have been
- * flagged as conflicts.
- */
+// Checks for commutative critical sections operations which have been
+// flagged as conflicts.
 bool CommutativityChecker::isCommutative(const Conflict & conflict) {
 
   // skip commutativity check if read-write conflict
@@ -80,7 +76,7 @@ bool CommutativityChecker::isCommutative(const Conflict & conflict) {
 }
 
 BOOL CommutativityChecker::involveSimpleOperations(
-    /*std::string taskName,*/
+    // std::string taskName,
     INTEGER lineNumber) {
 
   // get the instructions of a task

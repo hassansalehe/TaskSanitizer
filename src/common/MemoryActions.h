@@ -38,8 +38,8 @@ class MemoryActions {
       storeAction( act );
     }
 
-    /** Stores action if (a) is first action of task, or
-     *                   (b) is last write action */
+    // Stores action if (a) is first action of task, or
+    //                  (b) is last write action
     inline void storeAction(Action & act) {
        if ( isEmpty || act.isWrite ) {
          action  = act;
@@ -66,8 +66,7 @@ class MemoryActions {
       }
     }
 
-    /**
-     * Returns true if current action is a write */
+    // Returns true if current action is a write
     bool hasWrite() {
       if ( isEmpty || ( !action.isWrite )) {
         return false;
