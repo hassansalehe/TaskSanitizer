@@ -30,13 +30,11 @@ class Instruction {
   // raw representation of instruction
   std::string raw;
 
-  /**
-   * Default constructor
-   */
+  // Default constructor
   Instruction() {}
-  /**
-   * This constructor takes in IIR representation of an
-   * instruction and constructs an object representaion of it. */
+
+  // This constructor takes in IIR representation of an
+  // instruction and constructs an object representaion of it.
   Instruction(std::string stmt) {
 
     raw = trim( stmt );
@@ -102,36 +100,32 @@ class Instruction {
       oper = CALL;
     }
 
-  /*
-  // find operation
-  if (std::regex_search(segments[0], std::regex("store ")) {
-     oper = STORE;
-     std::string tmp = ;
-     std::stringstream a(trim(segments[0]));
-     tmp = ""'
-     (getline(ss, tok, ','); //store
+  // // find operation
+  // if (std::regex_search(segments[0], std::regex("store ")) {
+  //    oper = STORE;
+  //    std::string tmp = ;
+  //    std::stringstream a(trim(segments[0]));
+  //    tmp = ""'
+  //    (getline(ss, tok, ','); //store
+  // }
+  // if (std::regex_search(segments[0], std::regex("load "))
+  //    oper = LOAD;
+
+  // if (std::regex_search(segments[0], std::regex("call "))
+  //    oper = CALL;
+
+  // if (std::regex_search(segments[0], std::regex("alloca "))
+  //    oper = ALLOCA;
+
+  // if (std::regex_search(segments[0], std::regex("bitcast "))
+  //    oper = BITCAST;
+
+  // if (std::regex_search(segments[0], std::regex("[fidb]add "))
+  //    oper = ADD;
+
+  // if (std::regex_search(segments[0], std::regex("[fidb]mull "))
+  //    oper = MULT;
   }
-  if (std::regex_search(segments[0], std::regex("load "))
-     oper = LOAD;
-
-  if (std::regex_search(segments[0], std::regex("call "))
-     oper = CALL;
-
-  if (std::regex_search(segments[0], std::regex("alloca "))
-     oper = ALLOCA;
-
-  if (std::regex_search(segments[0], std::regex("bitcast "))
-     oper = BITCAST;
-
-  if (std::regex_search(segments[0], std::regex("[fidb]add "))
-     oper = ADD;
-
-  if (std::regex_search(segments[0], std::regex("[fidb]mull "))
-     oper = MULT;
-  */
-  }
-
-
 
   void print() {
     std::cout << "LineNo: " << lineNo
@@ -143,16 +137,14 @@ class Instruction {
     << std::endl;
   }
 
-  /**
-   * Trims the left and right spaces from a std::string. */
+  // Trims the left and right spaces from a std::string
   static std::string trim(std::string sentence) {
     size_t start = sentence.find_first_not_of(' ');
     size_t end = sentence.find_last_not_of(' ');
     return sentence.substr(start, (end -start)+1);
   }
 
-  /**
-   * Splits std::string into tokens substrings */
+  // Splits std::string into tokens substrings
   std::vector<std::string> splitInstruction(std::string stmt) {
 
     // split statements

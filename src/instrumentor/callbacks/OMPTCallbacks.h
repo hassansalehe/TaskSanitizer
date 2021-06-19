@@ -73,12 +73,12 @@ on_ompt_callback_implicit_task(
 
 static void
 on_ompt_callback_task_create( // called in the context of the creator
-    ompt_data_t *parent_task_data,    /* id of parent task            */
-    const ompt_frame_t *parent_frame, /* frame data for parent task   */
-    ompt_data_t* new_task_data,       /* id of created task           */
+    ompt_data_t *parent_task_data,    // id of parent task
+    const ompt_frame_t *parent_frame, // frame data for parent task
+    ompt_data_t* new_task_data,       // id of created task
     int type,
     int has_dependences,
-    const void *codeptr_ra) {         /* pointer to outlined function */
+    const void *codeptr_ra) {         // pointer to outlined function
   int tid = ompt_get_thread_data()->value;
   switch ((int)type)
   {
@@ -135,9 +135,9 @@ on_ompt_callback_task_create( // called in the context of the creator
 
 static void
 on_ompt_callback_task_schedule( // called in the context of the task
-    ompt_data_t *prior_task_data,         /* data of prior task    */
-    ompt_task_status_t prior_task_status, /* status of prior task  */
-    ompt_data_t *next_task_data) {        /* data of next task     */
+    ompt_data_t *prior_task_data,         // data of prior task
+    ompt_task_status_t prior_task_status, // status of prior task
+    ompt_data_t *next_task_data) {        // data of next task
 
   if (next_task_data->ptr == NULL) {
     TaskSanitizer_TaskBeginFunc(next_task_data);
@@ -150,8 +150,7 @@ on_ompt_callback_task_schedule( // called in the context of the task
   // if (prior_task_status == ompt_task_complete)
 }
 
-/*
- * Callbacks for tokens */
+// Callbacks for tokens
 static void
 on_ompt_callback_task_dependences(
     ompt_data_t *task_data,
@@ -198,11 +197,11 @@ on_ompt_callback_task_dependence(
 // Executed when a task inters or leaves a barrier
 // or a task region or a task group.
 static void on_ompt_callback_sync_region(
-    ompt_sync_region_kind_t kind,   /* kind of sync region            */
-    ompt_scope_endpoint_t endpoint, /* endpoint of sync region        */
-    ompt_data_t *parallel_data,     /* data of parallel region        */
-    ompt_data_t *task_data,         /* data of task                   */
-    const void *codeptr_ra) {       /* return address of runtime call */
+    ompt_sync_region_kind_t kind,   // kind of sync region
+    ompt_scope_endpoint_t endpoint, // endpoint of sync region
+    ompt_data_t *parallel_data,     // data of parallel region
+    ompt_data_t *task_data,         // data of task
+    const void *codeptr_ra) {       // return address of runtime call
   switch (kind)
   {
     case ompt_sync_region_barrier:

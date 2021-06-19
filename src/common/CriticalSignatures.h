@@ -17,16 +17,12 @@
 
 namespace tasksan {
 
-/**
- * Returns signature to mark beginning of a critical section
- */
+// Returns signature to mark beginning of a critical section
 inline std::string getStartCriticalSignature() {
   return "TASKSAN:BeginCriticalSection";
 }
 
-/*
- * Returns a string signature to mark end of a critical section
- */
+// Returns a string signature to mark end of a critical section
 inline std::string getEndCriticalSignature() {
   return "TASKSAN:EndCriticalSection";
 }

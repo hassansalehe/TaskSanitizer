@@ -23,8 +23,7 @@
 // used in task action logging callbacks.
 namespace UTIL {
 
-/**
- * Creates and initializes action logging metadata */
+// Creates and initializes action logging metadata
 void createNewTaskMetadata(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
@@ -54,9 +53,8 @@ void createNewTaskMetadata(ompt_data_t *task_data) {
   );
 }
 
-/**
- * Marks task metadata of completion of task.
- * It also logs relevant information to file. */
+// Marks task metadata of completion of task.
+// It also logs relevant information to file.
 void markEndOfTask(ompt_data_t *task_data) {
 
   // Null if this task created before OMPT initialization
@@ -72,16 +70,13 @@ void markEndOfTask(ompt_data_t *task_data) {
       ") taskID: " + std::to_string(taskInfo->taskID));
 }
 
-
-/**
- * Marks this task as complete */
+// Marks this task as complete
 void endThisTask(ompt_data_t *task_data) {
   markEndOfTask(task_data);
 }
 
-/**
- * Changes identifer of the current task to
- * new ID and thus make it look like a new task. */
+// Changes identifer of the current task to
+// new ID and thus make it look like a new task.
 void disguiseToTewTask(ompt_data_t *task_data) {
   UTIL::createNewTaskMetadata(task_data);
 }

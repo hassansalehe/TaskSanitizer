@@ -25,9 +25,7 @@ namespace tasksan {
 /// reporting of TaskSanitizer.
 namespace debug {
 
-/**
- * Demangles names of attributes, functions, etc
- */
+// Demangles names of attributes, functions, etc
 llvm::StringRef demangleName(llvm::StringRef name) {
   int status = -1;
   std::string name_(name.str());
@@ -39,9 +37,7 @@ llvm::StringRef demangleName(llvm::StringRef name) {
   return name;
 }
 
-/*
- * Returns file name with absolute path
- */
+// Returns file name with absolute path
 std::string createAbsoluteFileName(
   std::string & dir_name,
   std::string &file_name) {
@@ -71,9 +67,7 @@ std::string createAbsoluteFileName(
   return dir_name + file_name;
 }
 
-/**
- * Returns absolute file name of which the function belongs to.
- */
+// Returns absolute file name of which the function belongs to.
 std::string getFullFilename(llvm::Module & M) {
 
   std::string name      =  "Unknown";
@@ -92,9 +86,7 @@ std::string getFullFilename(llvm::Module & M) {
   return name;
 }
 
-/**
- * Returns absolute file name of which the function belongs to.
- */
+// Returns absolute file name of which the function belongs to.
 std::string getFilename(const llvm::Function &F) {
   std::string name = "Unknown";
   std::string dirName = "";
@@ -119,10 +111,8 @@ std::string getFilename(const llvm::Function &F) {
 }
 
 
-/**
- * Returns name of the function under instrumentation
- * as a value. The name is retrieved later at runtime.
- */
+// Returns name of the function under instrumentation
+// as a value. The name is retrieved later at runtime.
 llvm::Value* getFuncName(llvm::Function & F) {
   llvm::StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
@@ -134,9 +124,7 @@ llvm::Value* getFuncName(llvm::Function & F) {
   return IRB.CreateGlobalStringPtr(name, "func_name");
 }
 
-/**
- * Return function name as a std::string
- */
+// Return function name as a std::string
 llvm::StringRef getFuncNameStr(llvm::Function & F) {
   llvm::StringRef name = demangleName(F.getName());
   auto idx = name.find('(');
@@ -159,10 +147,8 @@ bool hasMainFunction(llvm::Module & M) {
   return false;
 }
 
-  /**
-   * Returns the name of the memory location involved.
-   * By object, this refers to the name of the variable.
-   */
+  // Returns the name of the memory location involved.
+  // By object, this refers to the name of the variable.
   llvm::Value * getObjectName(llvm::Value *V, llvm::Instruction* I, const llvm::DataLayout &DL) {
     llvm::Value* obj = GetUnderlyingObject(V, DL);
 
@@ -176,10 +162,7 @@ bool hasMainFunction(llvm::Module & M) {
     }
   }
 
-  /**
-   * Retrieves the line number of the instruction
-   * being instrumented.
-   */
+  // Retrieves the line number of the instruction being instrumented.
   llvm::Value* getLineNumber(llvm::Instruction* I) {
 
     if (auto Loc = I->getDebugLoc()) { // Here I is an LLVM instruction
@@ -193,10 +176,7 @@ bool hasMainFunction(llvm::Module & M) {
     }
   }
 
-  /**
-   * Retrieves the line number of the instruction
-   * being instrumented.
-   */
+  // Retrieves the line number of the instruction being instrumented.
   unsigned int getLineNo(llvm::Instruction* I) {
 
     if (auto Loc = I->getDebugLoc()) { // Here I is an LLVM instruction

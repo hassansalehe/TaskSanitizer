@@ -537,7 +537,7 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
   if (Idx < 0)
     return false;
   if (IsWrite && isVtableAccess(I)) {
-    DEBUG(llvm::dbgs() << "  VPTR : " << *I << "\n");
+    llvm::dbgs() << "  VPTR : " << *I << "\n";
     llvm::Value *StoredValue = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
     // StoredValue may be a std::vector type if we are storing several vptrs at once.
     // In this case, just take the first element of the std::vector since this is
