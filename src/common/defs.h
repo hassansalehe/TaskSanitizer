@@ -32,28 +32,28 @@
 #include <unordered_set>
 #include <vector>
 
-typedef   bool                      BOOL;
-typedef   void                      VOID;
-typedef   void *                    ADDRESS;
-typedef   std::ofstream             FILEPTR;
-typedef   long int                  INTEGER;
-typedef   long int                  VALUE;
-typedef   const char*               STRING;
-typedef   std::vector<int>          INTVECTOR;
-typedef   std::set<int>             INTSET;
-typedef   std::unordered_set<int>   UNORD_INTSET;
-typedef   std::vector<std::string>  STRVECTOR;
-
-using uint      =    unsigned int;
-using ulong     =    unsigned long;
-using lint      =    long int;
-using address   =    void *;
-using Void      =   void;
+using   BOOL         = bool;
+using   VOID         = void;
+using   ADDRESS      = void *;
+using   FILEPTR      = std::ofstream;
+using   INTEGER      = long int;
+using   VALUE        = long int;
+using   STRING       = const char*;
+using   INTVECTOR    = std::vector<int>;
+using   INTSET       = std::set<int>;
+using   UNORD_INTSET = std::unordered_set<int>;
+using   STRVECTOR    = std::vector<std::string>;
 
 // for conflict task pairs
-typedef  std::pair<int,int>            IDPAIR;
-typedef  std::set<std::pair<int,int>>  LINE_PAIRS;
-typedef  std::map<IDPAIR, LINE_PAIRS>  CONFLICT_PAIRS;
+using IDPAIR         = std::pair<int,int>;
+using LINE_PAIRS     = std::set<std::pair<int,int>>;
+using CONFLICT_PAIRS = std::map<IDPAIR, LINE_PAIRS>;
+
+using uint    = unsigned int;
+using ulong   = unsigned long;
+using lint    = long int;
+using address = void *;
+using Void    = void;
 
 enum OPERATION {
   ALLOCA,
