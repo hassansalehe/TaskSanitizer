@@ -147,11 +147,11 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
   //        write in the parallel writes,update and take it forward
   //        4.2.1 check conflicts with other parallel tasks
 
-  auto perAddrActions = writes.find( taskActions.addr );
+  auto perAddrActions = writes.find(taskActions.destination_address);
   if (perAddrActions == writes.end()) {// 1. first action
-     writes[taskActions.addr] = std::list<MemoryActions>();
+     writes[taskActions.destination_address] = std::list<MemoryActions>();
   }
-  std::list<MemoryActions> & AddrActions = writes[taskActions.addr];
+  std::list<MemoryActions> & AddrActions = writes[taskActions.destination_address];
   for (auto lastWrt = AddrActions.begin();
        lastWrt != AddrActions.end(); lastWrt++) {
     // actions of same task
@@ -185,7 +185,7 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
     AddrActions.pop_front(); // remove oldest element
   }
 
-  writes[taskActions.addr].push_back( taskActions ); // save
+  writes[taskActions.destination_address].push_back( taskActions ); // save
 }
 
 // Records the determinacy race warning to the conflicts table.
@@ -227,7 +227,7 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
                                     Action & action) {
     std::string tempBuff;
     ssin >> tempBuff; // address
-    action.addr = (ADDRESS)stoul(tempBuff, 0, 16);
+    action.destination_address = (ADDRESS)stoul(tempBuff, 0, 16);
 
     ssin >> tempBuff; // value
     action.value = stol(tempBuff);

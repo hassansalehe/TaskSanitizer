@@ -23,7 +23,7 @@
 class Action {
  public:
   INTEGER taskId;        // task id of writter
-  ADDRESS addr;          // destination address
+  ADDRESS destination_address;
   VALUE value;           // value written
   VALUE lineNo;          // source-line number
   INTEGER funcId;        // the identifier of corresponding function
@@ -34,10 +34,10 @@ class Action {
     taskId(tskId), value(val), lineNo(ln), funcId(fuId) {}
 
   Action(INTEGER tskId, ADDRESS adr, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), addr(adr), value(val), lineNo(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value(val), lineNo(ln), funcId(fuId) { }
 
   Action(INTEGER tskId, address adr, lint val, int ln, INTEGER fuId ):
-    taskId(tskId), addr(adr), value(val), lineNo(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value(val), lineNo(ln), funcId(fuId) { }
 
   Action() { }
 
@@ -53,7 +53,7 @@ class Action {
   void printActionNN(std::ostringstream & buff) {
     std::string type = " R ";
     if ( isWrite ) type = " W ";
-    buff << taskId << type <<  addr << " " << value
+    buff << taskId << type <<  destination_address << " " << value
          << " " << lineNo << " " << funcId;
   }
 

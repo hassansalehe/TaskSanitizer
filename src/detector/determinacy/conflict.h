@@ -29,7 +29,7 @@ class Conflict {
   Conflict(const Action& curMemAction, const Action& prevMemAction) {
     action1 = curMemAction;
     action2 = prevMemAction;
-    addr    = curMemAction.addr;
+    addr    = curMemAction.destination_address;
   }
 
   inline int getTask1Id() {

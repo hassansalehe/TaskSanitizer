@@ -25,7 +25,7 @@ class MemoryActions {
     Action action;
 
     int taskId;
-    ADDRESS addr;     // destination address
+    ADDRESS destination_address;
 
     // Default constructor
     MemoryActions() {
@@ -42,10 +42,10 @@ class MemoryActions {
     //                  (b) is last write action
     inline void storeAction(Action & act) {
        if ( isEmpty || act.isWrite ) {
-         action  = act;
-         isEmpty = false;
-         taskId  = action.taskId;
-         addr    = action.addr;
+         action              = act;
+         isEmpty             = false;
+         taskId              = action.taskId;
+         destination_address = action.destination_address;
        }
     }
 
@@ -53,16 +53,16 @@ class MemoryActions {
                   INTEGER & val, INTEGER & linNo,
                   INTEGER & funcID, bool isWrite_) {
       if ( isEmpty || isWrite_) {
-        action.taskId  = taskID;
-        action.addr    = adr;
-        action.funcId  = funcID;
-        action.value   = val;
-        action.lineNo  = linNo;
-        action.isWrite = isWrite_;
+        action.taskId              = taskID;
+        action.destination_address = adr;
+        action.funcId              = funcID;
+        action.value               = val;
+        action.lineNo              = linNo;
+        action.isWrite             = isWrite_;
 
-        isEmpty = false;
-        taskId  = action.taskId;
-        addr    = action.addr;
+        isEmpty             = false;
+        taskId              = action.taskId;
+        destination_address = action.destination_address;
       }
     }
 
