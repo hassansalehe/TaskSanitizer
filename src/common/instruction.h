@@ -20,7 +20,7 @@
 
 class Instruction {
   public:
-  INTEGER lineNo;
+  INTEGER source_line_num;
   std::string destination;
   std::string type;
   OPERATION oper;
@@ -128,7 +128,7 @@ class Instruction {
   }
 
   void print() {
-    std::cout << "LineNo: " << lineNo
+    std::cout << "source_line_num: " << source_line_num
          << ", type: " << type
          << ", oper: " << OperRepresentation(oper)
          << ", dest: " << destination

@@ -21,9 +21,9 @@ int main() {
 
   // first body
   Instruction instr1;
-  instr1.lineNo = 3;
+  instr1.source_line_num = 3;
   Instruction instr2;
-  instr2.lineNo = 6;
+  instr2.source_line_num = 6;
   std::vector<Instruction> body = {instr1, instr2};
   tasksan::commute::CriticalSectionBody body1(body);
   body1.setStartLineNo(3);

@@ -58,12 +58,12 @@ namespace IIRlog {
   //
   // This function is used in logging instructions which
   // are in critical sections of a program.
-  void LogNewIIRcode(int lineNo, llvm::Instruction& IIRcode ) {
-    //errs() << lineNo << ": " << IIRcode.str() << "\n";
+  void LogNewIIRcode(int source_line_num, llvm::Instruction& IIRcode ) {
+    //errs() << source_line_num << ": " << IIRcode.str() << "\n";
     std::string tempBuf;
     llvm::raw_string_ostream rso(tempBuf);
     IIRcode.print(rso);
-    logFile << lineNo << ": " << tempBuf << std::endl;
+    logFile << source_line_num << ": " << tempBuf << std::endl;
   }
 
   // Returns signature (function name) of call being made
@@ -135,11 +135,11 @@ namespace IIRlog {
             IIRlog::SaveToLogFile( tasksan::getEndCriticalSignature() );
           }
         } else if (in_critical_section > 0) { // in critical section
-          unsigned lineNo = 0;
+          unsigned source_line_num = 0;
           if (auto Loc = Inst.getDebugLoc()) {
-            lineNo = Loc->getLine();
+            source_line_num = Loc->getLine();
           }
-          IIRlog::LogNewIIRcode(lineNo, Inst);
+          IIRlog::LogNewIIRcode(source_line_num, Inst);
         }
       }
     }

@@ -182,7 +182,7 @@ class INS {
 
     // provides the address of memory a task reads from
     static inline VOID Read( TaskInfo & task,
-        ADDRESS addr, INTEGER lineNo, STRING funcName ) {
+        ADDRESS addr, INTEGER source_line_num, STRING funcName ) {
       INTEGER funcID = task.getFunctionId( funcName );
 
       // register function if not registered yet
@@ -191,9 +191,9 @@ class INS {
         task.registerFunction( funcName, funcID );
       }
 
-      //task.saveReadAction(addr, lineNo, funcID);
+      //task.saveReadAction(addr, source_line_num, funcID);
       std::stringstream ssin(std::to_string((VALUE)addr) + " 0 " +
-          std::to_string(lineNo) + " " + std::to_string(funcID));
+          std::to_string(source_line_num) + " " + std::to_string(funcID));
 
       guardLock.lock();
       onlineChecker.detectRaceOnMem(task.taskID, "R", ssin);
@@ -202,7 +202,7 @@ class INS {
 
     // stores a write action
     static inline VOID Write(TaskInfo & task, ADDRESS addr,
-        INTEGER value, INTEGER lineNo, STRING funcName) {
+        INTEGER value, INTEGER source_line_num, STRING funcName) {
 
       INTEGER funcID = task.getFunctionId( funcName );
 
@@ -212,9 +212,9 @@ class INS {
         task.registerFunction( funcName, funcID );
       }
 
-      //task.saveWriteAction(addr, value, lineNo, funcID);
+      //task.saveWriteAction(addr, value, source_line_num, funcID);
       std::stringstream ssin(std::to_string((VALUE)addr) + " " +
-          std::to_string(value) + " " + std::to_string(lineNo) +
+          std::to_string(value) + " " + std::to_string(source_line_num) +
           " " + std::to_string(funcID));
 
       guardLock.lock();

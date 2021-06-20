@@ -42,9 +42,9 @@ extern "C" {
                         unsigned long size);
 
   // callbacks for memory access, race detection
-  void INS_MemRead8(void *addr, int lineNo, void *fName);
-  void INS_MemRead4(void *addr, int lineNo, void *fName);
-  void INS_MemRead1(void *addr, int lineNo, void *fName);
+  void INS_MemRead8(void *addr, int source_line_num, void *fName);
+  void INS_MemRead4(void *addr, int source_line_num, void *fName);
+  void INS_MemRead1(void *addr, int source_line_num, void *fName);
   void INS_MemWrite8(void *addr, long int v, int lnNo, void *fName);
   void INS_MemWrite4(void *addr, long int v, int lnNo, void *fName);
   void INS_MemWrite1(void *addr, long int v, int lnNo, void *fName);
@@ -74,17 +74,17 @@ extern "C" {
 
   void __tasksan_flush_memory();
 
-  void __tasksan_read1(void *addr, int lineNo, address funcName);
-  void __tasksan_read2(void *addr, int lineNo, address funcName);
-  void __tasksan_read4(void *addr, int lineNo, address funcName);
-  void __tasksan_read8(void *addr, int lineNo, address funcName);
-  void __tasksan_read16(void *addr, int lineNo, address funcName);
+  void __tasksan_read1(void *addr, int source_line_num, address funcName);
+  void __tasksan_read2(void *addr, int source_line_num, address funcName);
+  void __tasksan_read4(void *addr, int source_line_num, address funcName);
+  void __tasksan_read8(void *addr, int source_line_num, address funcName);
+  void __tasksan_read16(void *addr, int source_line_num, address funcName);
 
-  void __tasksan_write1(void *addr, long int value, int lineNo, address funcName);
-  void __tasksan_write2(void *addr, long int value, int lineNo, address funcName);
-  void __tasksan_write4(void *addr, long int value, int lineNo, address funcName);
-  void __tasksan_write8(void *addr, long int value, int lineNo, address funcName);
-  void __tasksan_write16(void *addr, long int value, int lineNo, address funcName);
+  void __tasksan_write1(void *addr, long int value, int source_line_num, address funcName);
+  void __tasksan_write2(void *addr, long int value, int source_line_num, address funcName);
+  void __tasksan_write4(void *addr, long int value, int source_line_num, address funcName);
+  void __tasksan_write8(void *addr, long int value, int source_line_num, address funcName);
+  void __tasksan_write16(void *addr, long int value, int source_line_num, address funcName);
 
   void __tasksan_unaligned_read2(const void *addr);
   void __tasksan_unaligned_read4(const void *addr);

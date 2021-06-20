@@ -51,9 +51,9 @@ class Action {
   // Generates std::string representation of the action and stores in "buff".
   // It does not append '\n' at the end of. the std::string
   void printActionNN(std::ostringstream & buff) {
-    std::string type = " R ";
-    if ( is_write_action ) type = " W ";
-    buff << accessing_task_id << type <<  destination_address << " " << value_written
+    std::string action_type = " R ";
+    if ( is_write_action ) action_type = " W ";
+    buff << accessing_task_id << action_type <<  destination_address << " " << value_written
          << " " << source_line_num << " " << source_func_id;
   }
 

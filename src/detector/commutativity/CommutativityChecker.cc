@@ -29,14 +29,14 @@ VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
 
     sttmt = Instruction::trim( sttmt );        // trim spaces
     if ( isValidStatement(sttmt) ) {           // check if normal statement
-      INTEGER lineNo = getLineNumber( sttmt );
+      INTEGER source_line_num = getLineNumber( sttmt );
       // skip instruction with line # 0: args to task body
-      if (lineNo <= 0) continue;
+      if (source_line_num <= 0) continue;
 
       sttmt = sttmt.substr(sttmt.find_first_not_of(' ',
                            sttmt.find_first_of(' ')));
       Instruction instr( sttmt );
-      instr.lineNo = lineNo;
+      instr.source_line_num = source_line_num;
       currentTask.push_back(instr);
       continue;
     } // if
@@ -87,8 +87,8 @@ BOOL CommutativityChecker::involveSimpleOperations(
   INTEGER index = -1;
 
   for (auto i = taskBody->begin(); i != taskBody->end(); i++) {
-     if (i->lineNo > lineNumber) break;
-     if (i->lineNo == lineNumber) instr  = *i;
+     if (i->source_line_num > lineNumber) break;
+     if (i->source_line_num == lineNumber) instr  = *i;
      index++;
   }
   
