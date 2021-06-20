@@ -31,14 +31,14 @@ TEST_F(TestMemoryActionsFixture, CheckConstructorWithActionArgument) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
   EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(addr, m_actions.destination_address);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckStoreActionFunction) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
   EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(addr, m_actions.destination_address);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
@@ -50,14 +50,14 @@ TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
   m_actions.storeAction(ut, addr, value, lineNo, funcId, false);
 
   EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(addr, m_actions.destination_address);
   EXPECT_FALSE(m_actions.isEmpty);
 
   EXPECT_EQ(taskId, m_actions.action.taskId);
-  EXPECT_EQ(addr, m_actions.action.addr);
+  EXPECT_EQ(addr, m_actions.action.destination_address);
   EXPECT_EQ(funcId, m_actions.action.funcId);
-  EXPECT_EQ(value, m_actions.action.value);
-  EXPECT_EQ(lineNo, m_actions.action.lineNo);
+  EXPECT_EQ(value, m_actions.action.value_written);
+  EXPECT_EQ(lineNo, m_actions.action.source_line_num);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckHasWrite) {

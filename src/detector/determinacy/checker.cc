@@ -200,8 +200,8 @@ VOID Checker::saveDeterminacyRaceReport(const Action& curMemAction,
     // code for recording errors
     std::pair<int, int> linePair =
         {
-          std::min(curMemAction.lineNo, prevMemAction.lineNo),
-          std::max(curMemAction.lineNo, prevMemAction.lineNo)
+          std::min(curMemAction.source_line_num, prevMemAction.source_line_num),
+          std::max(curMemAction.source_line_num, prevMemAction.source_line_num)
         };
     conflictTable[linePair].insert( aConflict );
   }
@@ -233,7 +233,7 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
     action.value_written = stol(tempBuff);
 
     ssin >> tempBuff; // line number
-    action.lineNo = stol(tempBuff);
+    action.source_line_num = stol(tempBuff);
 
     ssin >> action.funcId; // get function id
 
@@ -310,9 +310,9 @@ VOID Checker::reportConflicts() {
     for (auto aConflict : it.second) {
       std::cout << "      " <<  aConflict.addr << " lines: " << " "
                 << functions.at( aConflict.action1.funcId )
-                << ": "     << aConflict.action1.lineNo
+                << ": "     << aConflict.action1.source_line_num
                 << ", "     << functions.at( aConflict.action2.funcId )
-                << ": "     << aConflict.action2.lineNo
+                << ": "     << aConflict.action2.source_line_num
                 << " task ids: (" << aConflict.action1.taskId
                 << "["      << (aConflict.action1.isWrite? "W]" : "R]")
                 << " "      << aConflict.action2.taskId

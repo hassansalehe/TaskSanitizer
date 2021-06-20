@@ -62,8 +62,8 @@ bool CommutativityChecker::isCommutative(const Conflict & conflict) {
   if (conflict.action1.isWrite != conflict.action2.isWrite) {
     return false;
   }
-  INTEGER line1 = conflict.action1.lineNo;
-  INTEGER line2 = conflict.action2.lineNo;
+  INTEGER line1 = conflict.action1.source_line_num;
+  INTEGER line2 = conflict.action2.source_line_num;
   operationSet.clear(); // clear set of commuting operations
 
   // check if line1 operations commute & line2 operations commute

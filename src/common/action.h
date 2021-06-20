@@ -25,19 +25,19 @@ class Action {
   INTEGER taskId;        // task id of writer
   ADDRESS destination_address;
   VALUE value_written;
-  VALUE lineNo;          // source-line number
+  VALUE source_line_num;
   INTEGER funcId;        // the identifier of corresponding function
   std::string funcName;  // source-function name
   bool isWrite;          // true if this action is "write"
 
   Action(INTEGER tskId, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), value_written(val), lineNo(ln), funcId(fuId) {}
+    taskId(tskId), value_written(val), source_line_num(ln), funcId(fuId) {}
 
   Action(INTEGER tskId, ADDRESS adr, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), destination_address(adr), value_written(val), lineNo(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), funcId(fuId) { }
 
   Action(INTEGER tskId, address adr, lint val, int ln, INTEGER fuId ):
-    taskId(tskId), destination_address(adr), value_written(val), lineNo(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), funcId(fuId) { }
 
   Action() { }
 
@@ -54,7 +54,7 @@ class Action {
     std::string type = " R ";
     if ( isWrite ) type = " W ";
     buff << taskId << type <<  destination_address << " " << value_written
-         << " " << lineNo << " " << funcId;
+         << " " << source_line_num << " " << funcId;
   }
 
 }; // end Action

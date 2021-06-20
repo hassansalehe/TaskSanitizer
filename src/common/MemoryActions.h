@@ -57,7 +57,7 @@ class MemoryActions {
         action.destination_address = adr;
         action.funcId              = funcID;
         action.value_written       = val;
-        action.lineNo              = linNo;
+        action.source_line_num     = linNo;
         action.isWrite             = isWrite_;
 
         isEmpty             = false;
