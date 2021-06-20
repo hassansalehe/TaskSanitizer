@@ -166,7 +166,7 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
     // check write-write case (different values written)
     // 4.1 both write to shared memory
     if ( (taskActions.action.isWrite && lastWrt->action.isWrite) &&
-         (taskActions.action.value != lastWrt->action.value) ) {
+         (taskActions.action.value_written != lastWrt->action.value_written) ) {
       // write different values, code for recording errors
       saveDeterminacyRaceReport( taskActions.action, lastWrt->action );
     } else if ((!taskActions.action.isWrite) && lastWrt->action.isWrite) {
@@ -230,7 +230,7 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
     action.destination_address = (ADDRESS)stoul(tempBuff, 0, 16);
 
     ssin >> tempBuff; // value
-    action.value = stol(tempBuff);
+    action.value_written = stol(tempBuff);
 
     ssin >> tempBuff; // line number
     action.lineNo = stol(tempBuff);

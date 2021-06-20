@@ -56,7 +56,7 @@ class MemoryActions {
         action.taskId              = taskID;
         action.destination_address = adr;
         action.funcId              = funcID;
-        action.value               = val;
+        action.value_written       = val;
         action.lineNo              = linNo;
         action.isWrite             = isWrite_;
 
