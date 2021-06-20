@@ -522,8 +522,8 @@ bool TaskSanitizer::runOnFunction(llvm::Function &F) {
 bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
                                             const llvm::DataLayout &DL) {
   llvm::IRBuilder<> IRB(I);
-  bool IsWrite = llvm::isa<llvm::StoreInst>(*I);
-  llvm::Value *Addr = IsWrite
+  bool is_write_action = llvm::isa<llvm::StoreInst>(*I);
+  llvm::Value *Addr = is_write_action
       ? llvm::cast<llvm::StoreInst>(I)->getPointerOperand()
       : llvm::cast<llvm::LoadInst>(I)->getPointerOperand();
 
@@ -536,7 +536,7 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
   int Idx = getMemoryAccessFuncIndex(Addr, DL);
   if (Idx < 0)
     return false;
-  if (IsWrite && isVtableAccess(I)) {
+  if (is_write_action && isVtableAccess(I)) {
     llvm::dbgs() << "  VPTR : " << *I << "\n";
     llvm::Value *StoredValue = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
     // StoredValue may be a std::vector type if we are storing several vptrs at once.
@@ -553,23 +553,23 @@ bool TaskSanitizer::instrumentLoadOrStore(llvm::Instruction *I,
                     IRB.CreatePointerCast(StoredValue, IRB.getInt8PtrTy())});
     return true;
   }
-  if (!IsWrite && isVtableAccess(I)) {
+  if (!is_write_action && isVtableAccess(I)) {
     IRB.CreateCall(TsanVptrLoad,
                    IRB.CreatePointerCast(Addr, IRB.getInt8PtrTy()));
     return true;
   }
-  const unsigned Alignment = IsWrite
+  const unsigned Alignment = is_write_action
       ? llvm::cast<llvm::StoreInst>(I)->getAlignment()
       : llvm::cast<llvm::LoadInst>(I)->getAlignment();
   llvm::Type *OrigTy = llvm::cast<llvm::PointerType>(Addr->getType())->getElementType();
   const uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
   llvm::Value *OnAccessFunc = nullptr;
   if (Alignment == 0 || Alignment >= 8 || (Alignment % (TypeSize / 8)) == 0)
-    OnAccessFunc = IsWrite ? TsanWrite[Idx] : TsanRead[Idx];
+    OnAccessFunc = is_write_action ? TsanWrite[Idx] : TsanRead[Idx];
   else
-    OnAccessFunc = IsWrite ? TsanUnalignedWrite[Idx] : TsanUnalignedRead[Idx];
+    OnAccessFunc = is_write_action ? TsanUnalignedWrite[Idx] : TsanUnalignedRead[Idx];
 
-  if (IsWrite) {
+  if (is_write_action) {
       llvm::Value *Val = llvm::cast<llvm::StoreInst>(I)->getValueOperand();
       if ( Val->getType()->isFloatTy() )
           OnAccessFunc = TaskSanitizer_MemWriteFloat;

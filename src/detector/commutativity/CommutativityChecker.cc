@@ -59,7 +59,7 @@ VOID CommutativityChecker::parseTasksIR(char * IRlogName) {
 bool CommutativityChecker::isCommutative(const Conflict & conflict) {
 
   // skip commutativity check if read-write conflict
-  if (conflict.action1.isWrite != conflict.action2.isWrite) {
+  if (conflict.action1.is_write_action != conflict.action2.is_write_action) {
     return false;
   }
   INTEGER line1 = conflict.action1.source_line_num;

@@ -41,7 +41,7 @@ class MemoryActions {
     // Stores action if (a) is first action of task, or
     //                  (b) is last write action
     inline void storeAction(Action & act) {
-       if ( isEmpty || act.isWrite ) {
+       if ( isEmpty || act.is_write_action ) {
          action              = act;
          isEmpty             = false;
          taskId              = action.taskId;
@@ -51,14 +51,14 @@ class MemoryActions {
 
     inline void storeAction(uint & taskID, ADDRESS & adr,
                   INTEGER & val, INTEGER & linNo,
-                  INTEGER & funcID, bool isWrite_) {
-      if ( isEmpty || isWrite_) {
+                  INTEGER & funcID, bool is_write_action_) {
+      if ( isEmpty || is_write_action_) {
         action.taskId              = taskID;
         action.destination_address = adr;
-        action.funcId              = funcID;
+        action.source_func_id      = funcID;
         action.value_written       = val;
         action.source_line_num     = linNo;
-        action.isWrite             = isWrite_;
+        action.is_write_action     = is_write_action_;
 
         isEmpty             = false;
         taskId              = action.taskId;
@@ -68,7 +68,7 @@ class MemoryActions {
 
     // Returns true if current action is a write
     bool hasWrite() {
-      if ( isEmpty || ( !action.isWrite )) {
+      if ( isEmpty || ( !action.is_write_action )) {
         return false;
       } else {
         return true;

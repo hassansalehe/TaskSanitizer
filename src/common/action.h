@@ -26,18 +26,18 @@ class Action {
   ADDRESS destination_address;
   VALUE value_written;
   VALUE source_line_num;
-  INTEGER funcId;        // the identifier of corresponding function
-  std::string funcName;  // source-function name
-  bool isWrite;          // true if this action is "write"
+  INTEGER source_func_id;
+  std::string source_func_name;
+  bool is_write_action;
 
   Action(INTEGER tskId, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), value_written(val), source_line_num(ln), funcId(fuId) {}
+    taskId(tskId), value_written(val), source_line_num(ln), source_func_id(fuId) {}
 
   Action(INTEGER tskId, ADDRESS adr, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action(INTEGER tskId, address adr, lint val, int ln, INTEGER fuId ):
-    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), funcId(fuId) { }
+    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action() { }
 
@@ -52,9 +52,9 @@ class Action {
   // It does not append '\n' at the end of. the std::string
   void printActionNN(std::ostringstream & buff) {
     std::string type = " R ";
-    if ( isWrite ) type = " W ";
+    if ( is_write_action ) type = " W ";
     buff << taskId << type <<  destination_address << " " << value_written
-         << " " << source_line_num << " " << funcId;
+         << " " << source_line_num << " " << source_func_id;
   }
 
 }; // end Action

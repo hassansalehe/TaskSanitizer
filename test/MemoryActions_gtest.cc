@@ -13,7 +13,7 @@ protected:
   VALUE lineNo = 100;
   INTEGER funcId = 6;
   std::string funcName = "some_function";
-  bool isWrite = true;
+  bool is_write_action = true;
 
   Action m_act;
 
@@ -55,7 +55,7 @@ TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
 
   EXPECT_EQ(taskId, m_actions.action.taskId);
   EXPECT_EQ(addr, m_actions.action.destination_address);
-  EXPECT_EQ(funcId, m_actions.action.funcId);
+  EXPECT_EQ(funcId, m_actions.action.source_func_id);
   EXPECT_EQ(value, m_actions.action.value_written);
   EXPECT_EQ(lineNo, m_actions.action.source_line_num);
 }
@@ -70,12 +70,12 @@ TEST_F(TestMemoryActionsFixture, CheckHasWrite) {
   EXPECT_FALSE(m_actions.hasWrite());
 
   // Setting action to write
-  m_actions.action.isWrite = true;
+  m_actions.action.is_write_action = true;
   EXPECT_TRUE(m_actions.hasWrite());
 
   // adding a write action
-  m_actions.action.isWrite = false;
-  m_act.isWrite = true;
+  m_actions.action.is_write_action = false;
+  m_act.is_write_action = true;
   m_actions.storeAction(m_act);
   EXPECT_TRUE(m_actions.hasWrite());
 }
@@ -88,7 +88,7 @@ TEST_F(TestMemoryActionsFixture, ChecPrintEmptyAction) {
 }
 
 TEST_F(TestMemoryActionsFixture, ChecPrintExistingAction) {
-  m_act.isWrite = true;
+  m_act.is_write_action = true;
   MemoryActions m_actions(m_act);
   std::ostringstream os;
   m_actions.printActions(os);
