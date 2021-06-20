@@ -24,7 +24,7 @@ class MemoryActions {
 
     Action action;
 
-    int taskId;
+    int accessing_task_id;
     ADDRESS destination_address;
 
     // Default constructor
@@ -44,7 +44,7 @@ class MemoryActions {
        if ( isEmpty || act.is_write_action ) {
          action              = act;
          isEmpty             = false;
-         taskId              = action.taskId;
+         accessing_task_id   = action.accessing_task_id;
          destination_address = action.destination_address;
        }
     }
@@ -53,7 +53,7 @@ class MemoryActions {
                   INTEGER & val, INTEGER & linNo,
                   INTEGER & funcID, bool is_write_action_) {
       if ( isEmpty || is_write_action_) {
-        action.taskId              = taskID;
+        action.accessing_task_id   = taskID;
         action.destination_address = adr;
         action.source_func_id      = funcID;
         action.value_written       = val;
@@ -61,7 +61,7 @@ class MemoryActions {
         action.is_write_action     = is_write_action_;
 
         isEmpty             = false;
-        taskId              = action.taskId;
+        accessing_task_id   = action.accessing_task_id;
         destination_address = action.destination_address;
       }
     }

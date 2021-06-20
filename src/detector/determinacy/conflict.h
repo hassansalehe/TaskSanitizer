@@ -33,11 +33,11 @@ class Conflict {
   }
 
   inline int getTask1Id() {
-    return action1.taskId;
+    return action1.accessing_task_id;
   }
 
   inline int getTask2Id() {
-    return action2.taskId;
+    return action2.accessing_task_id;
   }
 
   bool operator<(const Conflict &RHS) const {

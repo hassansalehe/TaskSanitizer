@@ -113,7 +113,7 @@ void Checker::detectRaceOnMem(
     std::stringstream & ssin) {
 
   Action action;
-  action.taskId = taskID;
+  action.accessing_task_id = taskID;
   constructMemoryAction(ssin, operation, action);
 
   if (action.source_func_id == 0) {
@@ -127,7 +127,7 @@ void Checker::detectRaceOnMem(
     ssin >> separator;
     ssin >> taskID;
     Action lastWAction;
-    lastWAction.taskId = taskID;
+    lastWAction.accessing_task_id = taskID;
     ssin >> operation;
     constructMemoryAction(ssin, operation, lastWAction);
     memActions.storeAction( lastWAction ); // save second action
@@ -155,10 +155,10 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
   for (auto lastWrt = AddrActions.begin();
        lastWrt != AddrActions.end(); lastWrt++) {
     // actions of same task
-    if (taskActions.taskId == lastWrt->taskId) continue;
+    if (taskActions.accessing_task_id == lastWrt->accessing_task_id) continue;
 
-    auto HBfound = serial_bags[taskActions.taskId]->HB.find(lastWrt->taskId);
-    auto end     = serial_bags[taskActions.taskId]->HB.end();
+    auto HBfound = serial_bags[taskActions.accessing_task_id]->HB.find(lastWrt->accessing_task_id);
+    auto end     = serial_bags[taskActions.accessing_task_id]->HB.end();
     if (HBfound != end) continue; // 3. there's happens-before
 
     // 4. parallel, possible race! ((check race))
@@ -313,9 +313,9 @@ VOID Checker::reportConflicts() {
                 << ": "     << aConflict.action1.source_line_num
                 << ", "     << functions.at( aConflict.action2.source_func_id )
                 << ": "     << aConflict.action2.source_line_num
-                << " task ids: (" << aConflict.action1.taskId
+                << " task ids: (" << aConflict.action1.accessing_task_id
                 << "["      << (aConflict.action1.is_write_action? "W]" : "R]")
-                << " "      << aConflict.action2.taskId
+                << " "      << aConflict.action2.accessing_task_id
                 << "["      << (aConflict.action2.is_write_action? "W])" : "R])")
                 << std::endl;
       addressCount++;

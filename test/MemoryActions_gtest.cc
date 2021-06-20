@@ -18,7 +18,7 @@ protected:
   Action m_act;
 
   virtual void SetUp() {
-    m_act = Action(taskId, addr, value, lineNo, funcId);
+    m_act = Action(accessing_task_id, addr, value, lineNo, funcId);
   }
 };
 
@@ -30,14 +30,14 @@ TEST_F(TestMemoryActionsFixture, CheckConstructorIsEmptyTrue) {
 TEST_F(TestMemoryActionsFixture, CheckConstructorWithActionArgument) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
-  EXPECT_EQ(taskId, m_actions.taskId);
+  EXPECT_EQ(accessing_task_id, m_actions.accessing_task_id);
   EXPECT_EQ(addr, m_actions.destination_address);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckStoreActionFunction) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
-  EXPECT_EQ(taskId, m_actions.taskId);
+  EXPECT_EQ(accessing_task_id, m_actions.accessing_task_id);
   EXPECT_EQ(addr, m_actions.destination_address);
 }
 
@@ -46,14 +46,14 @@ TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
   EXPECT_TRUE(m_actions.isEmpty);
 
   // store
-  uint ut = taskId;
+  uint ut = accessing_task_id;
   m_actions.storeAction(ut, addr, value, lineNo, funcId, false);
 
-  EXPECT_EQ(taskId, m_actions.taskId);
+  EXPECT_EQ(accessing_task_id, m_actions.accessing_task_id);
   EXPECT_EQ(addr, m_actions.destination_address);
   EXPECT_FALSE(m_actions.isEmpty);
 
-  EXPECT_EQ(taskId, m_actions.action.taskId);
+  EXPECT_EQ(accessing_task_id, m_actions.action.accessing_task_id);
   EXPECT_EQ(addr, m_actions.action.destination_address);
   EXPECT_EQ(funcId, m_actions.action.source_func_id);
   EXPECT_EQ(value, m_actions.action.value_written);

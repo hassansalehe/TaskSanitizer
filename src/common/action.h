@@ -22,7 +22,7 @@
 
 class Action {
  public:
-  INTEGER taskId;        // task id of writer
+  INTEGER accessing_task_id;
   ADDRESS destination_address;
   VALUE value_written;
   VALUE source_line_num;
@@ -31,13 +31,13 @@ class Action {
   bool is_write_action;
 
   Action(INTEGER tskId, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), value_written(val), source_line_num(ln), source_func_id(fuId) {}
+    accessing_task_id(tskId), value_written(val), source_line_num(ln), source_func_id(fuId) {}
 
   Action(INTEGER tskId, ADDRESS adr, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
+    accessing_task_id(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action(INTEGER tskId, address adr, lint val, int ln, INTEGER fuId ):
-    taskId(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
+    accessing_task_id(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action() { }
 
@@ -53,7 +53,7 @@ class Action {
   void printActionNN(std::ostringstream & buff) {
     std::string type = " R ";
     if ( is_write_action ) type = " W ";
-    buff << taskId << type <<  destination_address << " " << value_written
+    buff << accessing_task_id << type <<  destination_address << " " << value_written
          << " " << source_line_num << " " << source_func_id;
   }
 
