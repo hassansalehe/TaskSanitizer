@@ -113,10 +113,10 @@ void Checker::detectRaceOnMem(
     std::stringstream & ssin) {
 
   Action action;
-  action.taskId = taskID;
+  action.accessing_task_id = taskID;
   constructMemoryAction(ssin, operation, action);
 
-  if (action.funcId == 0) {
+  if (action.source_func_id == 0) {
     std::cout << "Warning function Id 0: " << std::endl;
     exit(0);
   }
@@ -127,7 +127,7 @@ void Checker::detectRaceOnMem(
     ssin >> separator;
     ssin >> taskID;
     Action lastWAction;
-    lastWAction.taskId = taskID;
+    lastWAction.accessing_task_id = taskID;
     ssin >> operation;
     constructMemoryAction(ssin, operation, lastWAction);
     memActions.storeAction( lastWAction ); // save second action
@@ -147,34 +147,34 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
   //        write in the parallel writes,update and take it forward
   //        4.2.1 check conflicts with other parallel tasks
 
-  auto perAddrActions = writes.find( taskActions.addr );
+  auto perAddrActions = writes.find(taskActions.destination_address);
   if (perAddrActions == writes.end()) {// 1. first action
-     writes[taskActions.addr] = std::list<MemoryActions>();
+     writes[taskActions.destination_address] = std::list<MemoryActions>();
   }
-  std::list<MemoryActions> & AddrActions = writes[taskActions.addr];
+  std::list<MemoryActions> & AddrActions = writes[taskActions.destination_address];
   for (auto lastWrt = AddrActions.begin();
        lastWrt != AddrActions.end(); lastWrt++) {
     // actions of same task
-    if (taskActions.taskId == lastWrt->taskId) continue;
+    if (taskActions.accessing_task_id == lastWrt->accessing_task_id) continue;
 
-    auto HBfound = serial_bags[taskActions.taskId]->HB.find(lastWrt->taskId);
-    auto end     = serial_bags[taskActions.taskId]->HB.end();
+    auto HBfound = serial_bags[taskActions.accessing_task_id]->HB.find(lastWrt->accessing_task_id);
+    auto end     = serial_bags[taskActions.accessing_task_id]->HB.end();
     if (HBfound != end) continue; // 3. there's happens-before
 
     // 4. parallel, possible race! ((check race))
 
     // check write-write case (different values written)
     // 4.1 both write to shared memory
-    if ( (taskActions.action.isWrite && lastWrt->action.isWrite) &&
-         (taskActions.action.value != lastWrt->action.value) ) {
+    if ( (taskActions.action.is_write_action && lastWrt->action.is_write_action) &&
+         (taskActions.action.value_written != lastWrt->action.value_written) ) {
       // write different values, code for recording errors
       saveDeterminacyRaceReport( taskActions.action, lastWrt->action );
-    } else if ((!taskActions.action.isWrite) && lastWrt->action.isWrite) {
+    } else if ((!taskActions.action.is_write_action) && lastWrt->action.is_write_action) {
     // 4.2 read-after-write or write-after-read conflicts
     // (a) taskActions is read-only and lastWrt is a writer:
       // code for recording errors
       saveDeterminacyRaceReport(taskActions.action, lastWrt->action);
-    } else if ((!lastWrt->action.isWrite) && taskActions.action.isWrite ) {
+    } else if ((!lastWrt->action.is_write_action) && taskActions.action.is_write_action ) {
     // (b) lastWrt is read-only and taskActions is a writer:
       // code for recording errors
       saveDeterminacyRaceReport(taskActions.action, lastWrt->action);
@@ -185,7 +185,7 @@ void Checker::saveTaskActions( const MemoryActions & taskActions ) {
     AddrActions.pop_front(); // remove oldest element
   }
 
-  writes[taskActions.addr].push_back( taskActions ); // save
+  writes[taskActions.destination_address].push_back( taskActions ); // save
 }
 
 // Records the determinacy race warning to the conflicts table.
@@ -200,8 +200,8 @@ VOID Checker::saveDeterminacyRaceReport(const Action& curMemAction,
     // code for recording errors
     std::pair<int, int> linePair =
         {
-          std::min(curMemAction.lineNo, prevMemAction.lineNo),
-          std::max(curMemAction.lineNo, prevMemAction.lineNo)
+          std::min(curMemAction.source_line_num, prevMemAction.source_line_num),
+          std::max(curMemAction.source_line_num, prevMemAction.source_line_num)
         };
     conflictTable[linePair].insert( aConflict );
   }
@@ -227,20 +227,20 @@ void Checker::constructMemoryAction(std::stringstream & ssin,
                                     Action & action) {
     std::string tempBuff;
     ssin >> tempBuff; // address
-    action.addr = (ADDRESS)stoul(tempBuff, 0, 16);
+    action.destination_address = (ADDRESS)stoul(tempBuff, 0, 16);
 
     ssin >> tempBuff; // value
-    action.value = stol(tempBuff);
+    action.value_written = stol(tempBuff);
 
     ssin >> tempBuff; // line number
-    action.lineNo = stol(tempBuff);
+    action.source_line_num = stol(tempBuff);
 
-    ssin >> action.funcId; // get function id
+    ssin >> action.source_func_id; // get function id
 
     if (operation == "W") {
-      action.isWrite = true;
+      action.is_write_action = true;
     } else {
-      action.isWrite = false;
+      action.is_write_action = false;
     }
 #ifdef DEBUG // check if data correctly set
     std::cout << "Action constructed: ";
@@ -309,14 +309,14 @@ VOID Checker::reportConflicts() {
 
     for (auto aConflict : it.second) {
       std::cout << "      " <<  aConflict.addr << " lines: " << " "
-                << functions.at( aConflict.action1.funcId )
-                << ": "     << aConflict.action1.lineNo
-                << ", "     << functions.at( aConflict.action2.funcId )
-                << ": "     << aConflict.action2.lineNo
-                << " task ids: (" << aConflict.action1.taskId
-                << "["      << (aConflict.action1.isWrite? "W]" : "R]")
-                << " "      << aConflict.action2.taskId
-                << "["      << (aConflict.action2.isWrite? "W])" : "R])")
+                << functions.at( aConflict.action1.source_func_id )
+                << ": "     << aConflict.action1.source_line_num
+                << ", "     << functions.at( aConflict.action2.source_func_id )
+                << ": "     << aConflict.action2.source_line_num
+                << " task ids: (" << aConflict.action1.accessing_task_id
+                << "["      << (aConflict.action1.is_write_action? "W]" : "R]")
+                << " "      << aConflict.action2.accessing_task_id
+                << "["      << (aConflict.action2.is_write_action? "W])" : "R])")
                 << std::endl;
       addressCount++;
 

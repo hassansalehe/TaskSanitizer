@@ -39,19 +39,19 @@ public:
 
   size_t getSize() { return sections.size(); }
 
-  CriticalSectionBody *find(int lineNo) {
+  CriticalSectionBody *find(int source_line_num) {
     if (0 == sections.size()) return end();
 
     for (auto &cr : sections) {
-      if (cr.second.getStartLineNo() <= lineNo
-          && lineNo <= cr.second.getEndLineNo()) {
+      if (cr.second.getStartLineNo() <= source_line_num
+          && source_line_num <= cr.second.getEndLineNo()) {
         return &cr.second;
       }
     }
-    auto start = sections.lower_bound(lineNo);
+    auto start = sections.lower_bound(source_line_num);
     if (start == sections.end()) return end();
-    if ( lineNo >= start->second.getStartLineNo() &&
-        lineNo <= start->second.getEndLineNo() ) {
+    if ( source_line_num >= start->second.getStartLineNo() &&
+        source_line_num <= start->second.getEndLineNo() ) {
       return &start->second;
     }
 

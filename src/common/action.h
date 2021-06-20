@@ -22,22 +22,22 @@
 
 class Action {
  public:
-  INTEGER taskId;        // task id of writter
-  ADDRESS addr;          // destination address
-  VALUE value;           // value written
-  VALUE lineNo;          // source-line number
-  INTEGER funcId;        // the identifier of corresponding function
-  std::string funcName;  // source-function name
-  bool isWrite;          // true if this action is "write"
+  INTEGER accessing_task_id;
+  ADDRESS destination_address;
+  VALUE value_written;
+  VALUE source_line_num;
+  INTEGER source_func_id;
+  std::string source_func_name;
+  bool is_write_action;
 
   Action(INTEGER tskId, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), value(val), lineNo(ln), funcId(fuId) {}
+    accessing_task_id(tskId), value_written(val), source_line_num(ln), source_func_id(fuId) {}
 
   Action(INTEGER tskId, ADDRESS adr, VALUE val, VALUE ln, INTEGER fuId):
-    taskId(tskId), addr(adr), value(val), lineNo(ln), funcId(fuId) { }
+    accessing_task_id(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action(INTEGER tskId, address adr, lint val, int ln, INTEGER fuId ):
-    taskId(tskId), addr(adr), value(val), lineNo(ln), funcId(fuId) { }
+    accessing_task_id(tskId), destination_address(adr), value_written(val), source_line_num(ln), source_func_id(fuId) { }
 
   Action() { }
 
@@ -51,10 +51,10 @@ class Action {
   // Generates std::string representation of the action and stores in "buff".
   // It does not append '\n' at the end of. the std::string
   void printActionNN(std::ostringstream & buff) {
-    std::string type = " R ";
-    if ( isWrite ) type = " W ";
-    buff << taskId << type <<  addr << " " << value
-         << " " << lineNo << " " << funcId;
+    std::string action_type = " R ";
+    if ( is_write_action ) action_type = " W ";
+    buff << accessing_task_id << action_type <<  destination_address << " " << value_written
+         << " " << source_line_num << " " << source_func_id;
   }
 
 }; // end Action

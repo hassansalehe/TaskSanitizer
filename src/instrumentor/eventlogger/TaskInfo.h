@@ -44,18 +44,18 @@ typedef struct TaskInfo {
   // Stores the action info as performed by task. The rules for
   // storing this information are explained in MemoryActions.h
   inline void saveMemoryAction(Action & action) {
-    MemoryActions &loc = memoryLocations[action.addr];
+    MemoryActions &loc = memoryLocations[action.destination_address];
     loc.storeAction( action );
   }
 
   inline void saveReadAction(ADDRESS & addr,
-      INTEGER & lineNo,
+      INTEGER & source_line_num,
       const INTEGER funcID) {
 
     MemoryActions & loc = memoryLocations[addr];
     if ( !loc.hasWrite() ) {
-      Action action( taskID, addr, 0, lineNo, funcID );
-      action.isWrite = false;
+      Action action( taskID, addr, 0, source_line_num, funcID );
+      action.is_write_action = false;
       loc.storeAction( action );
     }
   }
@@ -63,12 +63,12 @@ typedef struct TaskInfo {
   inline void saveWriteAction(
       ADDRESS addr,
       INTEGER value,
-      INTEGER lineNo,
+      INTEGER source_line_num,
       INTEGER funcID) {
 
      MemoryActions & loc = memoryLocations[addr];
-     bool isWrite = true;
-     loc.storeAction(taskID, addr, value, lineNo, funcID, isWrite);
+     bool is_write_action = true;
+     loc.storeAction(taskID, addr, value, source_line_num, funcID, is_write_action);
   }
 
   // Prints to ostringstream all memory access actions recorded.

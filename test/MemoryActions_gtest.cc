@@ -10,15 +10,15 @@ protected:
   INTEGER taskId = 123;
   ADDRESS addr = 0x033;
   VALUE value = 42;
-  VALUE lineNo = 100;
+  VALUE source_line_num = 100;
   INTEGER funcId = 6;
   std::string funcName = "some_function";
-  bool isWrite = true;
+  bool is_write_action = true;
 
   Action m_act;
 
   virtual void SetUp() {
-    m_act = Action(taskId, addr, value, lineNo, funcId);
+    m_act = Action(taskId, addr, value, source_line_num, funcId);
   }
 };
 
@@ -30,15 +30,15 @@ TEST_F(TestMemoryActionsFixture, CheckConstructorIsEmptyTrue) {
 TEST_F(TestMemoryActionsFixture, CheckConstructorWithActionArgument) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
-  EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(taskId, m_actions.accessing_task_id);
+  EXPECT_EQ(addr, m_actions.destination_address);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckStoreActionFunction) {
   MemoryActions m_actions(m_act);
   EXPECT_FALSE(m_actions.isEmpty);
-  EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(taskId, m_actions.accessing_task_id);
+  EXPECT_EQ(addr, m_actions.destination_address);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
@@ -47,17 +47,17 @@ TEST_F(TestMemoryActionsFixture, CheckStoreActionFunctionWithParamsRead) {
 
   // store
   uint ut = taskId;
-  m_actions.storeAction(ut, addr, value, lineNo, funcId, false);
+  m_actions.storeAction(ut, addr, value, source_line_num, funcId, false);
 
-  EXPECT_EQ(taskId, m_actions.taskId);
-  EXPECT_EQ(addr, m_actions.addr);
+  EXPECT_EQ(taskId, m_actions.accessing_task_id);
+  EXPECT_EQ(addr, m_actions.destination_address);
   EXPECT_FALSE(m_actions.isEmpty);
 
-  EXPECT_EQ(taskId, m_actions.action.taskId);
-  EXPECT_EQ(addr, m_actions.action.addr);
-  EXPECT_EQ(funcId, m_actions.action.funcId);
-  EXPECT_EQ(value, m_actions.action.value);
-  EXPECT_EQ(lineNo, m_actions.action.lineNo);
+  EXPECT_EQ(taskId, m_actions.action.accessing_task_id);
+  EXPECT_EQ(addr, m_actions.action.destination_address);
+  EXPECT_EQ(funcId, m_actions.action.source_func_id);
+  EXPECT_EQ(value, m_actions.action.value_written);
+  EXPECT_EQ(source_line_num, m_actions.action.source_line_num);
 }
 
 TEST_F(TestMemoryActionsFixture, CheckHasWrite) {
@@ -70,12 +70,12 @@ TEST_F(TestMemoryActionsFixture, CheckHasWrite) {
   EXPECT_FALSE(m_actions.hasWrite());
 
   // Setting action to write
-  m_actions.action.isWrite = true;
+  m_actions.action.is_write_action = true;
   EXPECT_TRUE(m_actions.hasWrite());
 
   // adding a write action
-  m_actions.action.isWrite = false;
-  m_act.isWrite = true;
+  m_actions.action.is_write_action = false;
+  m_act.is_write_action = true;
   m_actions.storeAction(m_act);
   EXPECT_TRUE(m_actions.hasWrite());
 }
@@ -88,7 +88,7 @@ TEST_F(TestMemoryActionsFixture, ChecPrintEmptyAction) {
 }
 
 TEST_F(TestMemoryActionsFixture, ChecPrintExistingAction) {
-  m_act.isWrite = true;
+  m_act.is_write_action = true;
   MemoryActions m_actions(m_act);
   std::ostringstream os;
   m_actions.printActions(os);

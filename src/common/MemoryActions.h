@@ -24,8 +24,8 @@ class MemoryActions {
 
     Action action;
 
-    int taskId;
-    ADDRESS addr;     // destination address
+    int accessing_task_id;
+    ADDRESS destination_address;
 
     // Default constructor
     MemoryActions() {
@@ -41,34 +41,34 @@ class MemoryActions {
     // Stores action if (a) is first action of task, or
     //                  (b) is last write action
     inline void storeAction(Action & act) {
-       if ( isEmpty || act.isWrite ) {
-         action  = act;
-         isEmpty = false;
-         taskId  = action.taskId;
-         addr    = action.addr;
+       if ( isEmpty || act.is_write_action ) {
+         action              = act;
+         isEmpty             = false;
+         accessing_task_id   = action.accessing_task_id;
+         destination_address = action.destination_address;
        }
     }
 
     inline void storeAction(uint & taskID, ADDRESS & adr,
                   INTEGER & val, INTEGER & linNo,
-                  INTEGER & funcID, bool isWrite_) {
-      if ( isEmpty || isWrite_) {
-        action.taskId  = taskID;
-        action.addr    = adr;
-        action.funcId  = funcID;
-        action.value   = val;
-        action.lineNo  = linNo;
-        action.isWrite = isWrite_;
+                  INTEGER & funcID, bool is_write_action_) {
+      if ( isEmpty || is_write_action_) {
+        action.accessing_task_id   = taskID;
+        action.destination_address = adr;
+        action.source_func_id      = funcID;
+        action.value_written       = val;
+        action.source_line_num     = linNo;
+        action.is_write_action     = is_write_action_;
 
-        isEmpty = false;
-        taskId  = action.taskId;
-        addr    = action.addr;
+        isEmpty             = false;
+        accessing_task_id   = action.accessing_task_id;
+        destination_address = action.destination_address;
       }
     }
 
     // Returns true if current action is a write
     bool hasWrite() {
-      if ( isEmpty || ( !action.isWrite )) {
+      if ( isEmpty || ( !action.is_write_action )) {
         return false;
       } else {
         return true;

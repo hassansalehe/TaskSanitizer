@@ -36,16 +36,16 @@ public:
 
   CriticalSectionBody(std::vector<Instruction> _body) {
     if( _body.size() > 0 ) {
-      setStartLineNo( _body.front().lineNo );
-      setEndLineNo  ( _body.back().lineNo  );
+      setStartLineNo( _body.front().source_line_num );
+      setEndLineNo  ( _body.back().source_line_num  );
       body = _body;
     } else {
       throw "Critical section must contain at least one statement";
     }
   }
-  void   setStartLineNo(int lineNo) { startLineNo = lineNo; }
-  void   setEndLineNo(int lineNo) {
-    endLineNo = lineNo;
+  void   setStartLineNo(int source_line_num) { startLineNo = source_line_num; }
+  void   setEndLineNo(int source_line_num) {
+    endLineNo = source_line_num;
     assert(endLineNo >= startLineNo);
   }
   int    getStartLineNo()           { return startLineNo;   }

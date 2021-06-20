@@ -23,7 +23,7 @@
 
 class FunctionEngine {
   public:
-    void pushFunction(std::string name, unsigned taskID, int lineNo);
+    void pushFunction(std::string name, unsigned taskID, int source_line_num);
     void popFunction(std::string name, unsigned taskID);
     CallStack &getStack(unsigned taskID);
     void removeStack(unsigned taskID);

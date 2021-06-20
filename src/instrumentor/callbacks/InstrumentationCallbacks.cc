@@ -68,23 +68,23 @@ static TaskInfo * getTaskInfo(int * _type = NULL) {
 inline void INS_MemRead(
   address addr,
     ulong size,
-    int lineNo,
+    int source_line_num,
     address funcName) {
 
-  if (!lineNo) return;
+  if (!source_line_num) return;
 
   TaskInfo * taskInfo = getTaskInfo();
   //lint value = getMemoryValue( addr, size );
   //uint threadID = (uint)pthread_self();
 
   if ( taskInfo && taskInfo->active ) {
-    INS::Read(*taskInfo, addr, lineNo, (char*)funcName);
+    INS::Read(*taskInfo, addr, source_line_num, (char*)funcName);
 #ifdef DEBUG
     std::stringstream ss;
     ss << std::hex << addr;
     PRINT_DEBUG("READ: addr: " + ss.str() +
         " taskID: " + std::to_string(taskInfo->taskID) +
-        " line no: " + std::to_string(lineNo));
+        " line no: " + std::to_string(source_line_num));
 #endif
   }
 }
@@ -93,23 +93,23 @@ inline void INS_MemRead(
 inline void INS_MemWrite(
     address addr,
     lint value,
-    int lineNo,
+    int source_line_num,
     address funcName ) {
 
-  if (!lineNo) return;
+  if (!source_line_num) return;
 
   TaskInfo * taskInfo = getTaskInfo();
   //uint threadID = (uint)pthread_self();
 
   if ( taskInfo && taskInfo->active ) {
-    INS::Write(*taskInfo, addr, (lint)value, lineNo, (char*)funcName );
+    INS::Write(*taskInfo, addr, (lint)value, source_line_num, (char*)funcName );
 #ifdef DEBUG
     std::stringstream ss;
     ss << std::hex << addr;
     PRINT_DEBUG("= WRITE: addr: " + ss.str() +
         ", value: " + std::to_string((lint)value) +
         ", taskID: " + std::to_string(taskInfo->taskID) +
-        ", line number: " + std::to_string(lineNo) +
+        ", line number: " + std::to_string(source_line_num) +
         ", func name: " + std::string((char*)funcName));
 #endif
   }
@@ -119,9 +119,9 @@ inline void INS_MemWrite(
 void __tasksan_write_float(
     address addr,
     float value,
-    int lineNo,
+    int source_line_num,
     address funcName) {
-  INS_MemWrite(addr, (lint)value, lineNo, funcName);
+  INS_MemWrite(addr, (lint)value, source_line_num, funcName);
 }
 
 void __tasksan_register_iir_file(void * fileName) {
@@ -132,52 +132,52 @@ void __tasksan_register_iir_file(void * fileName) {
 void __tasksan_write_double(
     address addr,
     double value,
-    int lineNo,
+    int source_line_num,
     address funcName) {
-  INS_MemWrite(addr, (lint)value, lineNo, funcName);
+  INS_MemWrite(addr, (lint)value, source_line_num, funcName);
 }
 
 void __tasksan_flush_memory() {
   PRINT_DEBUG("  TaskSanitizer: flush memory");
 }
 
-void __tasksan_read1(void *addr, int lineNo, address funcName) {
-  INS_MemRead(addr, 1, lineNo, funcName);
+void __tasksan_read1(void *addr, int source_line_num, address funcName) {
+  INS_MemRead(addr, 1, source_line_num, funcName);
 }
-void __tasksan_read2(void *addr, int lineNo, address funcName) {
-  INS_MemRead(addr, 2, lineNo, funcName);
-}
-
-void __tasksan_read4(void *addr, int lineNo, address funcName) {
-  INS_MemRead(addr, 4, lineNo, funcName);
+void __tasksan_read2(void *addr, int source_line_num, address funcName) {
+  INS_MemRead(addr, 2, source_line_num, funcName);
 }
 
-void __tasksan_read8(void *addr, int lineNo, address funcName) {
-  INS_MemRead( addr, 8, lineNo, funcName );
+void __tasksan_read4(void *addr, int source_line_num, address funcName) {
+  INS_MemRead(addr, 4, source_line_num, funcName);
 }
 
-void __tasksan_read16(void *addr, int lineNo, address funcName) {
-  INS_MemRead( addr, 16, lineNo, funcName );
+void __tasksan_read8(void *addr, int source_line_num, address funcName) {
+  INS_MemRead( addr, 8, source_line_num, funcName );
 }
 
-void __tasksan_write1(void *addr, lint value, int lineNo, address funcName) {
-  INS_MemWrite((address)addr, value, lineNo, funcName);
+void __tasksan_read16(void *addr, int source_line_num, address funcName) {
+  INS_MemRead( addr, 16, source_line_num, funcName );
 }
 
-void __tasksan_write2(void *addr, lint value, int lineNo, address funcName) {
-  INS_MemWrite((address)addr, value, lineNo, funcName);
+void __tasksan_write1(void *addr, lint value, int source_line_num, address funcName) {
+  INS_MemWrite((address)addr, value, source_line_num, funcName);
 }
 
-void __tasksan_write4(void *addr, lint value, int lineNo, address funcName) {
-  INS_MemWrite((address)addr, value, lineNo, funcName);
+void __tasksan_write2(void *addr, lint value, int source_line_num, address funcName) {
+  INS_MemWrite((address)addr, value, source_line_num, funcName);
 }
 
-void __tasksan_write8(void *addr, lint value, int lineNo, address funcName) {
-  INS_MemWrite((address)addr, value, lineNo, funcName);
+void __tasksan_write4(void *addr, lint value, int source_line_num, address funcName) {
+  INS_MemWrite((address)addr, value, source_line_num, funcName);
 }
 
-void __tasksan_write16(void *addr, lint value, int lineNo, address funcName) {
-  INS_MemWrite((address)addr, value, lineNo, funcName);
+void __tasksan_write8(void *addr, lint value, int source_line_num, address funcName) {
+  INS_MemWrite((address)addr, value, source_line_num, funcName);
+}
+
+void __tasksan_write16(void *addr, lint value, int source_line_num, address funcName) {
+  INS_MemWrite((address)addr, value, source_line_num, funcName);
 }
 
 void __tasksan_unaligned_read2(const void *addr) {
