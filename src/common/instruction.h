@@ -38,7 +38,7 @@ class Instruction {
   Instruction(std::string stmt) {
 
     raw = trim( stmt );
-    std::vector<std::string> contents = splitInstruction( raw );
+    auto contents = splitInstruction( raw );
 
     if (contents[0] == "store") {
       oper = STORE;
@@ -139,9 +139,14 @@ class Instruction {
 
   // Trims the left and right spaces from a std::string
   static std::string trim(std::string sentence) {
-    size_t start = sentence.find_first_not_of(' ');
-    size_t end = sentence.find_last_not_of(' ');
-    return sentence.substr(start, (end -start)+1);
+    auto start = sentence.find_first_not_of(' ');
+    auto end = sentence.find_last_not_of(' ');
+
+    if (start != std::string::npos) {
+      return sentence.substr(start, (end -start)+1);
+    } else {
+      return "";
+    }
   }
 
   // Splits std::string into tokens substrings
