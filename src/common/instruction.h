@@ -30,6 +30,9 @@ class Instruction {
   // raw representation of instruction
   std::string raw;
 
+  const std::unordered_map<std::string, OPERATION> operation_map{
+    {"add", ADD}, {"sub", SUB}, {"mul", MUL}, {"shl", SHL}, };
+
   // Default constructor
   Instruction() {}
 
@@ -67,9 +70,7 @@ class Instruction {
     } else if (contents[2] == "add" || contents[2] == "sub" ||
              contents[2] == "mul" || contents[2] == "shl") {
       destination = contents[0];
-      oper = (contents[2] == "add") ? ADD :
-               (oper = (contents[2] == "sub") ? SUB :
-                  (oper = (contents[2] == "mul") ? MUL : SHL));
+      oper = operation_map.at(contents[2]);
       // <result> = add nuw nsw <ty> <op1>, <op2>  ; yields {ty}:result
       if (contents[3] == "nuw" && contents[4] == "nsw") {
         type = contents[5];
@@ -96,7 +97,7 @@ class Instruction {
       oper = BITCAST;
       operand1 = contents[4];
       operand2 = contents[4];
-    } else if (contents[0] == "call") {
+    } else if (contents[0] == "call" || contents[2] == "call") {
       oper = CALL;
     }
 

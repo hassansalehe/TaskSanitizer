@@ -53,3 +53,18 @@ TEST(InstructionTests, CheckInstructionForAlloca) {
   EXPECT_EQ("%balance", instr.destination);
   EXPECT_EQ("i32", instr.type);
 }
+
+TEST(InstructionTests, CheckInstructionForBitcast) {
+  std::string raw_instruction("%1 = bitcast %struct.Foo* %my_struct to void (%struct. Foo*)***");
+  Instruction instr(raw_instruction);
+  EXPECT_EQ(BITCAST, instr.oper);
+  EXPECT_EQ("%1", instr.destination);
+  EXPECT_EQ("%my_struct", instr.operand1);
+  EXPECT_EQ("%my_struct", instr.operand2);
+}
+
+TEST(InstructionTests, CheckInstructionForCall) {
+  std::string raw_instruction("%x = call i32 @someFunction()");
+  Instruction instr(raw_instruction);
+  EXPECT_EQ(CALL, instr.oper);
+}
