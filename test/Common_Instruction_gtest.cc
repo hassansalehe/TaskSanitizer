@@ -36,3 +36,12 @@ TEST(InstructionTests, CheckInstructionForStore) {
   EXPECT_EQ("%2", instr.operand1);
   EXPECT_EQ("%2", instr.operand2);
 }
+
+TEST(InstructionTests, CheckInstructionForLoad) {
+  std::string raw_instruction(" %1 = load i32 * %balance");
+  Instruction instr(raw_instruction);
+  EXPECT_EQ(LOAD, instr.oper);
+  EXPECT_EQ("%1", instr.destination);
+  EXPECT_EQ("i32", instr.type);
+  EXPECT_EQ("%balance", instr.operand1);
+}
