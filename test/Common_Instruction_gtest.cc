@@ -45,3 +45,11 @@ TEST(InstructionTests, CheckInstructionForLoad) {
   EXPECT_EQ("i32", instr.type);
   EXPECT_EQ("%balance", instr.operand1);
 }
+
+TEST(InstructionTests, CheckInstructionForAlloca) {
+  std::string raw_instruction("%balance = alloca i32 , align 4 ");
+  Instruction instr(raw_instruction);
+  EXPECT_EQ(ALLOCA, instr.oper);
+  EXPECT_EQ("%balance", instr.destination);
+  EXPECT_EQ("i32", instr.type);
+}
