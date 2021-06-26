@@ -2,17 +2,14 @@
 
 #include "common/instruction.h"
 
-// TEST(TestInstruction, TestConversion) {
-// }
-
-TEST(TestInstruction, TestTrimHelperFunction) {
+TEST(InstructionTests, CheckTrimHelperFunction) {
   std::string raw_instruction(" store balance r6 ");
   EXPECT_EQ(std::string("store balance r6"), Instruction::trim(raw_instruction));
 
   EXPECT_TRUE(Instruction::trim("      ").empty());
 }
 
-TEST(TestInstruction, TestSplitInstructionFunction) {
+TEST(InstructionTests, CheckSplitInstructionFunction) {
   std::string raw_instruction(" store balance r6 ");
   Instruction instr;
   auto chunks = instr.splitInstruction(raw_instruction);
@@ -23,14 +20,14 @@ TEST(TestInstruction, TestSplitInstructionFunction) {
   EXPECT_EQ("r6", chunks.at(2));
 }
 
-TEST(TestInstruction, TestSplitInstructionFunctionEmptyString) {
+TEST(InstructionTests, CheckSplitInstructionFunctionEmptyString) {
   std::string raw_instruction("   ");
   Instruction instr;
   auto chunks = instr.splitInstruction(raw_instruction);
   EXPECT_EQ(0UL, chunks.size());
 }
 
-TEST(TestInstruction, checkInstructionForStore) {
+TEST(InstructionTests, CheckInstructionForStore) {
   std::string raw_instruction(" store i32 %2, i32* %balance ");
   Instruction instr(raw_instruction);
   EXPECT_EQ(STORE, instr.oper);
