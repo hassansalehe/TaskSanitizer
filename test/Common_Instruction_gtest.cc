@@ -60,7 +60,7 @@ TEST(InstructionTests, CheckInstructionForBitcast) {
   EXPECT_EQ(BITCAST, instr.oper);
   EXPECT_EQ("%1", instr.destination);
   EXPECT_EQ("%my_struct", instr.operand1);
-  EXPECT_EQ("%my_struct", instr.operand2)
+  EXPECT_EQ("%my_struct", instr.operand2);
 }
 
 TEST(InstructionTests, CheckInstructionForCall) {
