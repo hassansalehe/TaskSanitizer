@@ -2,7 +2,7 @@
 //  TaskSanitizer: determinacy race detection tool
 //          for OpenMP task applications
 //
-//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
+//    Copyright (c) 2015 - 2021 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
