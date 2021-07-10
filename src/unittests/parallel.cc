@@ -2,7 +2,7 @@
 //
 // parallel.cc
 //
-// Copyright (c) 2015 - 2018 Hassan Salehe Matar
+// Copyright (c) 2015 - 2021 Hassan Salehe Matar
 // All rights reserved.
 //
 // This file is part of TaskSanitizer. For details, see
