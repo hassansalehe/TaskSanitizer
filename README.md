@@ -211,6 +211,6 @@ The following 1 task pairs have conflicts:
 ```
 
 #### Copyright notice
-(c) 2015 - 2018 Hassan Salehe Matar  
+(c) 2015 - 2021 Hassan Salehe Matar  
 All rights reserved.   
 Please read license file LICENSE on usage license.
