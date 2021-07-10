@@ -2,7 +2,7 @@
 //  TaskSanitizer: a lightweight determinacy race checking
 //          tool for OpenMP task applications
 //
-//    Copyright (c) 2015 - 2018 Hassan Salehe Matar
+//    Copyright (c) 2015 - 2021 Hassan Salehe Matar
 //      Copying or using this code by any means whatsoever
 //      without consent of the owner is strictly prohibited.
 //
@@ -51,7 +51,7 @@ void Checker::onTaskCreate(int taskID) {
     // 1.find the parent bag which can be inherited
     SerialBagPtr taskBag = NULL;
     auto inEdge = graph[taskID].inEdges.begin();
-/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
+/* Hassan 02.01.2021 modify this code to accommodate chunked tasks.
     for (; inEdge != graph[taskID].inEdges.end(); inEdge++) {
 
       // take with outstr 1 and longest
@@ -78,7 +78,7 @@ void Checker::onTaskCreate(int taskID) {
       auto aBag = serial_bags[*inEdge];
       taskBag->HB.insert(aBag->HB.begin(), aBag->HB.end()); // merging...
       taskBag->HB.insert(*inEdge); // parents happen-before me
-/* Hassan 02.01.2018 modify this code to accommodate chunked tasks.
+/* Hassan 02.01.2021 modify this code to accommodate chunked tasks.
       aBag->outBufferCount--; // for inheriting bags
       if (!aBag->outBufferCount)
         serial_bags.erase(*inEdge);

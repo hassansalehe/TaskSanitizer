@@ -2,7 +2,7 @@
 //
 // critical.cc
 //
-// Copyright (c) 2017, Hassan Salehe Matar
+// Copyright (c) 2017 - 2021, Hassan Salehe Matar
 // All rights reserved.
 //
 // This file is part of TaskSanitizer. For details, see

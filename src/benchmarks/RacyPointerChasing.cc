@@ -2,7 +2,7 @@
 //
 // RacyPointerChasing.cc
 //
-// Copyright (c) 2015 - 2018 Hassan Salehe Matar
+// Copyright (c) 2015 - 2021 Hassan Salehe Matar
 // All rights reserved.
 //
 //  This code has been influenced by an OpenMP forum:
